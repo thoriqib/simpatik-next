@@ -19,7 +19,19 @@ export default async function PenilaianAdminPage({ searchParams }: { searchParam
         .order('created_at', { ascending: false });
 
     if (params.nilai) query = query.eq('nilai', Number(params.nilai));
-    const { data: penilaian } = await query;
+
+    // [FIX] Cast eksplisit karena Supabase tanpa generated types menebak
+    // relasi to-one (profiles, antrian.jenis_layanan) sebagai array.
+    type PenilaianAdmin = {
+        id: number;
+        nilai: number;
+        komentar: string | null;
+        created_at: string;
+        profiles: { name: string } | null;
+        antrian: { tanggal: string; jenis_layanan: { nama_layanan: string } | null };
+    };
+    const { data: penilaianRaw } = await query;
+    const penilaian = penilaianRaw as unknown as PenilaianAdmin[] | null;
 
     const nilaiRata = penilaian && penilaian.length > 0
         ? penilaian.reduce((sum, p) => sum + p.nilai, 0) / penilaian.length

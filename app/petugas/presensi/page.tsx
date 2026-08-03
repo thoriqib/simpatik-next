@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { todayDateStringWIB } from '@/lib/utils';
 import { PresensiPanel } from '../dashboard/PresensiPanel';
+import type { JadwalPiket } from '@/lib/types/database';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,19 +19,25 @@ export default async function PresensiPetugasPage({ searchParams }: { searchPara
     const { data: { user } } = await supabase.auth.getUser();
     const today = todayDateStringWIB();
 
-    const { data: jadwalHariIni } = await supabase
+    // [FIX] Cast eksplisit — relasi to-one `shift_piket` ditebak sebagai
+    // array tanpa generated types.
+    const { data: jadwalHariIniRaw } = await supabase
         .from('jadwal_piket')
         .select('*, shift_piket(*), presensi(*)')
         .eq('user_id', user!.id)
         .eq('tanggal', today)
         .maybeSingle();
 
-    const { data: jadwalBulan } = await supabase
+    const jadwalHariIni = jadwalHariIniRaw as unknown as JadwalPiket | null;
+
+    const { data: jadwalBulanRaw } = await supabase
         .from('jadwal_piket')
         .select('*, shift_piket(*), presensi(*)')
         .eq('user_id', user!.id)
         .gte('tanggal', start).lte('tanggal', end)
         .order('tanggal');
+
+    const jadwalBulan = jadwalBulanRaw as unknown as JadwalPiket[] | null;
 
     const rekap = { hadir: 0, izin: 0, sakit: 0, alpha: 0, terjadwal: 0, totalKekurangan: 0 };
     (jadwalBulan ?? []).forEach((j) => {

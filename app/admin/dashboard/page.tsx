@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { todayDateStringWIB } from '@/lib/utils';
 import { Users, Ticket, CheckCircle2, MessageSquareWarning } from 'lucide-react';
+import type { Antrian } from '@/lib/types/database';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,12 +18,16 @@ export default async function AdminDashboard() {
     const { count: antrianSelesai } = await supabase.from('antrian').select('*', { count: 'exact', head: true }).eq('tanggal', today).eq('status', 'selesai');
     const { count: pengaduanBaru } = await supabase.from('pengaduan').select('*', { count: 'exact', head: true }).eq('status', 'baru');
 
-    const { data: antrianAktif } = await supabase
+    // [FIX] Cast eksplisit — relasi to-one (jenis_layanan, profiles) ditebak
+    // sebagai array tanpa generated types.
+    const { data: antrianAktifRaw } = await supabase
         .from('antrian')
         .select('*, jenis_layanan(nama_layanan), profiles(name)')
         .eq('tanggal', today)
         .in('status', ['menunggu', 'dipanggil', 'dilayani'])
         .order('nomor_urut');
+
+    const antrianAktif = antrianAktifRaw as unknown as Antrian[] | null;
 
     const stats = [
         { label: 'Total Petugas', value: totalPetugas ?? 0, tint: 'bg-azure-500/10 text-azure-500' },

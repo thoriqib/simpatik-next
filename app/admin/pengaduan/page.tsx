@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import Link from 'next/link';
+import type { Pengaduan } from '@/lib/types/database';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,7 +12,11 @@ export default async function PengaduanListPage({ searchParams }: { searchParams
 
     let query = supabase.from('pengaduan').select('*, profiles(name)').order('created_at', { ascending: false });
     if (status) query = query.eq('status', status);
-    const { data: pengaduan } = await query;
+
+    // [FIX] Cast eksplisit — relasi to-one `profiles` ditebak sebagai array
+    // tanpa generated types, padahal runtime-nya objek tunggal.
+    const { data: pengaduanRaw } = await query;
+    const pengaduan = pengaduanRaw as unknown as Pengaduan[] | null;
 
     const { count: jumlahBaru } = await supabase.from('pengaduan').select('*', { count: 'exact', head: true }).eq('status', 'baru');
     const { count: jumlahDiproses } = await supabase.from('pengaduan').select('*', { count: 'exact', head: true }).eq('status', 'diproses');

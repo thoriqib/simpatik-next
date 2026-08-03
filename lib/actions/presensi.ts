@@ -28,11 +28,15 @@ export async function presensiMasuk(jadwalPiketId: number) {
         return { info: 'Anda sudah melakukan presensi masuk hari ini.' };
     }
 
-    const { data: jadwal } = await supabase
+    const { data: jadwalRaw } = await supabase
         .from('jadwal_piket')
         .select('*, shift_piket(*)')
         .eq('id', jadwalPiketId)
         .single();
+
+    // [FIX] Cast eksplisit — relasi to-one `shift_piket` ditebak sebagai
+    // array tanpa generated types.
+    const jadwal = jadwalRaw as unknown as { user_id: string; shift_piket: { jam_mulai: string; jam_selesai: string } } | null;
 
     if (!jadwal || jadwal.user_id !== user.id) {
         return { error: 'Jadwal tidak ditemukan atau bukan milik Anda.' };

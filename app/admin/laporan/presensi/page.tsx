@@ -12,10 +12,21 @@ export default async function LaporanPresensiPage({ searchParams }: { searchPara
     const end = new Date(tahun, bulan, 0).toISOString().slice(0, 10);
 
     const supabase = await createClient();
-    const { data: jadwal } = await supabase
+
+    // [FIX] Cast eksplisit — relasi to-one `profiles` ditebak sebagai array
+    // tanpa generated types; `presensi` tetap array (sesuai akses presensi?.[0]).
+    type JadwalPresensiRow = {
+        status: string;
+        profiles: { name: string } | null;
+        presensi: { kekurangan_menit: number }[] | null;
+    };
+
+    const { data: jadwalRaw } = await supabase
         .from('jadwal_piket')
         .select('*, profiles(name), presensi(kekurangan_menit)')
         .gte('tanggal', start).lte('tanggal', end);
+
+    const jadwal = jadwalRaw as unknown as JadwalPresensiRow[] | null;
 
     const rekapMap = new Map<string, { nama: string; hadir: number; izin: number; sakit: number; alpha: number; terjadwal: number; total: number; kekurangan: number }>();
     (jadwal ?? []).forEach((j) => {

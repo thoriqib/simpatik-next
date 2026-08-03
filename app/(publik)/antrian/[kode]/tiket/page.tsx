@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/Badge';
 import { todayDateStringWIB } from '@/lib/utils';
 import Link from 'next/link';
 import { RefreshCw, MonitorPlay, Star } from 'lucide-react';
+import type { Antrian } from '@/lib/types/database';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,12 +13,16 @@ export default async function TiketPage({ params }: { params: Promise<{ kode: st
     const { kode } = await params;
     const supabase = await createClient();
 
-    const { data: antrian } = await supabase
+    // [FIX] Cast eksplisit — relasi to-one `jenis_layanan` ditebak sebagai
+    // array tanpa generated types.
+    const { data: antrianRaw } = await supabase
         .from('antrian')
         .select('*, jenis_layanan(*), penilaian(id)')
         .eq('kode_antrian', kode)
         .eq('tanggal', todayDateStringWIB())
         .single();
+
+    const antrian = antrianRaw as unknown as Antrian | null;
 
     if (!antrian) notFound();
 
@@ -41,7 +46,7 @@ export default async function TiketPage({ params }: { params: Promise<{ kode: st
 
                 {/* Signature: nomor antrian besar di atas tekstur kertas grafik */}
                 <div className="relative px-6 py-8 text-center border-b border-dashed border-paper-200 bg-grid-dot">
-                    <div className="text-[11px] text-navy-950/40 uppercase tracking-widest mb-2 font-medium">{antrian.jenis_layanan.nama_layanan}</div>
+                    <div className="text-[11px] text-navy-950/40 uppercase tracking-widest mb-2 font-medium">{antrian.jenis_layanan?.nama_layanan}</div>
                     <div className="font-mono text-7xl font-semibold text-navy-950 tracking-tight tabular">{antrian.kode_antrian}</div>
                     <div className="text-sm text-navy-950/70 mt-3 font-medium">{antrian.nama_pengunjung}</div>
                     <div className="text-xs text-navy-950/40 mt-0.5">{formatTanggal(antrian.tanggal)}</div>

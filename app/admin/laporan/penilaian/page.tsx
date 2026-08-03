@@ -12,11 +12,25 @@ export default async function LaporanPenilaianPage({ searchParams }: { searchPar
     const supabase = await createClient();
 
     const { data: petugasList } = await supabase.from('profiles').select('id, name').eq('role', 'petugas');
-    const { data: penilaian } = await supabase
+
+    // [FIX] Tanpa Database generated types, Supabase menebak relasi to-one
+    // (profiles, antrian.jenis_layanan) sebagai array. Runtime-nya tetap
+    // objek tunggal — cast eksplisit ke bentuk yang sebenarnya.
+    type PenilaianLaporan = {
+        nilai: number;
+        komentar: string | null;
+        petugas_id: string;
+        profiles: { name: string } | null;
+        antrian: { tanggal: string; jenis_layanan: { nama_layanan: string } | null };
+    };
+
+    const { data: penilaianRaw } = await supabase
         .from('penilaian')
         .select('nilai, komentar, petugas_id, profiles(name), antrian!inner(tanggal, jenis_layanan(nama_layanan))')
         .gte('antrian.tanggal', dari)
         .lte('antrian.tanggal', sampai);
+
+    const penilaian = penilaianRaw as unknown as PenilaianLaporan[] | null;
 
     const rankingMap = new Map<string, { nama: string; total: number; jumlah: number }>();
     (petugasList ?? []).forEach((p) => rankingMap.set(p.id, { nama: p.name, total: 0, jumlah: 0 }));

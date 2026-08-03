@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import Link from 'next/link';
 import { TanggapiForm } from './TanggapiForm';
+import type { Pengaduan } from '@/lib/types/database';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,7 +12,10 @@ export default async function DetailPengaduanPage({ params }: { params: Promise<
     const { id } = await params;
     const supabase = await createClient();
 
-    const { data: pengaduan } = await supabase.from('pengaduan').select('*, profiles(name)').eq('id', id).single();
+    // [FIX] Cast eksplisit — tanpa generated types, Supabase menebak
+    // relasi to-one `profiles` sebagai array, padahal runtime-nya objek.
+    const { data: pengaduanRaw } = await supabase.from('pengaduan').select('*, profiles(name)').eq('id', id).single();
+    const pengaduan = pengaduanRaw as unknown as Pengaduan | null;
     if (!pengaduan) notFound();
 
     let lampiranUrl: string | null = null;

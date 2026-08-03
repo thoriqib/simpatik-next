@@ -17,12 +17,27 @@ export default async function JadwalPage({ searchParams }: { searchParams: Promi
     const end = new Date(tahun, bulan, 0).toISOString().slice(0, 10);
 
     const supabase = await createClient();
-    const { data: jadwal } = await supabase
+
+    // [FIX] Cast eksplisit — relasi to-one (profiles, shift_piket) ditebak
+    // sebagai array tanpa generated types. `presensi` tetap array (memang
+    // diakses via presensi?.[0] di JSX, konsisten dengan bentuk aslinya).
+    type JadwalRow = {
+        id: number;
+        tanggal: string;
+        status: string;
+        profiles: { name: string } | null;
+        shift_piket: { nama_shift: string; jam_mulai: string; jam_selesai: string } | null;
+        presensi: { waktu_masuk: string | null; waktu_keluar: string | null }[] | null;
+    };
+
+    const { data: jadwalRaw } = await supabase
         .from('jadwal_piket')
         .select('*, profiles(name), shift_piket(*), presensi(waktu_masuk, waktu_keluar)')
         .gte('tanggal', start)
         .lte('tanggal', end)
         .order('tanggal');
+
+    const jadwal = jadwalRaw as unknown as JadwalRow[] | null;
 
     const { data: petugas } = await supabase.from('profiles').select('id, name').eq('role', 'petugas').order('name');
     const { data: shifts } = await supabase.from('shift_piket').select('*').eq('is_aktif', true);

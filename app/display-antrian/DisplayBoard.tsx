@@ -40,7 +40,8 @@ export function DisplayBoard({
                 .in('status', ['dipanggil', 'dilayani'])
                 .order('waktu_panggil', { ascending: false })
                 .limit(10);
-            setAntrian((data as Antrian[]) ?? []);
+            // [FIX] Cast eksplisit — relasi to-one ditebak sebagai array tanpa generated types.
+            setAntrian((data as unknown as Antrian[]) ?? []);
 
             const { count: m } = await supabase.from('antrian').select('*', { count: 'exact', head: true })
                 .eq('tanggal', today).eq('status', 'menunggu');

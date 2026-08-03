@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/Card';
 import { todayDateStringWIB } from '@/lib/utils';
 import { PresensiPanel } from './PresensiPanel';
 import { AntrianPanel } from './AntrianPanel';
+import type { JadwalPiket, Antrian } from '@/lib/types/database';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,19 +12,25 @@ export default async function PetugasDashboard() {
     const { data: { user } } = await supabase.auth.getUser();
     const today = todayDateStringWIB();
 
-    const { data: jadwalHariIni } = await supabase
+    // [FIX] Cast eksplisit — relasi to-one `shift_piket` ditebak sebagai
+    // array tanpa generated types, padahal diakses sebagai objek di PresensiPanel.
+    const { data: jadwalHariIniRaw } = await supabase
         .from('jadwal_piket')
         .select('*, shift_piket(*), presensi(*)')
         .eq('user_id', user!.id)
         .eq('tanggal', today)
         .maybeSingle();
 
-    const { data: antrianAktif } = await supabase
+    const jadwalHariIni = jadwalHariIniRaw as unknown as JadwalPiket | null;
+
+    const { data: antrianAktifRaw } = await supabase
         .from('antrian')
         .select('*, jenis_layanan(*)')
         .eq('tanggal', today)
         .in('status', ['menunggu', 'dipanggil', 'dilayani'])
         .order('nomor_urut');
+
+    const antrianAktif = antrianAktifRaw as unknown as Antrian[] | null;
 
     const { count: antrianSaya } = await supabase
         .from('antrian').select('*', { count: 'exact', head: true })

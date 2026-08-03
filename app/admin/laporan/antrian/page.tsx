@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import type { Antrian } from '@/lib/types/database';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,7 +16,11 @@ export default async function LaporanAntrianPage({ searchParams }: { searchParam
     let query = supabase.from('antrian').select('*, jenis_layanan(nama_layanan), profiles(name)')
         .gte('tanggal', dari).lte('tanggal', sampai).order('tanggal').order('nomor_urut');
     if (statusFilter !== 'semua') query = query.eq('status', statusFilter);
-    const { data: antrian } = await query;
+
+    // [FIX] Cast eksplisit — relasi to-one (jenis_layanan, profiles) ditebak
+    // sebagai array tanpa generated types.
+    const { data: antrianRaw } = await query;
+    const antrian = antrianRaw as unknown as Antrian[] | null;
 
     const total = antrian?.length ?? 0;
     const selesai = antrian?.filter((a) => a.status === 'selesai').length ?? 0;
