@@ -6,12 +6,6 @@ import { Badge } from '@/components/ui/Badge';
 import { todayDateStringWIB } from '@/lib/utils';
 import type { Antrian } from '@/lib/types/database';
 
-/**
- * Board display antrian ruang tunggu.
- * Memakai Supabase Realtime (postgres_changes) untuk update otomatis
- * setiap ada perubahan status antrian — jauh lebih instan dibanding
- * pendekatan <meta http-equiv="refresh" content="10"> di versi Laravel.
- */
 export function DisplayBoard({
     initialAntrian,
     initialMenunggu,
@@ -62,56 +56,57 @@ export function DisplayBoard({
             .on('postgres_changes', { event: '*', schema: 'public', table: 'antrian' }, refetch)
             .subscribe();
 
-        return () => {
-            supabase.removeChannel(channel);
-        };
+        return () => { supabase.removeChannel(channel); };
     }, []);
 
     return (
-        <div className="min-h-screen bg-[#003580] flex flex-col text-white">
-            <div className="flex items-center justify-between px-10 py-5 border-b border-blue-700">
-                <div>
-                    <div className="text-xl font-bold">Simpatik</div>
-                    <div className="text-blue-200 text-sm">Sistem Informasi Pelayanan Statistik — BPS Kota Jambi</div>
+        <div className="min-h-screen bg-navy-950 flex flex-col text-white">
+            <div className="flex items-center justify-between px-6 sm:px-10 py-5 border-b border-white/10">
+                <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-azure-500 to-navy-700 flex items-center justify-center font-bold text-sm shrink-0">S</div>
+                    <div>
+                        <div className="text-lg sm:text-xl font-bold tracking-tight">Simpatik</div>
+                        <div className="text-white/40 text-xs sm:text-sm">Sistem Informasi Pelayanan Statistik — BPS Kota Jambi</div>
+                    </div>
                 </div>
                 <div className="text-right">
-                    <div className="text-2xl font-mono font-bold">{jam || '--:--:--'}</div>
-                    <div className="text-blue-200 text-sm">
+                    <div className="font-mono text-xl sm:text-2xl font-semibold tabular">{jam || '--:--:--'}</div>
+                    <div className="text-white/40 text-xs sm:text-sm">
                         {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
                     </div>
                 </div>
             </div>
 
-            <div className="flex-1 grid grid-cols-3 gap-6 p-8">
-                <div className="col-span-2 space-y-4">
-                    <h2 className="text-lg font-semibold text-blue-200 uppercase tracking-wider mb-4">Sedang Dilayani</h2>
+            <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 p-6 sm:p-8">
+                <div className="lg:col-span-2 space-y-3">
+                    <h2 className="text-sm font-semibold text-white/40 uppercase tracking-widest mb-4">Sedang Dilayani</h2>
                     {antrian.length > 0 ? antrian.map((item) => (
-                        <div key={item.id} className="bg-white bg-opacity-10 backdrop-blur rounded-2xl px-8 py-5 flex items-center justify-between border border-white border-opacity-20">
+                        <div key={item.id} className="bg-white/[0.06] rounded-2xl px-6 sm:px-8 py-5 flex items-center justify-between border border-white/10">
                             <div>
-                                <div className="text-5xl font-black tracking-tight">{item.kode_antrian}</div>
-                                <div className="text-blue-200 text-sm mt-1">{item.jenis_layanan?.nama_layanan}</div>
+                                <div className="font-mono text-4xl sm:text-5xl font-semibold tracking-tight tabular">{item.kode_antrian}</div>
+                                <div className="text-white/40 text-sm mt-1">{item.jenis_layanan?.nama_layanan}</div>
                             </div>
                             <div className="text-right">
-                                <div className="text-lg font-semibold">{item.profiles?.name ?? 'Loket'}</div>
-                                <Badge status={item.status} />
+                                <div className="text-base sm:text-lg font-semibold">{item.profiles?.name ?? 'Loket'}</div>
+                                <div className="mt-1"><Badge status={item.status} /></div>
                             </div>
                         </div>
                     )) : (
-                        <div className="bg-white bg-opacity-5 rounded-2xl px-8 py-12 text-center text-blue-300">
+                        <div className="bg-white/[0.03] rounded-2xl px-8 py-14 text-center text-white/30 border border-white/5">
                             Belum ada antrian yang dipanggil
                         </div>
                     )}
                 </div>
 
                 <div className="space-y-4">
-                    <div className="bg-white bg-opacity-10 rounded-2xl p-6 text-center border border-white border-opacity-20">
-                        <div className="text-blue-200 text-sm uppercase tracking-wider mb-2">Menunggu</div>
-                        <div className="text-8xl font-black">{menunggu}</div>
-                        <div className="text-blue-200 text-sm mt-1">antrian</div>
+                    <div className="bg-white/[0.06] rounded-2xl p-6 text-center border border-white/10">
+                        <div className="text-white/40 text-xs sm:text-sm uppercase tracking-widest mb-2">Menunggu</div>
+                        <div className="font-mono text-6xl sm:text-8xl font-semibold tabular">{menunggu}</div>
+                        <div className="text-white/40 text-sm mt-1">antrian</div>
                     </div>
-                    <div className="bg-white bg-opacity-10 rounded-2xl p-6 text-center border border-white border-opacity-20">
-                        <div className="text-blue-200 text-sm uppercase tracking-wider mb-2">Selesai Hari Ini</div>
-                        <div className="text-5xl font-black text-green-300">{selesai}</div>
+                    <div className="bg-white/[0.06] rounded-2xl p-6 text-center border border-white/10">
+                        <div className="text-white/40 text-xs sm:text-sm uppercase tracking-widest mb-2">Selesai Hari Ini</div>
+                        <div className="font-mono text-4xl sm:text-5xl font-semibold text-emerald-400 tabular">{selesai}</div>
                     </div>
                 </div>
             </div>

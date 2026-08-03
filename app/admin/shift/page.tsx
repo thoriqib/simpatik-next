@@ -10,7 +10,7 @@ export default async function ShiftPage() {
 
     return (
         <>
-            <h1 className="text-lg font-semibold text-gray-800 mb-5">Pengaturan Shift Piket</h1>
+            <h1 className="text-lg font-semibold text-navy-950 mb-5">Pengaturan Shift Piket</h1>
             <Card>
                 <ShiftTable shifts={shifts ?? []} />
             </Card>

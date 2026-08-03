@@ -15,7 +15,7 @@ export default async function JenisLayananPage() {
 
     return (
         <>
-            <h1 className="text-lg font-semibold text-gray-800 mb-5">Jenis Layanan</h1>
+            <h1 className="text-lg font-semibold text-navy-950 mb-5">Jenis Layanan</h1>
             <Card>
                 <JenisLayananTable jenisLayanan={withCount} />
             </Card>

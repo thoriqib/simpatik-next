@@ -4,6 +4,7 @@ import { formatTanggal } from '@/lib/utils';
 import { Badge } from '@/components/ui/Badge';
 import { todayDateStringWIB } from '@/lib/utils';
 import Link from 'next/link';
+import { RefreshCw, MonitorPlay, Star } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,50 +32,56 @@ export default async function TiketPage({ params }: { params: Promise<{ kode: st
     const sudahDinilai = antrian.penilaian && antrian.penilaian.length > 0;
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center p-4 -mx-4 -my-6">
-            <div className="bg-white rounded-2xl shadow-lg w-72 overflow-hidden">
-                <div className="bg-[#003580] text-white px-6 py-4 text-center">
-                    <div className="font-bold text-sm">Simpatik</div>
-                    <div className="text-blue-200 text-xs">Sistem Informasi Pelayanan Statistik</div>
+        <div className="min-h-screen bg-navy-950 flex flex-col items-center justify-center p-4 -mx-5 -my-8">
+            <div className="bg-white rounded-3xl shadow-card w-full max-w-xs overflow-hidden">
+                <div className="bg-navy-950 text-white px-6 py-5 text-center">
+                    <div className="font-bold text-sm tracking-tight">Simpatik</div>
+                    <div className="text-white/40 text-xs mt-0.5">Sistem Informasi Pelayanan Statistik</div>
                 </div>
-                <div className="px-6 py-5 text-center border-b border-dashed border-gray-200">
-                    <div className="text-xs text-gray-500 uppercase tracking-widest mb-1">{antrian.jenis_layanan.nama_layanan}</div>
-                    <div className="text-7xl font-black text-[#003580] tracking-tight my-2">{antrian.kode_antrian}</div>
-                    <div className="text-sm text-gray-600">{antrian.nama_pengunjung}</div>
-                    <div className="text-xs text-gray-400 mt-1">{formatTanggal(antrian.tanggal)}</div>
+
+                {/* Signature: nomor antrian besar di atas tekstur kertas grafik */}
+                <div className="relative px-6 py-8 text-center border-b border-dashed border-paper-200 bg-grid-dot">
+                    <div className="text-[11px] text-navy-950/40 uppercase tracking-widest mb-2 font-medium">{antrian.jenis_layanan.nama_layanan}</div>
+                    <div className="font-mono text-7xl font-semibold text-navy-950 tracking-tight tabular">{antrian.kode_antrian}</div>
+                    <div className="text-sm text-navy-950/70 mt-3 font-medium">{antrian.nama_pengunjung}</div>
+                    <div className="text-xs text-navy-950/40 mt-0.5">{formatTanggal(antrian.tanggal)}</div>
                 </div>
-                <div className="px-6 py-4">
+
+                <div className="px-6 py-5">
                     {antrian.status === 'menunggu' ? (
                         (menunggu ?? 0) > 0 ? (
-                            <div className="bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-2.5 text-center mb-3">
-                                <div className="text-xs text-yellow-600">Antrian di depan Anda</div>
-                                <div className="text-2xl font-bold text-yellow-700">{menunggu}</div>
+                            <div className="bg-amber-500/10 rounded-xl px-4 py-3 text-center mb-3">
+                                <div className="text-xs text-amber-600 font-medium">Antrian di depan Anda</div>
+                                <div className="font-mono text-2xl font-semibold text-amber-600 tabular">{menunggu}</div>
                             </div>
                         ) : (
-                            <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-2.5 text-center mb-3">
-                                <div className="text-sm font-medium text-green-700">✅ Anda berikutnya!</div>
+                            <div className="bg-emerald-500/10 rounded-xl px-4 py-3 text-center mb-3">
+                                <div className="text-sm font-medium text-emerald-600">Anda berikutnya</div>
                             </div>
                         )
                     ) : (
-                        <div className="text-center mb-3"><Badge status={antrian.status} /></div>
+                        <div className="flex justify-center mb-3"><Badge status={antrian.status} /></div>
                     )}
-                    <p className="text-xs text-gray-400 text-center">Harap menunggu hingga nomor Anda dipanggil</p>
+                    <p className="text-xs text-navy-950/40 text-center">Harap menunggu hingga nomor Anda dipanggil</p>
                 </div>
             </div>
 
-            <div className="fixed bottom-6 left-0 right-0 flex justify-center gap-3 px-4 flex-wrap">
+            <div className="fixed bottom-6 left-0 right-0 flex justify-center gap-2.5 px-4 flex-wrap">
                 <Link href={`/antrian/${kode}/tiket`}
-                    className="bg-gray-100 text-gray-600 px-5 py-3 rounded-full font-medium shadow hover:bg-gray-200 transition border text-sm">
-                    🔄 Refresh Status
+                    className="inline-flex items-center gap-1.5 bg-white/10 text-white px-5 py-3 rounded-full font-medium hover:bg-white/15 transition-colors text-sm backdrop-blur-sm">
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    Refresh
                 </Link>
                 <Link href="/display-antrian"
-                    className="bg-white text-gray-700 px-6 py-3 rounded-full font-semibold shadow-lg hover:bg-gray-50 transition border text-sm">
-                    📺 Display
+                    className="inline-flex items-center gap-1.5 bg-white text-navy-950 px-5 py-3 rounded-full font-medium shadow-card hover:bg-paper-50 transition-colors text-sm">
+                    <MonitorPlay className="w-3.5 h-3.5" />
+                    Display
                 </Link>
                 {antrian.status === 'selesai' && !sudahDinilai && (
                     <Link href={`/penilaian/${kode}`}
-                        className="bg-yellow-400 text-yellow-900 px-6 py-3 rounded-full font-semibold shadow-lg hover:bg-yellow-300 transition text-sm">
-                        ⭐ Beri Penilaian
+                        className="inline-flex items-center gap-1.5 bg-amber-500 text-white px-5 py-3 rounded-full font-semibold shadow-card hover:bg-amber-500/90 transition-colors text-sm">
+                        <Star className="w-3.5 h-3.5" />
+                        Beri Penilaian
                     </Link>
                 )}
             </div>

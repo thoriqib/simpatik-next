@@ -13,38 +13,38 @@ export function ShiftTable({ shifts }: { shifts: ShiftPiket[] }) {
     return (
         <>
             <div className="flex justify-end mb-4">
-                <button onClick={() => setShowCreate(true)} className="bg-[#003580] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-800 transition">
+                <button onClick={() => setShowCreate(true)} className="bg-navy-700 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-navy-800 transition">
                     + Tambah Shift
                 </button>
             </div>
 
             <table className="w-full text-sm">
                 <thead>
-                    <tr className="border-b text-gray-500 text-left">
+                    <tr className="border-b text-navy-950/50 text-left">
                         <th className="pb-3 font-medium">Nama Shift</th><th className="pb-3 font-medium">Jam Mulai</th>
                         <th className="pb-3 font-medium">Jam Selesai</th><th className="pb-3 font-medium">Status</th><th className="pb-3 font-medium">Aksi</th>
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                     {shifts.length > 0 ? shifts.map((s) => (
-                        <tr key={s.id} className="hover:bg-gray-50">
+                        <tr key={s.id} className="hover:bg-paper-50">
                             <td className="py-3 font-medium">{s.nama_shift}</td>
                             <td className="py-3 font-mono">{s.jam_mulai}</td>
                             <td className="py-3 font-mono">{s.jam_selesai}</td>
                             <td className="py-3">
                                 {s.is_aktif
                                     ? <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">Aktif</span>
-                                    : <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">Nonaktif</span>}
+                                    : <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-paper-100 text-navy-950/50">Nonaktif</span>}
                             </td>
                             <td className="py-3 flex gap-3">
-                                <button onClick={() => setEditing(s)} className="text-blue-600 hover:underline text-sm">Edit</button>
+                                <button onClick={() => setEditing(s)} className="text-azure-500 hover:underline text-sm">Edit</button>
                                 <button onClick={() => toggleShift(s.id, s.is_aktif)} className="text-yellow-600 hover:underline text-sm">{s.is_aktif ? 'Nonaktifkan' : 'Aktifkan'}</button>
                                 <form action={async () => { const r = await deleteShift(s.id); if (r?.error) alert(r.error); }}>
                                     <button type="submit" className="text-red-500 hover:underline text-sm">Hapus</button>
                                 </form>
                             </td>
                         </tr>
-                    )) : <tr><td colSpan={5} className="py-8 text-center text-gray-400">Belum ada shift terdaftar</td></tr>}
+                    )) : <tr><td colSpan={5} className="py-8 text-center text-navy-950/30">Belum ada shift terdaftar</td></tr>}
                 </tbody>
             </table>
 
@@ -64,24 +64,24 @@ function ShiftForm({ id, shift, onSuccess }: { id: number | null; shift?: ShiftP
 
     return (
         <form action={formAction} className="space-y-4">
-            {state?.error && <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg text-sm">{state.error}</div>}
+            {state?.error && <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-xl text-sm">{state.error}</div>}
             <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nama Shift</label>
-                <input name="nama_shift" defaultValue={shift?.nama_shift} required placeholder="Contoh: Pagi, Siang, Sore" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+                <label className="block text-sm font-medium text-navy-950/80 mb-1">Nama Shift</label>
+                <input name="nama_shift" defaultValue={shift?.nama_shift} required placeholder="Contoh: Pagi, Siang, Sore" className="w-full border border-paper-200 rounded-xl px-3 py-2 text-sm" />
             </div>
             <div className="grid grid-cols-2 gap-3">
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Jam Mulai</label>
-                    <input type="time" name="jam_mulai" defaultValue={shift?.jam_mulai} required className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+                    <label className="block text-sm font-medium text-navy-950/80 mb-1">Jam Mulai</label>
+                    <input type="time" name="jam_mulai" defaultValue={shift?.jam_mulai} required className="w-full border border-paper-200 rounded-xl px-3 py-2 text-sm" />
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Jam Selesai</label>
-                    <input type="time" name="jam_selesai" defaultValue={shift?.jam_selesai} required className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+                    <label className="block text-sm font-medium text-navy-950/80 mb-1">Jam Selesai</label>
+                    <input type="time" name="jam_selesai" defaultValue={shift?.jam_selesai} required className="w-full border border-paper-200 rounded-xl px-3 py-2 text-sm" />
                 </div>
             </div>
             <div className="flex items-center gap-2">
-                <input type="checkbox" name="is_aktif" id="is_aktif" defaultChecked={shift?.is_aktif ?? true} className="w-4 h-4 rounded border-gray-300 text-[#003580]" />
-                <label htmlFor="is_aktif" className="text-sm text-gray-700">Aktifkan shift ini</label>
+                <input type="checkbox" name="is_aktif" id="is_aktif" defaultChecked={shift?.is_aktif ?? true} className="w-4 h-4 rounded border-paper-200 text-navy-700" />
+                <label htmlFor="is_aktif" className="text-sm text-navy-950/80">Aktifkan shift ini</label>
             </div>
             <SubmitButton className="w-full">Simpan Shift</SubmitButton>
         </form>

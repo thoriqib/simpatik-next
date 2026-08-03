@@ -53,7 +53,7 @@ create trigger on_auth_user_created
     for each row execute procedure public.handle_new_user();
 
 -- Helper function untuk RLS: ambil role user yang sedang login
-create or replace function public.current_role()
+create or replace function public.app_role()
 returns text
 language sql
 security definer
@@ -293,35 +293,35 @@ alter table public.pengaduan enable row level security;
 create policy "profiles: user lihat profil sendiri" on public.profiles
     for select using (auth.uid() = id);
 create policy "profiles: admin lihat semua" on public.profiles
-    for select using (current_role() = 'admin');
+    for select using (app_role() = 'admin');
 create policy "profiles: admin update semua" on public.profiles
-    for update using (current_role() = 'admin');
+    for update using (app_role() = 'admin');
 
 -- ── shift_piket ───────────────────────────────────────────────
 create policy "shift: publik lihat yang aktif" on public.shift_piket
-    for select using (is_aktif = true or current_role() = 'admin');
+    for select using (is_aktif = true or app_role() = 'admin');
 create policy "shift: admin kelola" on public.shift_piket
-    for all using (current_role() = 'admin');
+    for all using (app_role() = 'admin');
 
 -- ── jenis_layanan ─────────────────────────────────────────────
 create policy "layanan: publik lihat yang aktif" on public.jenis_layanan
-    for select using (is_aktif = true or current_role() = 'admin');
+    for select using (is_aktif = true or app_role() = 'admin');
 create policy "layanan: admin kelola" on public.jenis_layanan
-    for all using (current_role() = 'admin');
+    for all using (app_role() = 'admin');
 
 -- ── jadwal_piket ──────────────────────────────────────────────
 create policy "jadwal: publik bisa lihat (untuk halaman jadwal publik)" on public.jadwal_piket
     for select using (true);
 create policy "jadwal: admin kelola penuh" on public.jadwal_piket
-    for all using (current_role() = 'admin');
+    for all using (app_role() = 'admin');
 create policy "jadwal: petugas update status milik sendiri" on public.jadwal_piket
-    for update using (auth.uid() = user_id and current_role() = 'petugas');
+    for update using (auth.uid() = user_id and app_role() = 'petugas');
 
 -- ── presensi ──────────────────────────────────────────────────
 create policy "presensi: petugas kelola milik sendiri" on public.presensi
     for all using (auth.uid() = user_id);
 create policy "presensi: admin lihat semua" on public.presensi
-    for select using (current_role() = 'admin');
+    for select using (app_role() = 'admin');
 
 -- ── antrian ───────────────────────────────────────────────────
 -- Publik (anon) perlu insert (ambil nomor) & select (tiket/display board)
@@ -330,7 +330,7 @@ create policy "antrian: publik bisa lihat" on public.antrian
 create policy "antrian: publik bisa insert" on public.antrian
     for insert with check (true);
 create policy "antrian: petugas & admin update" on public.antrian
-    for update using (current_role() in ('admin','petugas'));
+    for update using (app_role() in ('admin','petugas'));
 
 -- ── penilaian ─────────────────────────────────────────────────
 create policy "penilaian: publik bisa lihat & insert" on public.penilaian
@@ -338,13 +338,13 @@ create policy "penilaian: publik bisa lihat & insert" on public.penilaian
 create policy "penilaian: publik insert" on public.penilaian
     for insert with check (true);
 create policy "penilaian: admin hapus" on public.penilaian
-    for delete using (current_role() = 'admin');
+    for delete using (app_role() = 'admin');
 
 -- ── pengaduan ─────────────────────────────────────────────────
 create policy "pengaduan: publik insert (anonim)" on public.pengaduan
     for insert with check (true);
 create policy "pengaduan: admin kelola penuh" on public.pengaduan
-    for all using (current_role() = 'admin');
+    for all using (app_role() = 'admin');
 
 -- ═══════════════════════════════════════════════════════════════
 -- STORAGE BUCKET: lampiran pengaduan

@@ -2,8 +2,11 @@ import { createClient } from '@/lib/supabase/server';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { todayDateStringWIB } from '@/lib/utils';
+import { Users, Ticket, CheckCircle2, MessageSquareWarning } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
+
+const STAT_ICONS = [Users, Ticket, CheckCircle2, MessageSquareWarning];
 
 export default async function AdminDashboard() {
     const supabase = await createClient();
@@ -21,21 +24,44 @@ export default async function AdminDashboard() {
         .in('status', ['menunggu', 'dipanggil', 'dilayani'])
         .order('nomor_urut');
 
+    const stats = [
+        { label: 'Total Petugas', value: totalPetugas ?? 0, tint: 'bg-azure-500/10 text-azure-500' },
+        { label: 'Antrian Hari Ini', value: antrianHariIni ?? 0, tint: 'bg-navy-700/10 text-navy-700' },
+        { label: 'Selesai Dilayani', value: antrianSelesai ?? 0, tint: 'bg-emerald-500/10 text-emerald-600' },
+        { label: 'Pengaduan Baru', value: pengaduanBaru ?? 0, tint: 'bg-rose-500/10 text-rose-600' },
+    ];
+
     return (
         <>
-            <h1 className="text-lg font-semibold text-gray-800 mb-4">Dashboard</h1>
+            <div className="mb-6">
+                <h1 className="text-xl font-bold text-navy-950 tracking-tight">Dashboard</h1>
+                <p className="text-sm text-navy-950/50 mt-0.5">Ringkasan aktivitas pelayanan hari ini</p>
+            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-6">
-                <Card><div className="text-2xl font-bold text-gray-800">{totalPetugas ?? 0}</div><div className="text-sm text-gray-500">Total Petugas</div></Card>
-                <Card><div className="text-2xl font-bold text-gray-800">{antrianHariIni ?? 0}</div><div className="text-sm text-gray-500">Antrian Hari Ini</div></Card>
-                <Card><div className="text-2xl font-bold text-gray-800">{antrianSelesai ?? 0}</div><div className="text-sm text-gray-500">Selesai Dilayani</div></Card>
-                <Card><div className="text-2xl font-bold text-gray-800">{pengaduanBaru ?? 0}</div><div className="text-sm text-gray-500">Pengaduan Baru</div></Card>
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+                {stats.map((s, i) => {
+                    const Icon = STAT_ICONS[i];
+                    return (
+                        <Card key={s.label} className="!p-5">
+                            <div className="flex items-center gap-4">
+                                <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${s.tint}`}>
+                                    <Icon className="w-5 h-5" strokeWidth={2} />
+                                </div>
+                                <div>
+                                    <div className="font-mono text-2xl font-semibold text-navy-950 tabular">{s.value}</div>
+                                    <div className="text-xs text-navy-950/50">{s.label}</div>
+                                </div>
+                            </div>
+                        </Card>
+                    );
+                })}
             </div>
 
             <Card title="Antrian Aktif Hari Ini">
+                <div className="overflow-x-auto -mx-6 px-6">
                 <table className="w-full text-sm">
                     <thead>
-                        <tr className="border-b text-gray-500 text-left">
+                        <tr className="border-b border-paper-200 text-navy-950/40 text-left text-xs uppercase tracking-wide">
                             <th className="pb-3 font-medium">Kode</th>
                             <th className="pb-3 font-medium">Nama Pengunjung</th>
                             <th className="pb-3 font-medium">Jenis Layanan</th>
@@ -43,20 +69,21 @@ export default async function AdminDashboard() {
                             <th className="pb-3 font-medium">Status</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100">
+                    <tbody className="divide-y divide-paper-100">
                         {antrianAktif && antrianAktif.length > 0 ? antrianAktif.map((item) => (
-                            <tr key={item.id} className="hover:bg-gray-50">
-                                <td className="py-3 font-mono font-semibold text-blue-700">{item.kode_antrian}</td>
-                                <td className="py-3">{item.nama_pengunjung}</td>
-                                <td className="py-3">{item.jenis_layanan?.nama_layanan}</td>
-                                <td className="py-3">{item.profiles?.name ?? '-'}</td>
+                            <tr key={item.id} className="hover:bg-paper-50 transition-colors">
+                                <td className="py-3 font-mono font-semibold text-navy-700 tabular">{item.kode_antrian}</td>
+                                <td className="py-3 text-navy-950">{item.nama_pengunjung}</td>
+                                <td className="py-3 text-navy-950/60">{item.jenis_layanan?.nama_layanan}</td>
+                                <td className="py-3 text-navy-950/60">{item.profiles?.name ?? '-'}</td>
                                 <td className="py-3"><Badge status={item.status} /></td>
                             </tr>
                         )) : (
-                            <tr><td colSpan={5} className="py-8 text-center text-gray-400">Belum ada antrian hari ini</td></tr>
+                            <tr><td colSpan={5} className="py-10 text-center text-navy-950/30">Belum ada antrian hari ini</td></tr>
                         )}
                     </tbody>
                 </table>
+                </div>
             </Card>
         </>
     );

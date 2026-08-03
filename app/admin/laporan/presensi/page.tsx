@@ -31,23 +31,23 @@ export default async function LaporanPresensiPage({ searchParams }: { searchPara
 
     return (
         <>
-            <h1 className="text-lg font-semibold text-gray-800 mb-4">Laporan Presensi Petugas</h1>
+            <h1 className="text-lg font-semibold text-navy-950 mb-4">Laporan Presensi Petugas</h1>
 
             <Card className="mb-5">
                 <form method="GET" className="flex flex-wrap gap-3 items-end">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Bulan</label>
-                        <select name="bulan" defaultValue={bulan} className="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <label className="block text-sm font-medium text-navy-950/80 mb-1">Bulan</label>
+                        <select name="bulan" defaultValue={bulan} className="border border-paper-200 rounded-xl px-3 py-2 text-sm">
                             {Array.from({ length: 12 }, (_, i) => i + 1).map((b) => <option key={b} value={b}>{new Date(2000, b - 1).toLocaleDateString('id-ID', { month: 'long' })}</option>)}
                         </select>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Tahun</label>
-                        <select name="tahun" defaultValue={tahun} className="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <label className="block text-sm font-medium text-navy-950/80 mb-1">Tahun</label>
+                        <select name="tahun" defaultValue={tahun} className="border border-paper-200 rounded-xl px-3 py-2 text-sm">
                             {[tahun - 1, tahun, tahun + 1].map((t) => <option key={t} value={t}>{t}</option>)}
                         </select>
                     </div>
-                    <button type="submit" className="bg-[#003580] text-white px-4 py-2 rounded-lg text-sm font-medium">Tampilkan</button>
+                    <button type="submit" className="bg-navy-700 text-white px-4 py-2 rounded-xl text-sm font-medium">Tampilkan</button>
                 </form>
             </Card>
 
@@ -55,9 +55,9 @@ export default async function LaporanPresensiPage({ searchParams }: { searchPara
                 <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                     <thead>
-                        <tr className="border-b text-gray-500 text-left">
+                        <tr className="border-b text-navy-950/50 text-left">
                             <th className="pb-3 font-medium">Petugas</th><th className="pb-3 font-medium text-center">Total</th>
-                            <th className="pb-3 font-medium text-center text-green-600">Hadir</th><th className="pb-3 font-medium text-center text-blue-600">Izin</th>
+                            <th className="pb-3 font-medium text-center text-green-600">Hadir</th><th className="pb-3 font-medium text-center text-azure-500">Izin</th>
                             <th className="pb-3 font-medium text-center text-orange-600">Sakit</th><th className="pb-3 font-medium text-center text-red-600">Alpha</th>
                             <th className="pb-3 font-medium text-center">% Hadir</th><th className="pb-3 font-medium text-center text-red-500">Kurang Jam</th>
                         </tr>
@@ -66,17 +66,17 @@ export default async function LaporanPresensiPage({ searchParams }: { searchPara
                         {rekap.length > 0 ? rekap.map((r) => {
                             const persen = r.total > 0 ? Math.round((r.hadir / r.total) * 100) : 0;
                             return (
-                                <tr key={r.nama} className="hover:bg-gray-50">
+                                <tr key={r.nama} className="hover:bg-paper-50">
                                     <td className="py-3 font-medium">{r.nama}</td>
-                                    <td className="py-3 text-center text-gray-600">{r.total}</td>
+                                    <td className="py-3 text-center text-navy-950/60">{r.total}</td>
                                     <td className="py-3 text-center font-semibold text-green-600">{r.hadir}</td>
-                                    <td className="py-3 text-center text-blue-600">{r.izin}</td>
+                                    <td className="py-3 text-center text-azure-500">{r.izin}</td>
                                     <td className="py-3 text-center text-orange-600">{r.sakit}</td>
                                     <td className="py-3 text-center text-red-600">{r.alpha}</td>
                                     <td className="py-3 text-center">
                                         <div className="flex items-center gap-2">
-                                            <div className="flex-1 bg-gray-100 rounded-full h-2"><div className="bg-green-500 h-2 rounded-full" style={{ width: `${persen}%` }} /></div>
-                                            <span className="text-xs text-gray-600 w-8">{persen}%</span>
+                                            <div className="flex-1 bg-paper-100 rounded-full h-2"><div className="bg-green-500 h-2 rounded-full" style={{ width: `${persen}%` }} /></div>
+                                            <span className="text-xs text-navy-950/60 w-8">{persen}%</span>
                                         </div>
                                     </td>
                                     <td className="py-3 text-center text-sm">
@@ -84,7 +84,7 @@ export default async function LaporanPresensiPage({ searchParams }: { searchPara
                                     </td>
                                 </tr>
                             );
-                        }) : <tr><td colSpan={8} className="py-8 text-center text-gray-400">Belum ada data presensi</td></tr>}
+                        }) : <tr><td colSpan={8} className="py-8 text-center text-navy-950/30">Belum ada data presensi</td></tr>}
                     </tbody>
                 </table>
                 </div>

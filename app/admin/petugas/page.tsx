@@ -26,7 +26,7 @@ export default async function PetugasPage() {
     return (
         <>
             <div className="flex justify-between items-center mb-5">
-                <h1 className="text-lg font-semibold text-gray-800">Data Petugas</h1>
+                <h1 className="text-lg font-semibold text-navy-950">Data Petugas</h1>
             </div>
             <Card>
                 <PetugasTable petugas={petugasWithStats} />

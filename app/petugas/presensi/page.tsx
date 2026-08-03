@@ -47,7 +47,7 @@ export default async function PresensiPetugasPage({ searchParams }: { searchPara
 
     return (
         <>
-            <h1 className="text-lg font-semibold text-gray-800 mb-4">Presensi Saya</h1>
+            <h1 className="text-lg font-semibold text-navy-950 mb-4">Presensi Saya</h1>
 
             <PresensiPanel jadwalHariIni={jadwalHariIni ?? null} />
 
@@ -55,30 +55,30 @@ export default async function PresensiPetugasPage({ searchParams }: { searchPara
                 <Card title="Riwayat Presensi Bulan Ini">
                     <form method="GET" className="flex flex-wrap gap-3 items-end mb-5">
                         <div>
-                            <label className="block text-xs text-gray-500 mb-1">Bulan</label>
-                            <select name="bulan" defaultValue={bulan} className="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                            <label className="block text-xs text-navy-950/50 mb-1">Bulan</label>
+                            <select name="bulan" defaultValue={bulan} className="border border-paper-200 rounded-xl px-3 py-2 text-sm">
                                 {Array.from({ length: 12 }, (_, i) => i + 1).map((b) => <option key={b} value={b}>{new Date(2000, b - 1).toLocaleDateString('id-ID', { month: 'long' })}</option>)}
                             </select>
                         </div>
                         <div>
-                            <label className="block text-xs text-gray-500 mb-1">Tahun</label>
-                            <select name="tahun" defaultValue={tahun} className="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                            <label className="block text-xs text-navy-950/50 mb-1">Tahun</label>
+                            <select name="tahun" defaultValue={tahun} className="border border-paper-200 rounded-xl px-3 py-2 text-sm">
                                 {[tahun - 1, tahun].map((t) => <option key={t} value={t}>{t}</option>)}
                             </select>
                         </div>
-                        <button type="submit" className="bg-[#003580] text-white px-4 py-2 rounded-lg text-sm font-medium">Tampilkan</button>
+                        <button type="submit" className="bg-navy-700 text-white px-4 py-2 rounded-xl text-sm font-medium">Tampilkan</button>
                     </form>
 
                     <div className="grid grid-cols-3 gap-3 mb-5">
-                        <div className="bg-green-50 rounded-lg p-3 text-center"><div className="text-xl font-bold text-green-700">{rekap.hadir}</div><div className="text-xs text-green-600">Hadir</div></div>
-                        <div className="bg-blue-50 rounded-lg p-3 text-center"><div className="text-xl font-bold text-blue-700">{rekap.izin + rekap.sakit}</div><div className="text-xs text-blue-600">Izin/Sakit</div></div>
-                        <div className="bg-red-50 rounded-lg p-3 text-center"><div className="text-xl font-bold text-red-700">{rekap.alpha}</div><div className="text-xs text-red-600">Alpha</div></div>
+                        <div className="bg-green-50 rounded-xl p-3 text-center"><div className="text-xl font-bold text-green-700">{rekap.hadir}</div><div className="text-xs text-green-600">Hadir</div></div>
+                        <div className="bg-azure-500/10 rounded-xl p-3 text-center"><div className="text-xl font-bold text-navy-700">{rekap.izin + rekap.sakit}</div><div className="text-xs text-azure-500">Izin/Sakit</div></div>
+                        <div className="bg-red-50 rounded-xl p-3 text-center"><div className="text-xl font-bold text-red-700">{rekap.alpha}</div><div className="text-xs text-red-600">Alpha</div></div>
                     </div>
 
                     <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                         <thead>
-                            <tr className="border-b text-gray-500 text-left">
+                            <tr className="border-b text-navy-950/50 text-left">
                                 <th className="pb-3 font-medium">Tanggal</th><th className="pb-3 font-medium">Shift</th><th className="pb-3 font-medium">Status</th>
                                 <th className="pb-3 font-medium">Masuk</th><th className="pb-3 font-medium">Keluar</th><th className="pb-3 font-medium">Durasi</th>
                                 <th className="pb-3 font-medium text-red-500">Kurang Jam</th>
@@ -91,30 +91,30 @@ export default async function PresensiPetugasPage({ searchParams }: { searchPara
                                 const durasiMenit = p?.waktu_masuk && p?.waktu_keluar
                                     ? Math.round((new Date(p.waktu_keluar).getTime() - new Date(p.waktu_masuk).getTime()) / 60000) : null;
                                 return (
-                                    <tr key={item.id} className={`hover:bg-gray-50 ${isToday ? 'bg-blue-50 font-medium' : ''} ${(p?.kekurangan_menit ?? 0) > 0 ? 'bg-red-50' : ''}`}>
+                                    <tr key={item.id} className={`hover:bg-paper-50 ${isToday ? 'bg-azure-500/10 font-medium' : ''} ${(p?.kekurangan_menit ?? 0) > 0 ? 'bg-red-50' : ''}`}>
                                         <td className="py-3">
                                             {new Date(item.tanggal).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' })}
-                                            {isToday && <span className="text-xs text-blue-600 ml-1">(hari ini)</span>}
+                                            {isToday && <span className="text-xs text-azure-500 ml-1">(hari ini)</span>}
                                         </td>
-                                        <td className="py-3 text-gray-600">{item.shift_piket?.nama_shift}</td>
+                                        <td className="py-3 text-navy-950/60">{item.shift_piket?.nama_shift}</td>
                                         <td className="py-3"><Badge status={item.status} /></td>
                                         <td className="py-3 font-mono text-sm">{jamWIB(p?.waktu_masuk ?? null) ?? '—'}</td>
                                         <td className="py-3 font-mono text-sm">{jamWIB(p?.waktu_keluar ?? null) ?? '—'}</td>
-                                        <td className="py-3 text-gray-500 text-xs">{durasiMenit !== null ? `${Math.floor(durasiMenit / 60)}j ${durasiMenit % 60}m` : '—'}</td>
+                                        <td className="py-3 text-navy-950/50 text-xs">{durasiMenit !== null ? `${Math.floor(durasiMenit / 60)}j ${durasiMenit % 60}m` : '—'}</td>
                                         <td className="py-3 text-sm font-semibold">
                                             {(p?.kekurangan_menit ?? 0) > 0
                                                 ? <span className="text-red-500">⚠ {Math.floor(p!.kekurangan_menit / 60)}j {p!.kekurangan_menit % 60}m</span>
-                                                : p?.waktu_keluar ? <span className="text-green-500 text-xs">✓ Lengkap</span> : <span className="text-gray-300">—</span>}
+                                                : p?.waktu_keluar ? <span className="text-green-500 text-xs">✓ Lengkap</span> : <span className="text-navy-950/20">—</span>}
                                         </td>
                                     </tr>
                                 );
-                            }) : <tr><td colSpan={7} className="py-8 text-center text-gray-400">Tidak ada jadwal di bulan ini</td></tr>}
+                            }) : <tr><td colSpan={7} className="py-8 text-center text-navy-950/30">Tidak ada jadwal di bulan ini</td></tr>}
                         </tbody>
                     </table>
                     </div>
 
                     {rekap.totalKekurangan > 0 && (
-                        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+                        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
                             Total kekurangan jam bulan ini: <strong>{Math.floor(rekap.totalKekurangan / 60)}j {rekap.totalKekurangan % 60}m</strong>
                         </div>
                     )}

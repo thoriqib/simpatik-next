@@ -25,19 +25,19 @@ export default async function PenilaianPage({ params }: { params: Promise<{ kode
     return (
         <>
             <div className="text-center mb-6">
-                <h2 className="text-xl font-bold text-gray-800">Penilaian Pelayanan</h2>
-                <p className="text-sm text-gray-500 mt-1">Berikan penilaian untuk pelayanan yang Anda terima</p>
+                <h2 className="text-xl font-bold text-navy-950">Penilaian Pelayanan</h2>
+                <p className="text-sm text-navy-950/50 mt-1">Berikan penilaian untuk pelayanan yang Anda terima</p>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                <div className="flex items-center gap-4 p-4 bg-blue-50 rounded-xl mb-6">
-                    <div className="w-12 h-12 bg-[#003580] rounded-full flex items-center justify-center text-white font-bold text-lg">
+            <div className="bg-white rounded-xl shadow-sm border border-paper-200 p-6">
+                <div className="flex items-center gap-4 p-4 bg-azure-500/10 rounded-xl mb-6">
+                    <div className="w-12 h-12 bg-navy-700 rounded-full flex items-center justify-center text-white font-bold text-lg">
                         {antrian.profiles.name.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                        <div className="font-semibold text-gray-800">{antrian.profiles.name}</div>
-                        <div className="text-sm text-gray-500">Antrian: {antrian.kode_antrian}</div>
-                        <div className="text-sm text-gray-500">{antrian.jenis_layanan.nama_layanan}</div>
+                        <div className="font-semibold text-navy-950">{antrian.profiles.name}</div>
+                        <div className="text-sm text-navy-950/50">Antrian: {antrian.kode_antrian}</div>
+                        <div className="text-sm text-navy-950/50">{antrian.jenis_layanan.nama_layanan}</div>
                     </div>
                 </div>
 

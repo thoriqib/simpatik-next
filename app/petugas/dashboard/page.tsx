@@ -29,16 +29,31 @@ export default async function PetugasDashboard() {
         .from('antrian').select('*', { count: 'exact', head: true })
         .eq('petugas_id', user!.id).eq('tanggal', today);
 
+    const menunggu = antrianAktif?.filter((a) => a.status === 'menunggu').length ?? 0;
+    const selesai = antrianAktif?.filter((a) => a.status === 'selesai').length ?? 0;
+
     return (
         <>
-            <h1 className="text-lg font-semibold text-gray-800 mb-4">Dashboard</h1>
+            <div className="mb-6">
+                <h1 className="text-xl font-bold text-navy-950 tracking-tight">Dashboard</h1>
+                <p className="text-sm text-navy-950/50 mt-0.5">Presensi & antrian pelayanan hari ini</p>
+            </div>
 
             <PresensiPanel jadwalHariIni={jadwalHariIni ?? null} />
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-5 mb-5">
-                <Card><div className="text-center"><div className="text-3xl font-bold text-blue-700">{antrianSaya ?? 0}</div><div className="text-xs text-gray-500 mt-1">Antrian Saya Hari Ini</div></div></Card>
-                <Card><div className="text-center"><div className="text-3xl font-bold text-yellow-600">{antrianAktif?.filter((a) => a.status === 'menunggu').length ?? 0}</div><div className="text-xs text-gray-500 mt-1">Antrian Menunggu</div></div></Card>
-                <Card className="col-span-2 sm:col-span-1"><div className="text-center"><div className="text-3xl font-bold text-green-600">{antrianAktif?.filter((a) => a.status === 'selesai').length ?? 0}</div><div className="text-xs text-gray-500 mt-1">Selesai Hari Ini</div></div></Card>
+                <Card className="!p-5 text-center">
+                    <div className="font-mono text-3xl font-semibold text-navy-700 tabular">{antrianSaya ?? 0}</div>
+                    <div className="text-xs text-navy-950/50 mt-1">Antrian Saya Hari Ini</div>
+                </Card>
+                <Card className="!p-5 text-center">
+                    <div className="font-mono text-3xl font-semibold text-amber-500 tabular">{menunggu}</div>
+                    <div className="text-xs text-navy-950/50 mt-1">Antrian Menunggu</div>
+                </Card>
+                <Card className="!p-5 text-center col-span-2 sm:col-span-1">
+                    <div className="font-mono text-3xl font-semibold text-emerald-600 tabular">{selesai}</div>
+                    <div className="text-xs text-navy-950/50 mt-1">Selesai Hari Ini</div>
+                </Card>
             </div>
 
             <AntrianPanel antrianAktif={antrianAktif ?? []} petugasId={user!.id} />

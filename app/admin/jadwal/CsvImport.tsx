@@ -31,44 +31,44 @@ export function CsvImport() {
     }
 
     return (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-5">
+        <div className="bg-white rounded-xl shadow-sm border border-paper-200 p-6 mb-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h3 className="text-sm font-semibold text-gray-800">📥 Import Jadwal dari CSV</h3>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                        Format kolom: <code className="bg-gray-100 px-1 rounded">nama_petugas,shift,tanggal</code> (tanggal format DD/MM/YYYY).
+                    <h3 className="text-sm font-semibold text-navy-950">📥 Import Jadwal dari CSV</h3>
+                    <p className="text-xs text-navy-950/50 mt-0.5">
+                        Format kolom: <code className="bg-paper-100 px-1 rounded">nama_petugas,shift,tanggal</code> (tanggal format DD/MM/YYYY).
                         Bisa dibuat/diedit lewat Excel (Save As → CSV).
                     </p>
                 </div>
             </div>
-            <hr className="my-4 border-gray-100" />
+            <hr className="my-4 border-paper-200" />
             <div
-                className="border-2 border-dashed border-gray-300 bg-gray-50 rounded-xl p-6 text-center cursor-pointer"
+                className="border-2 border-dashed border-paper-200 bg-paper-50 rounded-xl p-6 text-center cursor-pointer"
                 onClick={() => fileInput.current?.click()}
             >
-                <p className="text-sm text-gray-600">
-                    {fileName ? <span className="font-semibold text-blue-700">{fileName}</span> : <><span className="font-semibold text-blue-600">Klik untuk memilih file</span> CSV jadwal</>}
+                <p className="text-sm text-navy-950/60">
+                    {fileName ? <span className="font-semibold text-navy-700">{fileName}</span> : <><span className="font-semibold text-azure-500">Klik untuk memilih file</span> CSV jadwal</>}
                 </p>
                 <input ref={fileInput} type="file" accept=".csv" className="hidden"
                     onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
             </div>
 
-            {loading && <p className="text-sm text-gray-500 mt-3">Memproses...</p>}
+            {loading && <p className="text-sm text-navy-950/50 mt-3">Memproses...</p>}
 
             {result && (
-                <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm">
+                <div className="mt-4 p-4 bg-azure-500/10 border border-blue-200 rounded-xl text-sm">
                     <p className="font-semibold text-blue-800">
                         Import selesai: {result.imported} jadwal berhasil ditambahkan
                         {result.skipped > 0 && `, ${result.skipped} baris dilewati`}.
                     </p>
                     {result.errors.length > 0 && (
                         <>
-                            <button onClick={() => setShowErrors(!showErrors)} className="text-xs text-blue-600 hover:underline mt-2">
+                            <button onClick={() => setShowErrors(!showErrors)} className="text-xs text-azure-500 hover:underline mt-2">
                                 {showErrors ? 'Sembunyikan' : 'Tampilkan'} detail ({result.errors.length})
                             </button>
                             {showErrors && (
                                 <ul className="mt-2 space-y-1">
-                                    {result.errors.map((e, i) => <li key={i} className="text-xs text-gray-600">• {e}</li>)}
+                                    {result.errors.map((e, i) => <li key={i} className="text-xs text-navy-950/60">• {e}</li>)}
                                 </ul>
                             )}
                         </>

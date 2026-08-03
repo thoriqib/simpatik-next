@@ -13,13 +13,42 @@ import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env.local' });
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
 
+// ── Validasi awal yang lebih jelas dari sekadar "Invalid API key" ──
 if (!supabaseUrl || !serviceRoleKey) {
     console.error('❌ NEXT_PUBLIC_SUPABASE_URL dan SUPABASE_SERVICE_ROLE_KEY wajib diisi di .env.local');
+    console.error('   Pastikan file .env.local ada di root folder proyek (bukan di dalam scripts/).');
     process.exit(1);
 }
+
+if (!supabaseUrl.startsWith('https://') || !supabaseUrl.includes('.supabase.co')) {
+    console.error(`❌ NEXT_PUBLIC_SUPABASE_URL sepertinya tidak valid: "${supabaseUrl}"`);
+    console.error('   Harusnya berformat: https://xxxxxxxxxxxx.supabase.co');
+    process.exit(1);
+}
+
+if (!serviceRoleKey.startsWith('eyJ')) {
+    console.error('❌ SUPABASE_SERVICE_ROLE_KEY sepertinya tidak valid (bukan format JWT, harus diawali "eyJ").');
+    console.error('   Cek lagi: Supabase Dashboard → Project Settings → API → baris "service_role" (bukan "anon").');
+    process.exit(1);
+}
+
+// Peringatan dini jika tertukar dengan anon key (keduanya diawali "eyJ" jadi perlu dicek lebih spesifik)
+try {
+    const payload = JSON.parse(Buffer.from(serviceRoleKey.split('.')[1], 'base64').toString());
+    if (payload.role !== 'service_role') {
+        console.error(`❌ Key yang dipakai punya role "${payload.role}", seharusnya "service_role".`);
+        console.error('   Anda kemungkinan salah salin ANON key. Ambil ulang dari baris "service_role" di dashboard.');
+        process.exit(1);
+    }
+} catch {
+    console.error('❌ Gagal membaca isi SUPABASE_SERVICE_ROLE_KEY — pastikan tidak ada karakter terpotong saat copy-paste.');
+    process.exit(1);
+}
+
+console.log(`✅ Konfigurasi valid. Menghubungkan ke: ${supabaseUrl}\n`);
 
 const supabase = createClient(supabaseUrl, serviceRoleKey, {
     auth: { autoConfirm: true },
@@ -47,7 +76,7 @@ async function main() {
         });
 
         if (error) {
-            console.log(`⚠️  ${u.email}: ${error.message}`);
+            console.log(`⚠️  ${u.email}: ${error.message} (status: ${error.status ?? '-'})`);
             continue;
         }
         console.log(`✅ ${u.role.padEnd(8)} ${u.email}`);

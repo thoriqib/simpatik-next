@@ -1,3 +1,44 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        font-feature-settings: "cv11", "ss01";
+    }
+
+    /* Fokus keyboard yang jelas & konsisten — aksesibilitas, bukan opsional */
+    :focus-visible {
+        outline: 2px solid theme('colors.azure.500');
+        outline-offset: 2px;
+        border-radius: 4px;
+    }
+
+    /* Angka tabular di seluruh aplikasi: kode antrian, tabel, statistik.
+       Ini pilihan fungsional untuk aplikasi statistik — angka harus
+       sejajar rapi saat dibandingkan, bukan sekadar gaya. */
+    .tabular {
+        font-variant-numeric: tabular-nums;
+        font-feature-settings: "tnum";
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+        }
+    }
+}
+
+@layer utilities {
+    /* Tekstur kertas grafik — signature visual, dipakai terbatas */
+    .bg-grid-dot {
+        background-image: radial-gradient(circle, rgb(11 26 46 / 0.08) 1px, transparent 1px);
+        background-size: 16px 16px;
+    }
+}

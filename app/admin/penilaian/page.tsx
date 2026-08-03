@@ -27,20 +27,20 @@ export default async function PenilaianAdminPage({ searchParams }: { searchParam
 
     return (
         <>
-            <h1 className="text-lg font-semibold text-gray-800 mb-4">Data Penilaian Pelayanan</h1>
+            <h1 className="text-lg font-semibold text-navy-950 mb-4">Data Penilaian Pelayanan</h1>
 
             <Card className="mb-5">
                 <form method="GET" className="flex flex-wrap gap-3 items-end">
-                    <div><label className="block text-xs text-gray-500 mb-1">Dari</label><input type="date" name="dari" defaultValue={dari} className="border border-gray-300 rounded-lg px-3 py-2 text-sm" /></div>
-                    <div><label className="block text-xs text-gray-500 mb-1">Sampai</label><input type="date" name="sampai" defaultValue={sampai} className="border border-gray-300 rounded-lg px-3 py-2 text-sm" /></div>
+                    <div><label className="block text-xs text-navy-950/50 mb-1">Dari</label><input type="date" name="dari" defaultValue={dari} className="border border-paper-200 rounded-xl px-3 py-2 text-sm" /></div>
+                    <div><label className="block text-xs text-navy-950/50 mb-1">Sampai</label><input type="date" name="sampai" defaultValue={sampai} className="border border-paper-200 rounded-xl px-3 py-2 text-sm" /></div>
                     <div>
-                        <label className="block text-xs text-gray-500 mb-1">Nilai</label>
-                        <select name="nilai" defaultValue={params.nilai ?? ''} className="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <label className="block text-xs text-navy-950/50 mb-1">Nilai</label>
+                        <select name="nilai" defaultValue={params.nilai ?? ''} className="border border-paper-200 rounded-xl px-3 py-2 text-sm">
                             <option value="">Semua Nilai</option>
                             {[5, 4, 3, 2, 1].map((n) => <option key={n} value={n}>{'★'.repeat(n)} ({n})</option>)}
                         </select>
                     </div>
-                    <button type="submit" className="bg-[#003580] text-white px-4 py-2 rounded-lg text-sm font-medium">Tampilkan</button>
+                    <button type="submit" className="bg-navy-700 text-white px-4 py-2 rounded-xl text-sm font-medium">Tampilkan</button>
                 </form>
             </Card>
 
@@ -57,7 +57,7 @@ export default async function PenilaianAdminPage({ searchParams }: { searchParam
             <Card>
                 <table className="w-full text-sm">
                     <thead>
-                        <tr className="border-b text-gray-500 text-left">
+                        <tr className="border-b text-navy-950/50 text-left">
                             <th className="pb-3 font-medium">Tanggal</th><th className="pb-3 font-medium">Petugas</th>
                             <th className="pb-3 font-medium">Layanan</th><th className="pb-3 font-medium">Nilai</th>
                             <th className="pb-3 font-medium">Komentar</th><th className="pb-3 font-medium">Aksi</th>
@@ -65,19 +65,19 @@ export default async function PenilaianAdminPage({ searchParams }: { searchParam
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                         {penilaian && penilaian.length > 0 ? penilaian.map((p) => (
-                            <tr key={p.id} className="hover:bg-gray-50">
-                                <td className="py-3 text-gray-500 text-xs">{new Date(p.antrian.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
+                            <tr key={p.id} className="hover:bg-paper-50">
+                                <td className="py-3 text-navy-950/50 text-xs">{new Date(p.antrian.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
                                 <td className="py-3 font-medium">{p.profiles?.name}</td>
-                                <td className="py-3 text-gray-500 text-xs">{p.antrian.jenis_layanan?.nama_layanan}</td>
+                                <td className="py-3 text-navy-950/50 text-xs">{p.antrian.jenis_layanan?.nama_layanan}</td>
                                 <td className="py-3"><span className="text-yellow-400 font-bold">{'★'.repeat(p.nilai)}{'☆'.repeat(5 - p.nilai)}</span></td>
-                                <td className="py-3 text-gray-600 text-xs max-w-xs">{p.komentar ? p.komentar.slice(0, 60) : '—'}</td>
+                                <td className="py-3 text-navy-950/60 text-xs max-w-xs">{p.komentar ? p.komentar.slice(0, 60) : '—'}</td>
                                 <td className="py-3">
                                     <form action={async () => { await hapusPenilaian(p.id); }}>
                                         <button type="submit" className="text-xs text-red-500 hover:underline">Hapus</button>
                                     </form>
                                 </td>
                             </tr>
-                        )) : <tr><td colSpan={6} className="py-8 text-center text-gray-400">Belum ada penilaian pada periode ini</td></tr>}
+                        )) : <tr><td colSpan={6} className="py-8 text-center text-navy-950/30">Belum ada penilaian pada periode ini</td></tr>}
                     </tbody>
                 </table>
             </Card>
