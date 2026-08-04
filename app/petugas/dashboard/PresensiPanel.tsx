@@ -13,6 +13,15 @@ export function PresensiPanel({ jadwalHariIni }: { jadwalHariIni: JadwalPiket | 
 
     const presensi = jadwalHariIni?.presensi?.[0];
 
+    // Dihitung di luar JSX (bukan mengandalkan narrowing TypeScript di
+    // ternary bersarang) — lebih aman dan pasti lolos type-check.
+    const jamMasuk = presensi?.waktu_masuk
+        ? new Date(presensi.waktu_masuk).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' })
+        : null;
+    const jamKeluar = presensi?.waktu_keluar
+        ? new Date(presensi.waktu_keluar).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' })
+        : null;
+
     function handleMasuk() {
         startTransition(async () => {
             const res = await presensiMasuk(jadwalHariIni!.id);
@@ -68,12 +77,12 @@ export function PresensiPanel({ jadwalHariIni }: { jadwalHariIni: JadwalPiket | 
                                 {isPending ? 'Memproses...' : 'Presensi Masuk'}
                             </button>
                         </div>
-                    ) : !presensi?.waktu_keluar ? (
+                    ) : !presensi.waktu_keluar ? (
                         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                             <div className="text-sm flex items-center gap-2">
                                 <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                                 <span className="font-semibold text-emerald-700">Sudah Masuk</span>
-                                <span className="text-navy-950/50">— Pukul {new Date(presensi.waktu_masuk).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' })} WIB</span>
+                                <span className="text-navy-950/50">— Pukul {jamMasuk} WIB</span>
                             </div>
                             <button onClick={handleKeluar} disabled={isPending}
                                 className="inline-flex items-center gap-2 bg-amber-500 text-white px-6 py-2.5 rounded-xl font-semibold hover:bg-amber-500/90 transition-colors text-sm disabled:opacity-50">
@@ -83,8 +92,8 @@ export function PresensiPanel({ jadwalHariIni }: { jadwalHariIni: JadwalPiket | 
                         </div>
                     ) : (
                         <div className="flex flex-wrap items-center gap-6 text-sm">
-                            <div className="text-emerald-600">Masuk: <strong className="tabular font-mono">{new Date(presensi.waktu_masuk).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' })}</strong></div>
-                            <div className="text-amber-500">Keluar: <strong className="tabular font-mono">{new Date(presensi.waktu_keluar).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' })}</strong></div>
+                            <div className="text-emerald-600">Masuk: <strong className="tabular font-mono">{jamMasuk}</strong></div>
+                            <div className="text-amber-500">Keluar: <strong className="tabular font-mono">{jamKeluar}</strong></div>
                             {presensi.kekurangan_menit > 0 ? (
                                 <span className="inline-flex items-center gap-1.5 text-rose-600 font-medium text-xs">
                                     <AlertTriangle className="w-3.5 h-3.5" />

@@ -50,7 +50,7 @@ export default async function DetailPengaduanPage({ params }: { params: Promise<
                                 <p className="text-sm text-navy-950/80 leading-relaxed">{pengaduan.tanggapan}</p>
                             </div>
                             <p className="text-xs text-navy-950/30 mt-3">
-                                Ditanggapi oleh <strong>{pengaduan.profiles?.name}</strong> pada {new Date(pengaduan.ditanggapi_pada).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                Ditanggapi oleh <strong>{pengaduan.profiles?.name}</strong> pada {pengaduan.ditanggapi_pada && new Date(pengaduan.ditanggapi_pada).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
                             </p>
                         </Card>
                     ) : (
