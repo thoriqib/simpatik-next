@@ -51,7 +51,7 @@ try {
 console.log(`✅ Konfigurasi valid. Menghubungkan ke: ${supabaseUrl}\n`);
 
 const supabase = createClient(supabaseUrl, serviceRoleKey, {
-    auth: { autoConfirm: true },
+    auth: { autoRefreshToken: false, persistSession: false },
 });
 
 const users = [
