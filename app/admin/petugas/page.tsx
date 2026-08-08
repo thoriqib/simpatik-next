@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { Card } from '@/components/ui/Card';
 import { PetugasTable } from './PetugasTable';
+import { CsvImportPetugas } from './CsvImportPetugas';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,6 +28,9 @@ export default async function PetugasPage() {
         <>
             <div className="flex justify-between items-center mb-5">
                 <h1 className="text-lg font-semibold text-navy-950">Data Petugas</h1>
+            </div>
+            <div className="flex justify-end mb-4">
+                <CsvImportPetugas />
             </div>
             <Card>
                 <PetugasTable petugas={petugasWithStats} />

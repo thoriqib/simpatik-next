@@ -54,14 +54,35 @@ const supabase = createClient(supabaseUrl, serviceRoleKey, {
     auth: { autoRefreshToken: false, persistSession: false },
 });
 
+// Password default untuk seluruh petugas — WAJIB diganti setelah login pertama.
+const DEFAULT_PASSWORD = 'Petugas@BPS2026';
+
 const users = [
     { email: 'admin@bps-jambi.go.id', password: 'Admin@BPS2024', name: 'Administrator Simpatik', role: 'admin' },
-    { email: 'budi.santoso@bps-jambi.go.id', password: 'password123', name: 'Budi Santoso', role: 'petugas' },
-    { email: 'siti.rahayu@bps-jambi.go.id', password: 'password123', name: 'Siti Rahayu', role: 'petugas' },
-    { email: 'ahmad.kurniawan@bps-jambi.go.id', password: 'password123', name: 'Ahmad Kurniawan', role: 'petugas' },
-    { email: 'dewi.anggraini@bps-jambi.go.id', password: 'password123', name: 'Dewi Anggraini', role: 'petugas' },
-    { email: 'eko.prasetyo@bps-jambi.go.id', password: 'password123', name: 'Eko Prasetyo', role: 'petugas' },
-    { email: 'fitri.handayani@bps-jambi.go.id', password: 'password123', name: 'Fitri Handayani', role: 'petugas' },
+
+    // ── Petugas Pelayanan — BPS Kota Jambi ──────────────────────
+    { email: 'wulanagusp@bps.go.id',           password: DEFAULT_PASSWORD, name: 'Wulan Agus Pramita Sari, SST',      role: 'petugas' },
+    { email: 'ari.hidayat@bps.go.id',          password: DEFAULT_PASSWORD, name: 'Ari Hidayat, SST',                  role: 'petugas' },
+    { email: 'joulanda@bps.go.id',             password: DEFAULT_PASSWORD, name: 'Joulanda Ansye Roring, S.E.',       role: 'petugas' },
+    { email: 'salman.assad@bps.go.id',         password: DEFAULT_PASSWORD, name: 'Salman Assad Ibrahim, SST',         role: 'petugas' },
+    { email: 'mahardika.usman@bps.go.id',      password: DEFAULT_PASSWORD, name: 'Mahardika Usman, SST',              role: 'petugas' },
+    { email: 'dhira.fajri@bps.go.id',          password: DEFAULT_PASSWORD, name: 'Dhira Fajri Atika, S.Tr.Stat',      role: 'petugas' },
+    { email: 'kiky.amci@bps.go.id',            password: DEFAULT_PASSWORD, name: 'Kiky Amci Ilzania, S.Tr.Stat.',     role: 'petugas' },
+    { email: 'noza.milla@bps.go.id',           password: DEFAULT_PASSWORD, name: 'Noza Millatul Kafa, S.Tr.Stat.',    role: 'petugas' },
+    { email: 'ananda.fauziah@bps.go.id',       password: DEFAULT_PASSWORD, name: 'Rizki Ananda Fauziah, S.Tr.Stat.',  role: 'petugas' },
+    { email: 'asrifah@bps.go.id',              password: DEFAULT_PASSWORD, name: "Asrif'Ah, S.Tr.Stat.",              role: 'petugas' },
+    { email: 'resty.wahyuni@bps.go.id',        password: DEFAULT_PASSWORD, name: 'Resty Wahyuni Siregar, S.Tr.Stat.', role: 'petugas' },
+    { email: 'kiky.frisca@bps.go.id',          password: DEFAULT_PASSWORD, name: 'Kiky Frisca, S.Si.',                role: 'petugas' },
+    { email: 'thoriq.ibadurrohman@bps.go.id',  password: DEFAULT_PASSWORD, name: 'Thoriq Ibadurrohman, S.Tr.Stat.',   role: 'petugas' },
+    { email: 'desijawase-pppk@bps.go.id',      password: DEFAULT_PASSWORD, name: 'Desi Dwi Jawase, SE',               role: 'petugas' },
+    { email: 'elysia.putri@bps.go.id',         password: DEFAULT_PASSWORD, name: 'Elysia Putri Linda Triana, S.Tr.Stat.', role: 'petugas' },
+    { email: 'sasria@bps.go.id',               password: DEFAULT_PASSWORD, name: 'Hery Sasria, S.Si., M.SE.',         role: 'petugas' },
+    { email: 'sumarman@bps.go.id',             password: DEFAULT_PASSWORD, name: 'Sumarman',                         role: 'petugas' },
+    { email: 'kelik.heri@bps.go.id',           password: DEFAULT_PASSWORD, name: 'Kelik Heri Purnomo, S.Si, M.M.',    role: 'petugas' },
+    { email: 'raudhatul.hasanah@bps.go.id',    password: DEFAULT_PASSWORD, name: 'Raudhatul Hasanah, A.Md.Kb.N.',     role: 'petugas' },
+    { email: 'budihartono-pppk@bps.go.id',     password: DEFAULT_PASSWORD, name: 'Budi Hartono',                     role: 'petugas' },
+    { email: 'lisaanggraeni-pppk@bps.go.id',   password: DEFAULT_PASSWORD, name: 'Lisa Anggraeni',                   role: 'petugas' },
+    { email: 'tusih-pppk@bps.go.id',           password: DEFAULT_PASSWORD, name: 'Tusih',                            role: 'petugas' },
 ];
 
 async function main() {

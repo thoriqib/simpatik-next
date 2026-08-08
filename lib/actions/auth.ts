@@ -101,3 +101,46 @@ export async function deletePetugasAccount(userId: string) {
     await adminClient.auth.admin.deleteUser(userId); // profiles ikut terhapus via ON DELETE CASCADE
     revalidatePath('/admin/petugas');
 }
+
+/**
+ * Import massal akun petugas dari CSV (kolom: nama, email, password_opsional).
+ * Password bersifat opsional per baris — jika kosong, dipakai password
+ * default yang seragam (petugas WAJIB mengganti setelah login pertama).
+ * Setiap baris dibuat lewat Supabase Auth Admin API satu per satu (bukan
+ * batch) karena Supabase tidak menyediakan endpoint create-user massal.
+ */
+const DEFAULT_IMPORT_PASSWORD = 'Petugas@BPS2026';
+
+export async function importPetugasCSV(rows: { nama: string; email: string; password?: string }[]) {
+    const adminClient = createAdminClient();
+
+    let imported = 0;
+    const errors: string[] = [];
+
+    for (const [i, row] of rows.entries()) {
+        const rowNum = i + 2; // +1 header, +1 index 0-based
+
+        if (!row.nama || !row.email) continue;
+
+        const password = row.password && row.password.length >= 8 ? row.password : DEFAULT_IMPORT_PASSWORD;
+
+        const { error } = await adminClient.auth.admin.createUser({
+            email: row.email.trim(),
+            password,
+            email_confirm: true,
+            user_metadata: { name: row.nama.trim(), role: 'petugas' },
+        });
+
+        if (error) {
+            const pesan = error.message.includes('already registered') || error.status === 422
+                ? `email "${row.email}" sudah terdaftar`
+                : error.message;
+            errors.push(`Baris ${rowNum}: ${pesan}, dilewati.`);
+            continue;
+        }
+        imported++;
+    }
+
+    revalidatePath('/admin/petugas');
+    return { imported, skipped: rows.length - imported, errors, defaultPassword: DEFAULT_IMPORT_PASSWORD };
+}

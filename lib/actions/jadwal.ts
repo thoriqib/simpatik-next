@@ -28,17 +28,18 @@ export async function hapusJadwal(id: number) {
 }
 
 /**
- * Import massal jadwal dari CSV (kolom: nama_petugas, shift, tanggal DD/MM/YYYY).
- * Pengganti fitur upload Excel di versi Laravel — memakai CSV karena
- * parsing native tanpa dependency tambahan (bisa dibuka & disimpan dari Excel juga).
+ * Import massal jadwal dari CSV (kolom: email_petugas, shift, tanggal DD/MM/YYYY).
+ * [UPDATE] Dicocokkan lewat EMAIL, bukan nama — email selalu unik dan tidak
+ * pernah mengandung koma/gelar yang bisa memecah kolom CSV, jauh lebih aman
+ * dibanding mencocokkan lewat nama lengkap.
  */
-export async function importJadwalCSV(rows: { nama: string; shift: string; tanggal: string }[]) {
+export async function importJadwalCSV(rows: { email: string; shift: string; tanggal: string }[]) {
     const supabase = await createClient();
 
-    const { data: petugasList } = await supabase.from('profiles').select('id, name').eq('role', 'petugas');
+    const { data: petugasList } = await supabase.from('profiles').select('id, email').eq('role', 'petugas');
     const { data: shiftList } = await supabase.from('shift_piket').select('id, nama_shift').eq('is_aktif', true);
 
-    const petugasMap = new Map((petugasList ?? []).map((p) => [p.name.toLowerCase().trim(), p.id]));
+    const petugasMap = new Map((petugasList ?? []).map((p) => [p.email.toLowerCase().trim(), p.id]));
     const shiftMap = new Map((shiftList ?? []).map((s) => [s.nama_shift.toLowerCase().trim(), s.id]));
 
     let imported = 0;
@@ -46,10 +47,11 @@ export async function importJadwalCSV(rows: { nama: string; shift: string; tangg
 
     for (const [i, row] of rows.entries()) {
         const rowNum = i + 2; // +1 header, +1 index 0-based
-        const userId = petugasMap.get(row.nama.toLowerCase().trim());
-        const shiftId = shiftMap.get(row.shift.toLowerCase().trim());
 
-        if (!row.nama || !row.shift || !row.tanggal) { continue; }
+        if (!row.email || !row.shift || !row.tanggal) { continue; }
+
+        const userId = petugasMap.get(row.email.toLowerCase().trim());
+        const shiftId = shiftMap.get(row.shift.toLowerCase().trim());
 
         // Parse DD/MM/YYYY -> YYYY-MM-DD
         const [d, m, y] = row.tanggal.split('/');
@@ -58,7 +60,7 @@ export async function importJadwalCSV(rows: { nama: string; shift: string; tangg
         const dayOfWeek = new Date(tanggalISO).getDay();
         if (dayOfWeek === 0 || dayOfWeek === 6) { errors.push(`Baris ${rowNum}: ${row.tanggal} adalah akhir pekan, dilewati.`); continue; }
 
-        if (!userId) { errors.push(`Baris ${rowNum}: petugas "${row.nama}" tidak ditemukan.`); continue; }
+        if (!userId) { errors.push(`Baris ${rowNum}: petugas dengan email "${row.email}" tidak ditemukan.`); continue; }
         if (!shiftId) { errors.push(`Baris ${rowNum}: shift "${row.shift}" tidak valid.`); continue; }
 
         const { error } = await supabase.from('jadwal_piket').insert({ user_id: userId, shift_id: shiftId, tanggal: tanggalISO, status: 'terjadwal' });

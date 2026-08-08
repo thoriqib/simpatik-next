@@ -94,8 +94,8 @@ dan otomatis mengisi tabel `profiles` (via trigger `on_auth_user_created`).
 | Role | Email | Password |
 |------|-------|----------|
 | Admin | admin@bps-jambi.go.id | Admin@BPS2024 |
-| Petugas | budi.santoso@bps-jambi.go.id | password123 |
-| ... 5 petugas lainnya | | password123 |
+| Petugas | wulanagusp@bps.go.id | Petugas@BPS2026 |
+| ... 21 petugas lainnya | (lihat `scripts/seed-users.ts`) | Petugas@BPS2026 |
 
 ### 6. Jalankan Development Server
 ```bash
@@ -120,22 +120,53 @@ Buka `http://localhost:3000`.
 
 ---
 
-## 📄 Format CSV Import Jadwal
+## 📄 Import CSV — Jadwal Piket
+
+Tombol **Download Template** tersedia langsung di halaman `/admin/jadwal`
+(mengunduh `public/templates/jadwal-template.csv`).
 
 ```csv
-nama_petugas,shift,tanggal
-Budi Santoso,Pagi,28/04/2026
-Siti Rahayu,Siang,28/04/2026
-Ahmad Kurniawan,Pagi,29/04/2026
+email_petugas,shift,tanggal
+wulanagusp@bps.go.id,Pagi,28/04/2026
+ari.hidayat@bps.go.id,Siang,28/04/2026
+mahardika.usman@bps.go.id,Pagi,29/04/2026
 ```
 
 - Baris pertama (header) diabaikan otomatis
-- Nama petugas harus sama persis dengan nama di tabel `profiles` (tidak case-sensitive)
+- **Dicocokkan lewat email**, bukan nama — email selalu unik dan tidak
+  pernah mengandung koma/gelar, jauh lebih aman dibanding mencocokkan nama
 - Tanggal format `DD/MM/YYYY`
 - Hari Sabtu/Minggu otomatis dilewati
 - Duplikat (petugas + shift + tanggal sama) otomatis dilewati
 
-File CSV bisa dibuat/diedit langsung dari Excel: **Save As → CSV (Comma delimited)**.
+---
+
+## 📄 Import CSV — Tambah Petugas Massal
+
+Tombol **Import CSV** tersedia di halaman `/admin/petugas`, dengan tombol
+**Template** di dalamnya (mengunduh `public/templates/petugas-template.csv`).
+
+```csv
+nama,email,password_opsional
+"Ari Hidayat, SST",ari.hidayat@bps.go.id,
+"Wulan Agus Pramita Sari, SST",wulanagusp@bps.go.id,
+"Kiky Frisca, S.Si.",kiky.frisca@bps.go.id,RahasiaKhusus123
+```
+
+- Kolom `password_opsional` boleh dikosongkan — jika kosong, dipakai
+  password default `Petugas@BPS2026` yang seragam untuk seluruh baris tanpa
+  password. **Sampaikan ke petugas terkait untuk segera menggantinya**
+  setelah login pertama.
+- **Nama boleh mengandung koma** (gelar akademik) — WAJIB dibungkus tanda
+  kutip ganda di file CSV, contoh: `"Ari Hidayat, SST"`. Kalau file dibuat
+  lewat Excel (ketik nama apa adanya di sel, lalu *Save As → CSV*), Excel
+  **otomatis** menambahkan tanda kutip ini sendiri — tidak perlu diketik manual.
+- Email yang sudah terdaftar otomatis dilewati (tidak menimpa akun lama)
+- Proses berjalan satu-per-satu (bukan batch) karena keterbatasan Supabase
+  Auth Admin API — untuk puluhan akun, proses bisa memakan beberapa detik.
+
+Kedua fitur import CSV di atas bisa dibuat/diedit langsung dari Excel:
+**Save As → CSV (Comma delimited)**.
 
 ---
 
