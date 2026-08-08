@@ -32,7 +32,7 @@ export async function ambilAntrian(prevState: ActionState, formData: FormData): 
         return { error: 'Gagal mengambil nomor antrian: ' + error.message };
     }
 
-    redirect(`/antrian/${data.kode_antrian}/tiket`);
+    redirect(`/antrian/${data.kode_antrian}/tiket?cetak=1`);
 }
 
 /** Petugas memanggil antrian */

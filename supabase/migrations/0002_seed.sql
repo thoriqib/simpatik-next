@@ -13,12 +13,13 @@ insert into public.shift_piket (nama_shift, jam_mulai, jam_selesai, is_aktif) va
 on conflict do nothing;
 
 -- ── Jenis Layanan ─────────────────────────────────────────────
+-- Hanya 3 kategori sesuai kebutuhan lapangan (warna tombol di UI:
+-- biru = Pelayanan Statistik, hijau = Permintaan Informasi Publik,
+-- oranye = Umum — lihat app/(publik)/AmbilAntrianForm.tsx)
 insert into public.jenis_layanan (kode, nama_layanan, deskripsi, is_aktif) values
-    ('A', 'Konsultasi Data Statistik',    'Konsultasi kebutuhan data BPS langsung dengan petugas ahli.', true),
-    ('B', 'Permintaan Data / Publikasi',  'Permintaan data mentah, tabel statistik, atau publikasi resmi BPS.', true),
-    ('C', 'Rekomendasi Statistik',        'Penerbitan surat rekomendasi kegiatan statistik sektoral.', true),
-    ('D', 'Pengadaan Peta Wilayah',       'Permintaan peta wilayah administrasi dan wilayah sensus.', true),
-    ('E', 'Layanan Perpustakaan Digital', 'Akses referensi dan arsip publikasi statistik BPS secara digital.', true)
+    ('A', 'Pelayanan Statistik',            'Konsultasi dan permintaan data/publikasi statistik BPS.', true),
+    ('B', 'Permintaan Informasi Publik',    'Permintaan informasi publik sesuai UU Keterbukaan Informasi Publik.', true),
+    ('C', 'Umum',                           'Keperluan umum lainnya di luar dua kategori di atas.', true)
 on conflict (kode) do nothing;
 
 -- ── Contoh Pengaduan (opsional, untuk demo) ──────────────────

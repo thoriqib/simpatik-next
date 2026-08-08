@@ -6,6 +6,9 @@ import { todayDateStringWIB } from '@/lib/utils';
 import Link from 'next/link';
 import { RefreshCw, MonitorPlay, Star } from 'lucide-react';
 import type { Antrian } from '@/lib/types/database';
+import { PrintButton } from './PrintButton';
+import { AutoPrint } from './AutoPrint';
+import { Suspense } from 'react';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,11 +40,14 @@ export default async function TiketPage({ params }: { params: Promise<{ kode: st
     const sudahDinilai = antrian.penilaian && antrian.penilaian.length > 0;
 
     return (
-        <div className="min-h-screen bg-navy-950 flex flex-col items-center justify-center p-4 -mx-5 -my-8">
-            <div className="bg-white rounded-3xl shadow-card w-full max-w-xs overflow-hidden">
-                <div className="bg-navy-950 text-white px-6 py-5 text-center">
+        <div className="min-h-screen bg-navy-950 flex flex-col items-center justify-center p-4 -mx-5 -my-8 print:bg-white print:block print:min-h-0 print:p-0 print:-mx-0 print:-my-0">
+            <Suspense fallback={null}>
+                <AutoPrint />
+            </Suspense>
+            <div className="bg-white rounded-3xl shadow-card w-full max-w-xs overflow-hidden print:shadow-none print:rounded-none print:mx-auto">
+                <div className="bg-navy-950 text-white px-6 py-5 text-center print:bg-white print:text-navy-950 print:border-b-2 print:border-navy-950">
                     <div className="font-bold text-sm tracking-tight">Simpatik</div>
-                    <div className="text-white/40 text-xs mt-0.5">Sistem Informasi Pelayanan Statistik</div>
+                    <div className="text-white/40 text-xs mt-0.5 print:text-navy-950/60">Sistem Informasi Pelayanan Statistik</div>
                 </div>
 
                 {/* Signature: nomor antrian besar di atas tekstur kertas grafik */}
@@ -67,11 +73,12 @@ export default async function TiketPage({ params }: { params: Promise<{ kode: st
                     ) : (
                         <div className="flex justify-center mb-3"><Badge status={antrian.status} /></div>
                     )}
-                    <p className="text-xs text-navy-950/40 text-center">Harap menunggu hingga nomor Anda dipanggil</p>
+                    <p className="text-xs text-navy-950/40 text-center print:hidden">Harap menunggu hingga nomor Anda dipanggil</p>
                 </div>
             </div>
 
-            <div className="fixed bottom-6 left-0 right-0 flex justify-center gap-2.5 px-4 flex-wrap">
+            <div className="fixed bottom-6 left-0 right-0 flex justify-center gap-2.5 px-4 flex-wrap print:hidden">
+                <PrintButton />
                 <Link href={`/antrian/${kode}/tiket`}
                     className="inline-flex items-center gap-1.5 bg-white/10 text-white px-5 py-3 rounded-full font-medium hover:bg-white/15 transition-colors text-sm backdrop-blur-sm">
                     <RefreshCw className="w-3.5 h-3.5" />

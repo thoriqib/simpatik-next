@@ -61,6 +61,14 @@ const users = [
     { email: 'admin@bps-jambi.go.id', password: 'Admin@BPS2024', name: 'Administrator Simpatik', role: 'admin' },
 
     // ── Petugas Pelayanan — BPS Kota Jambi ──────────────────────
+    { email: 'rizon@bps.go.id',                password: DEFAULT_PASSWORD, name: 'Afrizon, S.E, M.Si',                 role: 'petugas' },
+    { email: 'danik@bps.go.id',                password: DEFAULT_PASSWORD, name: 'Danik Lurisdjati, SST, M.Si.',       role: 'petugas' },
+    { email: 'wijay@bps.go.id',                password: DEFAULT_PASSWORD, name: 'Wijayanti Agustini, S.Pt, M.E.',     role: 'petugas' },
+    { email: 'isna.rahayu@bps.go.id',          password: DEFAULT_PASSWORD, name: 'Isna Rahayu, SST',                  role: 'petugas' },
+    { email: 'diah.sari@bps.go.id',            password: DEFAULT_PASSWORD, name: 'Diah Pravita Sari, SST',            role: 'petugas' },
+    { email: 'kirman@bps.go.id',               password: DEFAULT_PASSWORD, name: 'Sukirman, SE.',                    role: 'petugas' },
+    { email: 'ardanayu@bps.go.id',             password: DEFAULT_PASSWORD, name: 'Ardana Yulmiroza Utari, S.ST',      role: 'petugas' },
+    { email: 'faradina.handayani@bps.go.id',   password: DEFAULT_PASSWORD, name: 'Faradina Handayani, SST',           role: 'petugas' },
     { email: 'wulanagusp@bps.go.id',           password: DEFAULT_PASSWORD, name: 'Wulan Agus Pramita Sari, SST',      role: 'petugas' },
     { email: 'ari.hidayat@bps.go.id',          password: DEFAULT_PASSWORD, name: 'Ari Hidayat, SST',                  role: 'petugas' },
     { email: 'joulanda@bps.go.id',             password: DEFAULT_PASSWORD, name: 'Joulanda Ansye Roring, S.E.',       role: 'petugas' },

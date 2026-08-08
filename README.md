@@ -71,6 +71,14 @@ Buka **SQL Editor** di Supabase Dashboard, jalankan berurutan:
 1. Isi file `supabase/migrations/0001_init.sql` — skema + RLS + function
 2. Isi file `supabase/migrations/0002_seed.sql` — data awal (shift, jenis layanan)
 
+> **Instalasi baru**: cukup langkah 1 & 2 di atas, sudah termasuk 3 jenis
+> layanan final (Pelayanan Statistik, Permintaan Informasi Publik, Umum).
+>
+> **Instalasi lama** yang sudah pernah menjalankan `0002_seed.sql` versi
+> sebelumnya (5 kategori A–E): jalankan tambahan
+> `supabase/migrations/0003_jenis_layanan_baru.sql` untuk merapikan jadi
+> 3 kategori tanpa merusak data antrian/laporan historis yang sudah ada.
+
 > Atau via Supabase CLI: `supabase db push` (lihat dokumentasi Supabase CLI).
 
 ### 3. Install Dependency

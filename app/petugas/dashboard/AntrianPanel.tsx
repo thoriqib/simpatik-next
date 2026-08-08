@@ -4,7 +4,7 @@ import { useTransition } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { panggilAntrian, mulaiLayaniAntrian, selesaiAntrian, batalAntrian } from '@/lib/actions/antrian';
-import { Megaphone, Play, Check, X } from 'lucide-react';
+import { Megaphone, Play, Check, X, Repeat } from 'lucide-react';
 import type { Antrian } from '@/lib/types/database';
 
 export function AntrianPanel({ antrianAktif, petugasId }: { antrianAktif: Antrian[]; petugasId: string }) {
@@ -40,10 +40,17 @@ export function AntrianPanel({ antrianAktif, petugasId }: { antrianAktif: Antria
                                                 </button>
                                             )}
                                             {item.status === 'dipanggil' && (
-                                                <button disabled={isPending} onClick={() => startTransition(() => mulaiLayaniAntrian(item.id))}
-                                                    className="inline-flex items-center gap-1.5 bg-amber-500 text-white px-3 py-1.5 rounded-xl text-xs font-medium hover:bg-amber-500/90 transition-colors disabled:opacity-50">
-                                                    <Play className="w-3.5 h-3.5" /> Mulai Layani
-                                                </button>
+                                                <>
+                                                    <button disabled={isPending} onClick={() => startTransition(() => panggilAntrian(item.id, petugasId))}
+                                                        className="inline-flex items-center gap-1.5 bg-azure-500/10 text-azure-500 px-3 py-1.5 rounded-xl text-xs font-medium hover:bg-azure-500/20 transition-colors disabled:opacity-50"
+                                                        title="Panggil ulang — mengulang pengumuman suara di Display Antrian">
+                                                        <Repeat className="w-3.5 h-3.5" /> Panggil Ulang
+                                                    </button>
+                                                    <button disabled={isPending} onClick={() => startTransition(() => mulaiLayaniAntrian(item.id))}
+                                                        className="inline-flex items-center gap-1.5 bg-amber-500 text-white px-3 py-1.5 rounded-xl text-xs font-medium hover:bg-amber-500/90 transition-colors disabled:opacity-50">
+                                                        <Play className="w-3.5 h-3.5" /> Mulai Layani
+                                                    </button>
+                                                </>
                                             )}
                                             {item.status === 'dilayani' && (
                                                 <>
