@@ -84,7 +84,8 @@ export default async function PenilaianAdminPage({ searchParams }: { searchParam
                                 <td className="py-3"><span className="text-yellow-400 font-bold">{'★'.repeat(p.nilai)}{'☆'.repeat(5 - p.nilai)}</span></td>
                                 <td className="py-3 text-navy-950/60 text-xs max-w-xs">{p.komentar ? p.komentar.slice(0, 60) : '—'}</td>
                                 <td className="py-3">
-                                    <form action={async () => { await hapusPenilaian(p.id); }}>
+                                    {/* [FIX] .bind() — lihat catatan di app/admin/jadwal/page.tsx */}
+                                    <form action={hapusPenilaian.bind(null, p.id)}>
                                         <button type="submit" className="text-xs text-red-500 hover:underline">Hapus</button>
                                     </form>
                                 </td>
