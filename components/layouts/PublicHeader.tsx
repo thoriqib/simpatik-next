@@ -2,11 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Ticket, CalendarDays, MessageSquareWarning } from 'lucide-react';
+import { Ticket, CalendarDays, MessageSquareWarning, FileSearch } from 'lucide-react';
 
 const NAV = [
     { href: '/', label: 'Antrian', icon: Ticket },
     { href: '/jadwal-petugas', label: 'Jadwal Petugas', icon: CalendarDays },
+    { href: '/permintaan-data', label: 'Permintaan Data', icon: FileSearch },
     { href: '/pengaduan', label: 'Pengaduan', icon: MessageSquareWarning },
 ];
 

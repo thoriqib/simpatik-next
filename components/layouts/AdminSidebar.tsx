@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { logout } from '@/lib/actions/auth';
 import {
     LayoutDashboard, Users, Clock, CalendarDays, Tag,
-    MessageSquareWarning, Star, ClipboardList, LogOut, X, Trophy,
+    MessageSquareWarning, Star, ClipboardList, LogOut, X, Trophy, FileSearch,
 } from 'lucide-react';
 
 const MENU: { group: string | null; href: string; label: string; icon: React.ElementType }[] = [
@@ -14,6 +14,7 @@ const MENU: { group: string | null; href: string; label: string; icon: React.Ele
     { group: 'Petugas', href: '/admin/shift', label: 'Pengaturan Shift', icon: Clock },
     { group: 'Petugas', href: '/admin/jadwal', label: 'Jadwal Piket', icon: CalendarDays },
     { group: 'Layanan', href: '/admin/jenis-layanan', label: 'Jenis Layanan', icon: Tag },
+    { group: 'Layanan', href: '/admin/permintaan-data', label: 'Permintaan Data', icon: FileSearch },
     { group: 'Layanan', href: '/admin/pengaduan', label: 'Pengaduan', icon: MessageSquareWarning },
     { group: 'Penilaian', href: '/admin/penilaian', label: 'Semua Penilaian', icon: Star },
     { group: 'Penilaian', href: '/admin/petugas-terbaik', label: 'Petugas Terbaik', icon: Trophy },

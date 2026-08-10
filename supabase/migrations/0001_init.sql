@@ -383,6 +383,45 @@ create policy "hari_libur: admin kelola penuh" on public.hari_libur
     for all using (app_role() = 'admin');
 
 -- ═══════════════════════════════════════════════════════════════
+-- TABEL: permintaan_data
+-- Form permintaan/konsultasi data dari pengunjung publik, tanpa
+-- login (pengganti Google Form).
+-- ═══════════════════════════════════════════════════════════════
+create table public.permintaan_data (
+    id                bigint generated always as identity primary key,
+    nama_lengkap      text not null,
+    instansi          text not null,
+    kegunaan_data     text not null check (kegunaan_data in ('kedinasan', 'pribadi')),
+    email             text not null,
+    no_hp             text not null,
+    kebutuhan_data    text not null,
+    status            text not null default 'baru' check (status in ('baru', 'diproses', 'selesai')),
+    tanggapan         text,
+    ditangani_oleh    uuid references public.profiles(id),
+    ditanggapi_pada   timestamptz,
+    created_at        timestamptz not null default now()
+);
+
+create index idx_permintaan_data_status on public.permintaan_data(status);
+create index idx_permintaan_data_created on public.permintaan_data(created_at desc);
+
+alter table public.permintaan_data enable row level security;
+
+-- Publik HANYA boleh INSERT — tidak boleh SELECT/UPDATE/DELETE, supaya
+-- data pengunjung lain tidak bisa dibaca siapa pun lewat anon key.
+create policy "permintaan_data: publik insert" on public.permintaan_data
+    for insert with check (true);
+
+create policy "permintaan_data: admin & petugas lihat" on public.permintaan_data
+    for select using (app_role() in ('admin', 'petugas'));
+
+create policy "permintaan_data: admin kelola" on public.permintaan_data
+    for update using (app_role() = 'admin');
+
+create policy "permintaan_data: admin hapus" on public.permintaan_data
+    for delete using (app_role() = 'admin');
+
+-- ═══════════════════════════════════════════════════════════════
 -- REALTIME: aktifkan untuk tabel antrian
 -- Dipakai oleh DisplayBoard (app/display-antrian) agar update
 -- status antrian tersiar otomatis ke semua layar tanpa polling/refresh.

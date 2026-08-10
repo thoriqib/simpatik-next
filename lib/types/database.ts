@@ -117,3 +117,21 @@ export interface HariLibur {
     keterangan: string;
     created_at: string;
 }
+
+export type KegunaanData = 'kedinasan' | 'pribadi';
+
+export interface PermintaanData {
+    id: number;
+    nama_lengkap: string;
+    instansi: string;
+    kegunaan_data: KegunaanData;
+    email: string;
+    no_hp: string;
+    kebutuhan_data: string;
+    status: StatusPengaduan; // 'baru' | 'diproses' | 'selesai' — sama seperti pengaduan
+    tanggapan: string | null;
+    ditangani_oleh: string | null;
+    ditanggapi_pada: string | null;
+    created_at: string;
+    profiles?: Profile | null;
+}
