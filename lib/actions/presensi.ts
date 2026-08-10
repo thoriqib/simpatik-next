@@ -72,14 +72,21 @@ export async function presensiMasuk(jadwalPiketId: number) {
     const terlambatMenit = menitSetelah(batasMulai, waktuMasuk);
 
     if (existing) {
-        await supabase.from('presensi').update({ waktu_masuk: waktuMasukISO, terlambat_menit: terlambatMenit }).eq('id', existing.id);
+        const { error } = await supabase.from('presensi').update({ waktu_masuk: waktuMasukISO, terlambat_menit: terlambatMenit }).eq('id', existing.id);
+        // [FIX] Sebelumnya error dari update/insert ini TIDAK dicek — kalau
+        // gagal (misal kolom terlambat_menit belum ada karena migration
+        // 0004_presensi_detail.sql belum dijalankan di Supabase), presensi
+        // tidak pernah benar-benar tersimpan tapi UI tetap menampilkan
+        // "berhasil". Sekarang errornya ditangkap & ditampilkan eksplisit.
+        if (error) return { error: `Gagal menyimpan presensi masuk: ${error.message}` };
     } else {
-        await supabase.from('presensi').insert({
+        const { error } = await supabase.from('presensi').insert({
             user_id: user.id,
             jadwal_piket_id: jadwalPiketId,
             waktu_masuk: waktuMasukISO,
             terlambat_menit: terlambatMenit,
         });
+        if (error) return { error: `Gagal menyimpan presensi masuk: ${error.message}` };
     }
 
     await supabase.from('jadwal_piket').update({ status: 'hadir' }).eq('id', jadwalPiketId);
@@ -129,11 +136,14 @@ export async function presensiKeluar(presensiId: number) {
     const terlambatMenit = presensi.terlambat_menit ?? 0;
     const kekuranganMenit = terlambatMenit + pulangAwalMenit;
 
-    await supabase.from('presensi').update({
+    const { error: updateError } = await supabase.from('presensi').update({
         waktu_keluar: waktuKeluarISO,
         pulang_awal_menit: pulangAwalMenit,
         kekurangan_menit: kekuranganMenit,
     }).eq('id', presensiId);
+
+    // [FIX] Cek error — lihat catatan di presensiMasuk di atas.
+    if (updateError) return { error: `Gagal menyimpan presensi keluar: ${updateError.message}` };
 
     revalidatePath('/petugas/dashboard');
     revalidatePath('/petugas/presensi');

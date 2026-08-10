@@ -12,8 +12,14 @@ export function HariLiburManager({ hariKerja, hariLibur }: { hariKerja: string[]
     const [error, setError] = useState('');
 
     const liburMap = new Map(hariLibur.map((h) => [h.tanggal, h]));
-    const hariTersedia = hariKerja.filter((d) => !liburMap.has(d));
-    const [tanggal, setTanggal] = useState(hariTersedia[0] ?? '');
+    // [FIX] Default tanggal saat form dibuka: hari pertama minggu yang sedang
+    // dilihat (sekadar starting point) — TAPI input di bawah bebas diubah ke
+    // TANGGAL APAPUN, tidak dibatasi ke minggu yang sedang ditampilkan.
+    // Sebelumnya pakai <select> yang cuma berisi 5 tanggal minggu ini, jadi
+    // kalau mau menandai tanggal di minggu lain (mis. 17 Agustus saat sedang
+    // melihat minggu 10-14 Agustus), otomatis ke-submit tanggal pertama
+    // di daftar tanpa disadari.
+    const [tanggal, setTanggal] = useState(hariKerja[0] ?? '');
 
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -62,27 +68,29 @@ export function HariLiburManager({ hariKerja, hariLibur }: { hariKerja: string[]
             )}
 
             {!showForm ? (
-                hariTersedia.length > 0 && (
-                    <button
-                        onClick={() => setShowForm(true)}
-                        className="inline-flex items-center gap-1.5 bg-paper-100 text-navy-950 px-4 py-2 rounded-xl text-sm font-medium hover:bg-paper-200 transition-colors"
-                    >
-                        <Plus className="w-4 h-4" /> Tandai Hari Libur
-                    </button>
-                )
+                <button
+                    onClick={() => setShowForm(true)}
+                    className="inline-flex items-center gap-1.5 bg-paper-100 text-navy-950 px-4 py-2 rounded-xl text-sm font-medium hover:bg-paper-200 transition-colors"
+                >
+                    <Plus className="w-4 h-4" /> Tandai Hari Libur
+                </button>
             ) : (
                 <form onSubmit={handleSubmit} className="flex flex-wrap gap-3 items-end bg-paper-50 rounded-xl p-4">
                     {error && <div className="w-full bg-rose-50 border border-rose-200 text-rose-700 px-3 py-2 rounded-lg text-sm">{error}</div>}
                     <div>
                         <label className="block text-xs text-navy-950/50 mb-1">Tanggal</label>
-                        <select value={tanggal} onChange={(e) => setTanggal(e.target.value)}
-                            className="border border-paper-200 rounded-xl px-3 py-2 text-sm bg-white">
-                            {hariTersedia.map((d) => (
-                                <option key={d} value={d}>
-                                    {new Date(d).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' })}
-                                </option>
-                            ))}
-                        </select>
+                        {/* [FIX] Input tanggal bebas — bisa pilih tanggal kapan pun,
+                            tidak terbatas ke minggu yang sedang ditampilkan. */}
+                        <input
+                            type="date"
+                            value={tanggal}
+                            onChange={(e) => setTanggal(e.target.value)}
+                            required
+                            className="border border-paper-200 rounded-xl px-3 py-2 text-sm bg-white"
+                        />
+                        {tanggal && liburMap.has(tanggal) && (
+                            <p className="text-xs text-amber-600 mt-1">⚠ Tanggal ini sudah ditandai libur: {liburMap.get(tanggal)?.keterangan}</p>
+                        )}
                     </div>
                     <div className="flex-1 min-w-48">
                         <label className="block text-xs text-navy-950/50 mb-1">Keterangan</label>
