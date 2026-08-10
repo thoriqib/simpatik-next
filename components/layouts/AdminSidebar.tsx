@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { logout } from '@/lib/actions/auth';
 import {
     LayoutDashboard, Users, Clock, CalendarDays, Tag,
-    MessageSquareWarning, Star, ClipboardList, LogOut, X,
+    MessageSquareWarning, Star, ClipboardList, LogOut, X, Trophy,
 } from 'lucide-react';
 
 const MENU: { group: string | null; href: string; label: string; icon: React.ElementType }[] = [
@@ -16,6 +16,7 @@ const MENU: { group: string | null; href: string; label: string; icon: React.Ele
     { group: 'Layanan', href: '/admin/jenis-layanan', label: 'Jenis Layanan', icon: Tag },
     { group: 'Layanan', href: '/admin/pengaduan', label: 'Pengaduan', icon: MessageSquareWarning },
     { group: 'Penilaian', href: '/admin/penilaian', label: 'Semua Penilaian', icon: Star },
+    { group: 'Penilaian', href: '/admin/petugas-terbaik', label: 'Petugas Terbaik', icon: Trophy },
     { group: 'Laporan', href: '/admin/laporan/antrian', label: 'Lap. Antrian', icon: ClipboardList },
     { group: 'Laporan', href: '/admin/laporan/penilaian', label: 'Lap. Penilaian', icon: ClipboardList },
     { group: 'Laporan', href: '/admin/laporan/presensi', label: 'Lap. Presensi', icon: ClipboardList },
@@ -52,7 +53,11 @@ export function AdminSidebar({ name, mobileOpen, onClose }: { name: string; mobi
                     {MENU.map((item) => {
                         const showGroupLabel = item.group !== lastGroup;
                         lastGroup = item.group;
-                        const active = pathname === item.href || (item.href !== '/admin/dashboard' && pathname.startsWith(item.href));
+                        // [FIX] pathname.startsWith(item.href) saja bisa salah cocok — misal
+                        // "/admin/petugas-terbaik".startsWith("/admin/petugas") = true padahal
+                        // itu 2 halaman berbeda. Wajib cek batas path (diikuti "/" atau persis sama).
+                        const active = pathname === item.href
+                            || (item.href !== '/admin/dashboard' && pathname.startsWith(item.href + '/'));
                         const Icon = item.icon;
                         return (
                             <div key={item.href}>

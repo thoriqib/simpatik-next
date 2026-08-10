@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { presensiMasuk, presensiKeluar } from '@/lib/actions/presensi';
@@ -8,6 +9,7 @@ import { LogIn, LogOut, CheckCircle2, AlertTriangle } from 'lucide-react';
 import type { JadwalPiket } from '@/lib/types/database';
 
 export function PresensiPanel({ jadwalHariIni }: { jadwalHariIni: JadwalPiket | null }) {
+    const router = useRouter();
     const [isPending, startTransition] = useTransition();
     const [msg, setMsg] = useState<{ type: 'success' | 'warning' | 'error' | 'info'; text: string } | null>(null);
 
@@ -29,7 +31,12 @@ export function PresensiPanel({ jadwalHariIni }: { jadwalHariIni: JadwalPiket | 
             else if (res.warning) setMsg({ type: 'warning', text: res.warning });
             else if (res.success) setMsg({ type: 'success', text: res.success });
             else if (res.info) setMsg({ type: 'info', text: res.info });
-            window.location.reload();
+            // [FIX] router.refresh() — bukan window.location.reload() penuh.
+            // Reload penuh menghapus state `msg` SEBELUM sempat ter-render,
+            // jadi pesan konfirmasi (termasuk info keterlambatan) tidak
+            // pernah terlihat. router.refresh() cuma mengambil ulang data
+            // Server Component (presensi terbaru), tanpa reset state client.
+            router.refresh();
         });
     }
 
@@ -39,7 +46,7 @@ export function PresensiPanel({ jadwalHariIni }: { jadwalHariIni: JadwalPiket | 
             if (res.error) setMsg({ type: 'error', text: res.error });
             else if (res.warning) setMsg({ type: 'warning', text: res.warning });
             else if (res.success) setMsg({ type: 'success', text: res.success });
-            window.location.reload();
+            router.refresh();
         });
     }
 
@@ -78,32 +85,57 @@ export function PresensiPanel({ jadwalHariIni }: { jadwalHariIni: JadwalPiket | 
                             </button>
                         </div>
                     ) : !presensi.waktu_keluar ? (
-                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                            <div className="text-sm flex items-center gap-2">
-                                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                                <span className="font-semibold text-emerald-700">Sudah Masuk</span>
-                                <span className="text-navy-950/50">— Pukul {jamMasuk} WIB</span>
+                        <div className="space-y-4">
+                            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                                <div className="text-sm flex items-center gap-2">
+                                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                                    <span className="font-semibold text-emerald-700">Sudah Masuk</span>
+                                    <span className="text-navy-950/50">— Pukul {jamMasuk} WIB</span>
+                                </div>
+                                <button onClick={handleKeluar} disabled={isPending}
+                                    className="inline-flex items-center gap-2 bg-amber-500 text-white px-6 py-2.5 rounded-xl font-semibold hover:bg-amber-500/90 transition-colors text-sm disabled:opacity-50">
+                                    <LogOut className="w-4 h-4" />
+                                    {isPending ? 'Memproses...' : 'Presensi Keluar'}
+                                </button>
                             </div>
-                            <button onClick={handleKeluar} disabled={isPending}
-                                className="inline-flex items-center gap-2 bg-amber-500 text-white px-6 py-2.5 rounded-xl font-semibold hover:bg-amber-500/90 transition-colors text-sm disabled:opacity-50">
-                                <LogOut className="w-4 h-4" />
-                                {isPending ? 'Memproses...' : 'Presensi Keluar'}
-                            </button>
+
+                            {/* Info keterlambatan tampil PERSISTEN (dari data tersimpan),
+                                bukan cuma sekilas lewat toast yang gampang terlewat. */}
+                            {presensi.terlambat_menit > 0 && (
+                                <div className="inline-flex items-center gap-1.5 text-amber-600 text-xs font-medium bg-amber-500/10 px-3 py-1.5 rounded-lg">
+                                    <AlertTriangle className="w-3.5 h-3.5" />
+                                    Terlambat {presensi.terlambat_menit} menit dari jadwal masuk
+                                </div>
+                            )}
                         </div>
                     ) : (
-                        <div className="flex flex-wrap items-center gap-6 text-sm">
-                            <div className="text-emerald-600">Masuk: <strong className="tabular font-mono">{jamMasuk}</strong></div>
-                            <div className="text-amber-500">Keluar: <strong className="tabular font-mono">{jamKeluar}</strong></div>
-                            {presensi.kekurangan_menit > 0 ? (
-                                <span className="inline-flex items-center gap-1.5 text-rose-600 font-medium text-xs">
-                                    <AlertTriangle className="w-3.5 h-3.5" />
-                                    Kurang {Math.floor(presensi.kekurangan_menit / 60)}j {presensi.kekurangan_menit % 60}m
-                                </span>
-                            ) : (
-                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-600">
-                                    <CheckCircle2 className="w-3.5 h-3.5" />
-                                    Presensi Lengkap
-                                </span>
+                        <div className="space-y-3">
+                            <div className="flex flex-wrap items-center gap-6 text-sm">
+                                <div className="text-emerald-600">Masuk: <strong className="tabular font-mono">{jamMasuk}</strong></div>
+                                <div className="text-amber-500">Keluar: <strong className="tabular font-mono">{jamKeluar}</strong></div>
+                                {presensi.kekurangan_menit > 0 ? (
+                                    <span className="inline-flex items-center gap-1.5 text-rose-600 font-medium text-xs">
+                                        <AlertTriangle className="w-3.5 h-3.5" />
+                                        Kurang {Math.floor(presensi.kekurangan_menit / 60)}j {presensi.kekurangan_menit % 60}m
+                                    </span>
+                                ) : (
+                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-600">
+                                        <CheckCircle2 className="w-3.5 h-3.5" />
+                                        Presensi Lengkap
+                                    </span>
+                                )}
+                            </div>
+
+                            {/* Rincian: terlambat + pulang awal, biar transparan asal kekurangannya dari mana */}
+                            {(presensi.terlambat_menit > 0 || presensi.pulang_awal_menit > 0) && (
+                                <div className="flex flex-wrap gap-2 text-xs text-navy-950/50">
+                                    {presensi.terlambat_menit > 0 && (
+                                        <span className="bg-paper-100 px-2.5 py-1 rounded-lg">⏰ Terlambat masuk: {presensi.terlambat_menit} menit</span>
+                                    )}
+                                    {presensi.pulang_awal_menit > 0 && (
+                                        <span className="bg-paper-100 px-2.5 py-1 rounded-lg">🚪 Pulang lebih awal: {presensi.pulang_awal_menit} menit</span>
+                                    )}
+                                </div>
                             )}
                         </div>
                     )}

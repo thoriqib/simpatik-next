@@ -48,3 +48,47 @@ export const STATUS_BADGE: Record<string, { label: string; className: string }> 
     alpha:     { label: 'Alpha',     className: 'bg-red-100 text-red-700' },
     terjadwal: { label: 'Terjadwal', className: 'bg-gray-100 text-gray-600' },
 };
+
+// ═══════════════════════════════════════════════════════════════
+// Helper minggu kerja (Senin–Jumat) — dipakai oleh halaman jadwal
+// petugas (publik & admin) untuk navigasi per minggu.
+// ═══════════════════════════════════════════════════════════════
+
+/** Ambil tanggal Senin dari minggu yang memuat `date` (format YYYY-MM-DD lokal, bukan UTC). */
+export function getMondayOfWeek(date: Date): Date {
+    const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const day = d.getDay(); // 0 = Minggu, 1 = Senin, ..., 6 = Sabtu
+    const diff = day === 0 ? -6 : 1 - day; // mundur ke Senin terdekat
+    d.setDate(d.getDate() + diff);
+    return d;
+}
+
+/** Format Date lokal (bukan UTC) jadi string YYYY-MM-DD — aman dari pergeseran zona waktu toISOString(). */
+export function toDateStringLocal(d: Date): string {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+}
+
+/** Bangun 5 tanggal Senin–Jumat dari sebuah tanggal Senin. */
+export function getWeekdayDates(monday: Date): Date[] {
+    return Array.from({ length: 5 }, (_, i) => {
+        const d = new Date(monday);
+        d.setDate(d.getDate() + i);
+        return d;
+    });
+}
+
+/** Senin minggu ini, berbasis tanggal WIB hari ini. */
+export function currentWeekMondayWIB(): Date {
+    const todayStr = todayDateStringWIB(); // "YYYY-MM-DD"
+    const [y, m, d] = todayStr.split('-').map(Number);
+    return getMondayOfWeek(new Date(y, m - 1, d));
+}
+
+/** Parse string "YYYY-MM-DD" jadi Date lokal (bukan UTC) — hindari pergeseran tanggal. */
+export function parseDateLocal(dateStr: string): Date {
+    const [y, m, d] = dateStr.split('-').map(Number);
+    return new Date(y, m - 1, d);
+}

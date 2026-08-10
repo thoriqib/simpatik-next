@@ -108,13 +108,15 @@ create index idx_jadwal_user on public.jadwal_piket(user_id);
 -- TABEL: presensi
 -- ═══════════════════════════════════════════════════════════════
 create table public.presensi (
-    id                 bigint generated always as identity primary key,
-    user_id            uuid not null references public.profiles(id) on delete cascade,
-    jadwal_piket_id    bigint not null references public.jadwal_piket(id) on delete cascade,
-    waktu_masuk        timestamptz,
-    waktu_keluar       timestamptz,
-    kekurangan_menit   integer not null default 0,
-    created_at         timestamptz not null default now(),
+    id                  bigint generated always as identity primary key,
+    user_id             uuid not null references public.profiles(id) on delete cascade,
+    jadwal_piket_id     bigint not null references public.jadwal_piket(id) on delete cascade,
+    waktu_masuk         timestamptz,
+    waktu_keluar        timestamptz,
+    terlambat_menit     integer not null default 0, -- menit terlambat masuk dari jam mulai shift
+    pulang_awal_menit   integer not null default 0, -- menit pulang lebih awal dari jam selesai shift
+    kekurangan_menit    integer not null default 0, -- total = terlambat_menit + pulang_awal_menit
+    created_at          timestamptz not null default now(),
     unique (jadwal_piket_id)
 );
 
@@ -360,6 +362,25 @@ create policy "lampiran: publik bisa upload"
 create policy "lampiran: publik bisa lihat"
     on storage.objects for select
     using (bucket_id = 'pengaduan');
+
+-- ═══════════════════════════════════════════════════════════════
+-- TABEL: hari_libur
+-- Keterangan hari libur nasional, dipakai di halaman jadwal petugas.
+-- ═══════════════════════════════════════════════════════════════
+create table public.hari_libur (
+    id          bigint generated always as identity primary key,
+    tanggal     date not null unique,
+    keterangan  text not null,
+    created_at  timestamptz not null default now()
+);
+
+alter table public.hari_libur enable row level security;
+
+create policy "hari_libur: publik bisa lihat" on public.hari_libur
+    for select using (true);
+
+create policy "hari_libur: admin kelola penuh" on public.hari_libur
+    for all using (app_role() = 'admin');
 
 -- ═══════════════════════════════════════════════════════════════
 -- REALTIME: aktifkan untuk tabel antrian

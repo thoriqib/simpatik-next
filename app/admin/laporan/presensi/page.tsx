@@ -18,27 +18,47 @@ export default async function LaporanPresensiPage({ searchParams }: { searchPara
     type JadwalPresensiRow = {
         status: string;
         profiles: { name: string } | null;
-        presensi: { kekurangan_menit: number }[] | null;
+        presensi: { terlambat_menit: number; pulang_awal_menit: number; kekurangan_menit: number }[] | null;
     };
 
     const { data: jadwalRaw } = await supabase
         .from('jadwal_piket')
-        .select('*, profiles(name), presensi(kekurangan_menit)')
+        .select('*, profiles(name), presensi(terlambat_menit, pulang_awal_menit, kekurangan_menit)')
         .gte('tanggal', start).lte('tanggal', end);
 
     const jadwal = jadwalRaw as unknown as JadwalPresensiRow[] | null;
 
-    const rekapMap = new Map<string, { nama: string; hadir: number; izin: number; sakit: number; alpha: number; terjadwal: number; total: number; kekurangan: number }>();
+    const rekapMap = new Map<string, {
+        nama: string; hadir: number; izin: number; sakit: number; alpha: number; terjadwal: number; total: number;
+        totalTerlambat: number; totalPulangAwal: number; totalKekurangan: number;
+    }>();
+
     (jadwal ?? []).forEach((j) => {
         const nama = j.profiles?.name ?? '-';
-        if (!rekapMap.has(nama)) rekapMap.set(nama, { nama, hadir: 0, izin: 0, sakit: 0, alpha: 0, terjadwal: 0, total: 0, kekurangan: 0 });
+        if (!rekapMap.has(nama)) {
+            rekapMap.set(nama, {
+                nama, hadir: 0, izin: 0, sakit: 0, alpha: 0, terjadwal: 0, total: 0,
+                totalTerlambat: 0, totalPulangAwal: 0, totalKekurangan: 0,
+            });
+        }
         const r = rekapMap.get(nama)!;
         r.total++;
         r[j.status as 'hadir' | 'izin' | 'sakit' | 'alpha' | 'terjadwal']++;
-        r.kekurangan += j.presensi?.[0]?.kekurangan_menit ?? 0;
+        // [UPDATE] Kekurangan = total terlambat + total pulang awal (dihitung
+        // independen per hari, TIDAK saling menutupi — lihat lib/actions/presensi.ts)
+        r.totalTerlambat += j.presensi?.[0]?.terlambat_menit ?? 0;
+        r.totalPulangAwal += j.presensi?.[0]?.pulang_awal_menit ?? 0;
+        r.totalKekurangan += j.presensi?.[0]?.kekurangan_menit ?? 0;
     });
-    const rekap = Array.from(rekapMap.values());
+    const rekap = Array.from(rekapMap.values()).sort((a, b) => b.totalKekurangan - a.totalKekurangan);
     const bulanNama = new Date(tahun, bulan - 1).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+
+    function formatJamMenit(menit: number): string {
+        if (menit <= 0) return '—';
+        const jam = Math.floor(menit / 60);
+        const sisa = menit % 60;
+        return [jam > 0 ? `${jam}j` : '', sisa > 0 ? `${sisa}m` : ''].filter(Boolean).join(' ');
+    }
 
     return (
         <>
@@ -62,15 +82,21 @@ export default async function LaporanPresensiPage({ searchParams }: { searchPara
                 </form>
             </Card>
 
-            <Card title={`Rekap Kehadiran Bulan ${bulanNama}`}>
+            <Card title={`Rekap Kehadiran Bulan ${bulanNama}`} description="Kekurangan jam = total keterlambatan masuk + total pulang lebih awal (dihitung independen per hari, tidak saling menutupi — lembur tidak menghapus catatan terlambat).">
                 <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                     <thead>
                         <tr className="border-b text-navy-950/50 text-left">
-                            <th className="pb-3 font-medium">Petugas</th><th className="pb-3 font-medium text-center">Total</th>
-                            <th className="pb-3 font-medium text-center text-green-600">Hadir</th><th className="pb-3 font-medium text-center text-azure-500">Izin</th>
-                            <th className="pb-3 font-medium text-center text-orange-600">Sakit</th><th className="pb-3 font-medium text-center text-red-600">Alpha</th>
-                            <th className="pb-3 font-medium text-center">% Hadir</th><th className="pb-3 font-medium text-center text-red-500">Kurang Jam</th>
+                            <th className="pb-3 font-medium">Petugas</th>
+                            <th className="pb-3 font-medium text-center">Total</th>
+                            <th className="pb-3 font-medium text-center text-green-600">Hadir</th>
+                            <th className="pb-3 font-medium text-center text-azure-500">Izin</th>
+                            <th className="pb-3 font-medium text-center text-orange-600">Sakit</th>
+                            <th className="pb-3 font-medium text-center text-red-600">Alpha</th>
+                            <th className="pb-3 font-medium text-center">% Hadir</th>
+                            <th className="pb-3 font-medium text-center text-amber-600">Terlambat</th>
+                            <th className="pb-3 font-medium text-center text-rose-600">Pulang Awal</th>
+                            <th className="pb-3 font-medium text-center text-red-500">Total Kurang Jam</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -90,12 +116,16 @@ export default async function LaporanPresensiPage({ searchParams }: { searchPara
                                             <span className="text-xs text-navy-950/60 w-8">{persen}%</span>
                                         </div>
                                     </td>
+                                    <td className="py-3 text-center text-xs text-amber-600 font-medium">{formatJamMenit(r.totalTerlambat)}</td>
+                                    <td className="py-3 text-center text-xs text-rose-600 font-medium">{formatJamMenit(r.totalPulangAwal)}</td>
                                     <td className="py-3 text-center text-sm">
-                                        {r.kekurangan > 0 ? <span className="text-red-500 font-semibold">{Math.floor(r.kekurangan / 60)}j {r.kekurangan % 60}m</span> : <span className="text-green-500 text-xs">✓</span>}
+                                        {r.totalKekurangan > 0
+                                            ? <span className="text-red-500 font-bold">{formatJamMenit(r.totalKekurangan)}</span>
+                                            : <span className="text-green-500 text-xs">✓ Lengkap</span>}
                                     </td>
                                 </tr>
                             );
-                        }) : <tr><td colSpan={8} className="py-8 text-center text-navy-950/30">Belum ada data presensi</td></tr>}
+                        }) : <tr><td colSpan={10} className="py-8 text-center text-navy-950/30">Belum ada data presensi</td></tr>}
                     </tbody>
                 </table>
                 </div>

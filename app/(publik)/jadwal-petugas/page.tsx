@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
-import { formatTanggal } from '@/lib/utils';
-import type { JadwalPublik, ShiftPiket } from '@/lib/types/database';
+import { getMondayOfWeek, getWeekdayDates, currentWeekMondayWIB, toDateStringLocal, parseDateLocal } from '@/lib/utils';
+import Link from 'next/link';
+import { ChevronLeft, ChevronRight, CalendarClock } from 'lucide-react';
+import type { JadwalPublik, ShiftPiket, HariLibur } from '@/lib/types/database';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,25 +14,25 @@ const STATUS_TEXT: Record<string, string> = {
     hadir: 'text-green-600', izin: 'text-blue-500', sakit: 'text-orange-500', alpha: 'text-red-500',
 };
 
-function getMonthRange(year: number, month: number) {
-    const start = new Date(year, month - 1, 1);
-    const end = new Date(year, month, 0);
-    return { start, end };
-}
-
 export default async function JadwalPetugasPage({
     searchParams,
 }: {
-    searchParams: Promise<{ bulan?: string; tahun?: string }>;
+    searchParams: Promise<{ minggu?: string }>;
 }) {
     const params = await searchParams;
-    const now = new Date();
-    const bulan = Number(params.bulan) || now.getMonth() + 1;
-    const tahun = Number(params.tahun) || now.getFullYear();
 
-    const { start, end } = getMonthRange(tahun, bulan);
-    const startStr = start.toISOString().slice(0, 10);
-    const endStr = end.toISOString().slice(0, 10);
+    // ── Tentukan Senin minggu yang ditampilkan (default: minggu ini WIB) ──
+    const monday = params.minggu ? getMondayOfWeek(parseDateLocal(params.minggu)) : currentWeekMondayWIB();
+    const hariKerja = getWeekdayDates(monday); // Senin–Jumat, 5 hari
+
+    const startStr = toDateStringLocal(hariKerja[0]);
+    const endStr = toDateStringLocal(hariKerja[4]);
+
+    // Minggu sebelumnya/berikutnya untuk navigasi
+    const mondayPrev = new Date(monday); mondayPrev.setDate(mondayPrev.getDate() - 7);
+    const mondayNext = new Date(monday); mondayNext.setDate(mondayNext.getDate() + 7);
+    const mondayThisWeek = currentWeekMondayWIB();
+    const isMingguIni = toDateStringLocal(monday) === toDateStringLocal(mondayThisWeek);
 
     const supabase = await createClient();
     const { data: jadwal } = await supabase
@@ -42,71 +44,83 @@ export default async function JadwalPetugasPage({
 
     const { data: shifts } = await supabase.from('shift_piket').select('*').eq('is_aktif', true).order('jam_mulai');
 
-    const hariKerja: Date[] = [];
-    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-        const day = d.getDay();
-        if (day !== 0 && day !== 6) hariKerja.push(new Date(d));
-    }
+    const { data: hariLibur } = await supabase
+        .from('hari_libur')
+        .select('*')
+        .gte('tanggal', startStr)
+        .lte('tanggal', endStr);
+
+    const liburByTanggal = new Map<string, HariLibur>();
+    (hariLibur ?? []).forEach((h) => liburByTanggal.set(h.tanggal, h));
 
     const jadwalByTanggal = new Map<string, JadwalPublik[]>();
     (jadwal ?? []).forEach((j) => {
-        const key = j.tanggal;
-        if (!jadwalByTanggal.has(key)) jadwalByTanggal.set(key, []);
-        jadwalByTanggal.get(key)!.push(j);
+        if (!jadwalByTanggal.has(j.tanggal)) jadwalByTanggal.set(j.tanggal, []);
+        jadwalByTanggal.get(j.tanggal)!.push(j);
     });
 
-    const bulanNama = start.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
-    const todayStr = new Date().toISOString().slice(0, 10);
+    const rangeLabel = `${hariKerja[0].toLocaleDateString('id-ID', { day: 'numeric', month: 'long' })} – ${hariKerja[4].toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`;
+    const todayStr = toDateStringLocal(new Date());
 
     return (
         <>
             <div className="mb-5">
                 <h2 className="text-xl font-bold text-navy-950">Jadwal Petugas Pelayanan</h2>
-                <p className="text-sm text-navy-950/50 mt-1">Jadwal piket petugas Simpatik bulan {bulanNama}</p>
+                <p className="text-sm text-navy-950/50 mt-1">Jadwal piket petugas Simpatik, {rangeLabel}</p>
             </div>
 
-            <form method="GET" className="bg-white rounded-xl border border-paper-200 shadow-sm p-4 mb-5 flex flex-wrap gap-3 items-end">
-                <div>
-                    <label className="block text-xs text-navy-950/50 mb-1">Bulan</label>
-                    <select name="bulan" defaultValue={bulan} className="border border-paper-200 rounded-xl px-3 py-2 text-sm">
-                        {Array.from({ length: 12 }, (_, i) => i + 1).map((b) => (
-                            <option key={b} value={b}>
-                                {new Date(2000, b - 1).toLocaleDateString('id-ID', { month: 'long' })}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-                <div>
-                    <label className="block text-xs text-navy-950/50 mb-1">Tahun</label>
-                    <select name="tahun" defaultValue={tahun} className="border border-paper-200 rounded-xl px-3 py-2 text-sm">
-                        {[now.getFullYear() - 1, now.getFullYear(), now.getFullYear() + 1].map((t) => (
-                            <option key={t} value={t}>{t}</option>
-                        ))}
-                    </select>
-                </div>
-                <button type="submit" className="bg-navy-700 text-white px-5 py-2 rounded-xl text-sm font-medium">Tampilkan</button>
-            </form>
+            {/* Navigasi minggu */}
+            <div className="bg-white rounded-xl border border-paper-200 shadow-sm p-3 mb-5 flex items-center justify-between gap-3">
+                <Link
+                    href={`/jadwal-petugas?minggu=${toDateStringLocal(mondayPrev)}`}
+                    className="inline-flex items-center gap-1.5 text-sm text-navy-950/60 hover:text-navy-950 px-3 py-2 rounded-lg hover:bg-paper-50 transition-colors"
+                >
+                    <ChevronLeft className="w-4 h-4" /> Minggu Lalu
+                </Link>
 
-            {hariKerja.length > 0 ? (
-                <div className="bg-white rounded-xl border border-paper-200 shadow-sm overflow-hidden">
-                    <div className="grid border-b border-gray-200 bg-navy-700 text-white text-sm font-semibold"
-                        style={{ gridTemplateColumns: `140px repeat(${shifts?.length ?? 1}, 1fr)` }}>
-                        <div className="px-4 py-3">Tanggal</div>
-                        {shifts?.map((shift) => (
-                            <div key={shift.id} className="px-4 py-3 border-l border-blue-700">
-                                <div>{shift.nama_shift}</div>
-                                <div className="text-blue-200 text-xs font-normal">{shift.jam_mulai}–{shift.jam_selesai}</div>
-                            </div>
-                        ))}
-                    </div>
-                    {hariKerja.map((tgl) => {
-                        const tglStr = tgl.toISOString().slice(0, 10);
-                        const jadwalHari = jadwalByTanggal.get(tglStr) ?? [];
-                        const isToday = tglStr === todayStr;
-                        return (
-                            <div key={tglStr}
-                                className={`grid border-b border-paper-200 last:border-0 text-sm ${isToday ? 'bg-azure-500/10' : 'hover:bg-paper-50'} transition`}
-                                style={{ gridTemplateColumns: `140px repeat(${shifts?.length ?? 1}, 1fr)` }}>
+                <div className="flex items-center gap-3">
+                    <span className="font-semibold text-navy-950 text-sm text-center">{rangeLabel}</span>
+                    {!isMingguIni && (
+                        <Link
+                            href="/jadwal-petugas"
+                            className="inline-flex items-center gap-1.5 text-xs bg-azure-500/10 text-azure-500 px-3 py-1.5 rounded-lg font-medium hover:bg-azure-500/20 transition-colors"
+                        >
+                            <CalendarClock className="w-3.5 h-3.5" /> Minggu Ini
+                        </Link>
+                    )}
+                </div>
+
+                <Link
+                    href={`/jadwal-petugas?minggu=${toDateStringLocal(mondayNext)}`}
+                    className="inline-flex items-center gap-1.5 text-sm text-navy-950/60 hover:text-navy-950 px-3 py-2 rounded-lg hover:bg-paper-50 transition-colors"
+                >
+                    Minggu Depan <ChevronRight className="w-4 h-4" />
+                </Link>
+            </div>
+
+            <div className="bg-white rounded-xl border border-paper-200 shadow-sm overflow-hidden">
+                <div className="grid border-b border-gray-200 bg-navy-700 text-white text-sm font-semibold"
+                    style={{ gridTemplateColumns: `140px repeat(${shifts?.length ?? 1}, 1fr)` }}>
+                    <div className="px-4 py-3">Tanggal</div>
+                    {shifts?.map((shift) => (
+                        <div key={shift.id} className="px-4 py-3 border-l border-blue-700">
+                            <div>{shift.nama_shift}</div>
+                            <div className="text-blue-200 text-xs font-normal">{shift.jam_mulai}–{shift.jam_selesai}</div>
+                        </div>
+                    ))}
+                </div>
+                {hariKerja.map((tgl) => {
+                    const tglStr = toDateStringLocal(tgl);
+                    const jadwalHari = jadwalByTanggal.get(tglStr) ?? [];
+                    const libur = liburByTanggal.get(tglStr);
+                    const isToday = tglStr === todayStr;
+
+                    return (
+                        <div key={tglStr} className="border-b border-paper-200 last:border-0">
+                            <div
+                                className={`grid text-sm ${isToday ? 'bg-azure-500/10' : 'hover:bg-paper-50'} transition`}
+                                style={{ gridTemplateColumns: `140px repeat(${shifts?.length ?? 1}, 1fr)` }}
+                            >
                                 <div className="px-4 py-4 border-r border-paper-200">
                                     <div className={`font-semibold ${isToday ? 'text-navy-700' : 'text-navy-950/80'}`}>
                                         {tgl.toLocaleDateString('id-ID', { weekday: 'short' })}
@@ -118,7 +132,9 @@ export default async function JadwalPetugasPage({
                                     const petugasShift = jadwalHari.filter((j) => j.shift_id === shift.id);
                                     return (
                                         <div key={shift.id} className="px-4 py-4 border-r border-paper-200 last:border-0">
-                                            {petugasShift.length === 0 ? (
+                                            {libur ? (
+                                                <span className="text-rose-400 text-xs italic">Libur</span>
+                                            ) : petugasShift.length === 0 ? (
                                                 <span className="text-navy-950/20 text-xs italic">—</span>
                                             ) : (
                                                 <div className="space-y-1.5">
@@ -143,12 +159,17 @@ export default async function JadwalPetugasPage({
                                     );
                                 })}
                             </div>
-                        );
-                    })}
-                </div>
-            ) : (
-                <div className="bg-white rounded-xl border border-paper-200 p-10 text-center text-navy-950/30">Tidak ada hari kerja di bulan ini.</div>
-            )}
+
+                            {/* Banner hari libur — merentang penuh di bawah baris tanggal */}
+                            {libur && (
+                                <div className="px-4 py-2 bg-rose-50 border-t border-rose-100 text-rose-600 text-xs font-medium flex items-center gap-1.5">
+                                    🎌 Hari Libur Nasional: {libur.keterangan}
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
 
             <div className="mt-4 flex flex-wrap gap-4 text-xs text-navy-950/50">
                 <span className="flex items-center gap-1.5"><span className="w-4 h-4 rounded-full bg-navy-700 inline-block" /> Terjadwal</span>
@@ -156,6 +177,7 @@ export default async function JadwalPetugasPage({
                 <span className="flex items-center gap-1.5"><span className="w-4 h-4 rounded-full bg-blue-400 inline-block" /> Izin</span>
                 <span className="flex items-center gap-1.5"><span className="w-4 h-4 rounded-full bg-orange-400 inline-block" /> Sakit</span>
                 <span className="flex items-center gap-1.5"><span className="w-4 h-4 rounded-full bg-red-400 inline-block" /> Alpha</span>
+                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-rose-400 inline-block" /> Libur Nasional</span>
             </div>
         </>
     );

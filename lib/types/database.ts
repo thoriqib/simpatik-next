@@ -50,6 +50,8 @@ export interface Presensi {
     jadwal_piket_id: number;
     waktu_masuk: string | null;
     waktu_keluar: string | null;
+    terlambat_menit: number;
+    pulang_awal_menit: number;
     kekurangan_menit: number;
     created_at: string;
 }
@@ -107,4 +109,11 @@ export interface JadwalPublik {
     nama_shift: string;
     jam_mulai: string;
     jam_selesai: string;
+}
+
+export interface HariLibur {
+    id: number;
+    tanggal: string;
+    keterangan: string;
+    created_at: string;
 }

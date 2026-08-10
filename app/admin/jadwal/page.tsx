@@ -3,18 +3,27 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { JadwalForm } from './JadwalForm';
 import { CsvImport } from './CsvImport';
+import { HariLiburManager } from './HariLiburManager';
 import { hapusJadwal } from '@/lib/actions/jadwal';
+import { getMondayOfWeek, getWeekdayDates, currentWeekMondayWIB, toDateStringLocal, parseDateLocal } from '@/lib/utils';
+import Link from 'next/link';
+import { ChevronLeft, ChevronRight, CalendarClock } from 'lucide-react';
+import type { HariLibur } from '@/lib/types/database';
 
 export const dynamic = 'force-dynamic';
 
-export default async function JadwalPage({ searchParams }: { searchParams: Promise<{ bulan?: string; tahun?: string }> }) {
+export default async function JadwalPage({ searchParams }: { searchParams: Promise<{ minggu?: string }> }) {
     const params = await searchParams;
-    const now = new Date();
-    const bulan = Number(params.bulan) || now.getMonth() + 1;
-    const tahun = Number(params.tahun) || now.getFullYear();
 
-    const start = new Date(tahun, bulan - 1, 1).toISOString().slice(0, 10);
-    const end = new Date(tahun, bulan, 0).toISOString().slice(0, 10);
+    // ── Tentukan Senin minggu yang ditampilkan (default: minggu ini WIB) ──
+    const monday = params.minggu ? getMondayOfWeek(parseDateLocal(params.minggu)) : currentWeekMondayWIB();
+    const hariKerja = getWeekdayDates(monday);
+    const start = toDateStringLocal(hariKerja[0]);
+    const end = toDateStringLocal(hariKerja[4]);
+
+    const mondayPrev = new Date(monday); mondayPrev.setDate(mondayPrev.getDate() - 7);
+    const mondayNext = new Date(monday); mondayNext.setDate(mondayNext.getDate() + 7);
+    const isMingguIni = toDateStringLocal(monday) === toDateStringLocal(currentWeekMondayWIB());
 
     const supabase = await createClient();
 
@@ -42,7 +51,15 @@ export default async function JadwalPage({ searchParams }: { searchParams: Promi
     const { data: petugas } = await supabase.from('profiles').select('id, name').eq('role', 'petugas').order('name');
     const { data: shifts } = await supabase.from('shift_piket').select('*').eq('is_aktif', true);
 
-    const bulanNama = new Date(tahun, bulan - 1).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+    const { data: hariLiburRaw } = await supabase
+        .from('hari_libur')
+        .select('*')
+        .gte('tanggal', start)
+        .lte('tanggal', end)
+        .order('tanggal');
+    const hariLibur = (hariLiburRaw ?? []) as HariLibur[];
+
+    const rangeLabel = `${hariKerja[0].toLocaleDateString('id-ID', { day: 'numeric', month: 'long' })} – ${hariKerja[4].toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`;
 
     return (
         <>
@@ -50,27 +67,39 @@ export default async function JadwalPage({ searchParams }: { searchParams: Promi
 
             <CsvImport />
 
-            <Card className="mb-5">
-                <form method="GET" className="flex flex-wrap gap-3 items-end">
-                    <div>
-                        <label className="block text-sm font-medium text-navy-950/80 mb-1">Bulan</label>
-                        <select name="bulan" defaultValue={bulan} className="border border-paper-200 rounded-xl px-3 py-2 text-sm">
-                            {Array.from({ length: 12 }, (_, i) => i + 1).map((b) => (
-                                <option key={b} value={b}>{new Date(2000, b - 1).toLocaleDateString('id-ID', { month: 'long' })}</option>
-                            ))}
-                        </select>
+            {/* Navigasi minggu */}
+            <Card className="mb-5 !p-3">
+                <div className="flex items-center justify-between gap-3">
+                    <Link
+                        href={`/admin/jadwal?minggu=${toDateStringLocal(mondayPrev)}`}
+                        className="inline-flex items-center gap-1.5 text-sm text-navy-950/60 hover:text-navy-950 px-3 py-2 rounded-lg hover:bg-paper-50 transition-colors"
+                    >
+                        <ChevronLeft className="w-4 h-4" /> Minggu Lalu
+                    </Link>
+                    <div className="flex items-center gap-3">
+                        <span className="font-semibold text-navy-950 text-sm">{rangeLabel}</span>
+                        {!isMingguIni && (
+                            <Link href="/admin/jadwal"
+                                className="inline-flex items-center gap-1.5 text-xs bg-azure-500/10 text-azure-500 px-3 py-1.5 rounded-lg font-medium hover:bg-azure-500/20 transition-colors">
+                                <CalendarClock className="w-3.5 h-3.5" /> Minggu Ini
+                            </Link>
+                        )}
                     </div>
-                    <div>
-                        <label className="block text-sm font-medium text-navy-950/80 mb-1">Tahun</label>
-                        <select name="tahun" defaultValue={tahun} className="border border-paper-200 rounded-xl px-3 py-2 text-sm">
-                            {[tahun - 1, tahun, tahun + 1].map((t) => <option key={t} value={t}>{t}</option>)}
-                        </select>
-                    </div>
-                    <button type="submit" className="bg-navy-700 text-white px-4 py-2 rounded-xl text-sm font-medium">Tampilkan</button>
-                </form>
+                    <Link
+                        href={`/admin/jadwal?minggu=${toDateStringLocal(mondayNext)}`}
+                        className="inline-flex items-center gap-1.5 text-sm text-navy-950/60 hover:text-navy-950 px-3 py-2 rounded-lg hover:bg-paper-50 transition-colors"
+                    >
+                        Minggu Depan <ChevronRight className="w-4 h-4" />
+                    </Link>
+                </div>
             </Card>
 
-            <Card title={`Jadwal Bulan ${bulanNama}`}>
+            <Card title="Hari Libur Nasional Minggu Ini" description="Tandai tanggal yang libur nasional supaya tampil di jadwal publik & tidak perlu diisi jadwal piket." className="mb-5">
+                <HariLiburManager hariKerja={hariKerja.map((d) => toDateStringLocal(d))} hariLibur={hariLibur} />
+            </Card>
+
+            <Card title={`Jadwal Piket — ${rangeLabel}`}>
+                <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                     <thead>
                         <tr className="border-b text-navy-950/50 text-left">
@@ -99,9 +128,10 @@ export default async function JadwalPage({ searchParams }: { searchParams: Promi
                                     </form>
                                 </td>
                             </tr>
-                        )) : <tr><td colSpan={7} className="py-8 text-center text-navy-950/30">Belum ada jadwal untuk bulan ini</td></tr>}
+                        )) : <tr><td colSpan={7} className="py-8 text-center text-navy-950/30">Belum ada jadwal untuk minggu ini</td></tr>}
                     </tbody>
                 </table>
+                </div>
             </Card>
 
             <Card title="Tambah Jadwal Piket Manual" className="mt-5">

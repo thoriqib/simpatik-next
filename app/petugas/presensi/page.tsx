@@ -105,8 +105,14 @@ export default async function PresensiPetugasPage({ searchParams }: { searchPara
                                         </td>
                                         <td className="py-3 text-navy-950/60">{item.shift_piket?.nama_shift}</td>
                                         <td className="py-3"><Badge status={item.status} /></td>
-                                        <td className="py-3 font-mono text-sm">{jamWIB(p?.waktu_masuk ?? null) ?? '—'}</td>
-                                        <td className="py-3 font-mono text-sm">{jamWIB(p?.waktu_keluar ?? null) ?? '—'}</td>
+                                        <td className="py-3 font-mono text-sm">
+                                            {jamWIB(p?.waktu_masuk ?? null) ?? '—'}
+                                            {p && p.terlambat_menit > 0 && <span className="text-amber-600 text-xs ml-1">(+{p.terlambat_menit}m)</span>}
+                                        </td>
+                                        <td className="py-3 font-mono text-sm">
+                                            {jamWIB(p?.waktu_keluar ?? null) ?? '—'}
+                                            {p && p.pulang_awal_menit > 0 && <span className="text-rose-600 text-xs ml-1">(-{p.pulang_awal_menit}m)</span>}
+                                        </td>
                                         <td className="py-3 text-navy-950/50 text-xs">{durasiMenit !== null ? `${Math.floor(durasiMenit / 60)}j ${durasiMenit % 60}m` : '—'}</td>
                                         <td className="py-3 text-sm font-semibold">
                                             {(p?.kekurangan_menit ?? 0) > 0
