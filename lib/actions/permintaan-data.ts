@@ -198,6 +198,8 @@ export async function tanggapiPermintaanData(id: number, basePath: string, prevS
 /**
  * Khusus admin: delegasikan penanggung jawab ke petugas tertentu tanpa
  * admin sendiri yang menanggapi. Status otomatis jadi 'diproses'.
+ * Bisa dipakai kapan pun (termasuk untuk GANTI penanggung jawab yang
+ * sudah ada sebelumnya) — admin punya kendali penuh.
  */
 export async function delegasikanPermintaanData(id: number, petugasId: string) {
     const supabase = await createClient();
@@ -217,4 +219,92 @@ export async function delegasikanPermintaanData(id: number, petugasId: string) {
     revalidatePath('/admin/permintaan-data');
     revalidatePath('/petugas/permintaan-data');
     return { success: true };
+}
+
+/**
+ * Khusus admin: edit data permintaan (misal ada salah ketik dari
+ * pengunjung, atau perlu koreksi data kontak).
+ */
+export async function editPermintaanData(id: number, prevState: ActionState, formData: FormData): Promise<ActionState> {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Sesi tidak valid, silakan login ulang.' };
+
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+    if (profile?.role !== 'admin') return { error: 'Hanya admin yang bisa mengedit permintaan.' };
+
+    const namaLengkap = (formData.get('nama_lengkap') as string || '').trim();
+    const instansi = (formData.get('instansi') as string || '').trim();
+    const kegunaanData = formData.get('kegunaan_data') as string;
+    const email = (formData.get('email') as string || '').trim().toLowerCase();
+    const noHp = (formData.get('no_hp') as string || '').trim();
+    const kebutuhanData = (formData.get('kebutuhan_data') as string || '').trim();
+
+    if (!namaLengkap || !instansi || !kegunaanData || !email || !noHp || !kebutuhanData) {
+        return { error: 'Semua field wajib diisi.' };
+    }
+    if (!EMAIL_REGEX.test(email)) return { error: 'Format email tidak valid.' };
+    if (!PHONE_REGEX.test(noHp)) return { error: 'Format nomor HP tidak valid.' };
+    if (kegunaanData !== 'kedinasan' && kegunaanData !== 'pribadi') return { error: 'Kegunaan data tidak valid.' };
+    if (namaLengkap.length > MAX_LEN.nama_lengkap) return { error: `Nama lengkap maksimal ${MAX_LEN.nama_lengkap} karakter.` };
+    if (instansi.length > MAX_LEN.instansi) return { error: `Instansi maksimal ${MAX_LEN.instansi} karakter.` };
+    if (kebutuhanData.length > MAX_LEN.kebutuhan_data) return { error: `Uraian kebutuhan data maksimal ${MAX_LEN.kebutuhan_data} karakter.` };
+
+    const { error } = await supabase
+        .from('permintaan_data')
+        .update({
+            nama_lengkap: namaLengkap,
+            instansi,
+            kegunaan_data: kegunaanData,
+            email,
+            no_hp: noHp,
+            kebutuhan_data: kebutuhanData,
+        })
+        .eq('id', id);
+
+    if (error) return { error: error.message };
+
+    revalidatePath('/admin/permintaan-data');
+    revalidatePath('/petugas/permintaan-data');
+    redirect(`/admin/permintaan-data/${id}`);
+}
+
+/** Khusus admin: batalkan permintaan (misal duplikat, spam terselip, atau tidak relevan). */
+export async function batalkanPermintaanData(id: number) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Sesi tidak valid, silakan login ulang.' };
+
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+    if (profile?.role !== 'admin') return { error: 'Hanya admin yang bisa membatalkan permintaan.' };
+
+    const { error } = await supabase
+        .from('permintaan_data')
+        .update({ status: 'dibatalkan', ditanggapi_pada: new Date().toISOString() })
+        .eq('id', id);
+
+    if (error) return { error: error.message };
+
+    revalidatePath('/admin/permintaan-data');
+    revalidatePath('/petugas/permintaan-data');
+    revalidatePath('/admin/petugas-terbaik');
+    return { success: true };
+}
+
+/** Khusus admin: hapus permanen permintaan data (misal spam/salah kirim). */
+export async function hapusPermintaanData(id: number) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Sesi tidak valid, silakan login ulang.' };
+
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+    if (profile?.role !== 'admin') return { error: 'Hanya admin yang bisa menghapus permintaan.' };
+
+    const { error } = await supabase.from('permintaan_data').delete().eq('id', id);
+    if (error) return { error: error.message };
+
+    revalidatePath('/admin/permintaan-data');
+    revalidatePath('/petugas/permintaan-data');
+    revalidatePath('/admin/petugas-terbaik');
+    redirect('/admin/permintaan-data');
 }

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { presensiMasuk, presensiKeluar } from '@/lib/actions/presensi';
@@ -9,7 +8,6 @@ import { LogIn, LogOut, CheckCircle2, AlertTriangle } from 'lucide-react';
 import type { JadwalPiket } from '@/lib/types/database';
 
 export function PresensiPanel({ jadwalHariIni }: { jadwalHariIni: JadwalPiket | null }) {
-    const router = useRouter();
     const [isPending, startTransition] = useTransition();
     const [msg, setMsg] = useState<{ type: 'success' | 'warning' | 'error' | 'info'; text: string } | null>(null);
 
@@ -27,26 +25,37 @@ export function PresensiPanel({ jadwalHariIni }: { jadwalHariIni: JadwalPiket | 
     function handleMasuk() {
         startTransition(async () => {
             const res = await presensiMasuk(jadwalHariIni!.id);
-            if (res.error) setMsg({ type: 'error', text: res.error });
-            else if (res.warning) setMsg({ type: 'warning', text: res.warning });
+            if (res.error) {
+                setMsg({ type: 'error', text: res.error });
+                return; // [FIX] gagal → JANGAN reload, biar pesan error tetap terlihat & data tidak ke-refresh percuma
+            }
+            if (res.warning) setMsg({ type: 'warning', text: res.warning });
             else if (res.success) setMsg({ type: 'success', text: res.success });
             else if (res.info) setMsg({ type: 'info', text: res.info });
-            // [FIX] router.refresh() — bukan window.location.reload() penuh.
-            // Reload penuh menghapus state `msg` SEBELUM sempat ter-render,
-            // jadi pesan konfirmasi (termasuk info keterlambatan) tidak
-            // pernah terlihat. router.refresh() cuma mengambil ulang data
-            // Server Component (presensi terbaru), tanpa reset state client.
-            router.refresh();
+
+            // [FIX BUG] router.refresh() saja terbukti TIDAK selalu memaksa
+            // Server Component induk mengambil ulang data presensi terbaru
+            // di semua kondisi — akibatnya tombol "Presensi Masuk" tetap
+            // tampil meski presensi sudah tersimpan di database. Solusinya:
+            // tampilkan pesan konfirmasi dulu (state di atas), beri jeda
+            // singkat supaya sempat terbaca, lalu paksa reload PENUH
+            // (window.location.reload) yang menjamin data benar-benar segar
+            // — bukan cuma soft-refresh yang bisa gagal diam-diam.
+            setTimeout(() => window.location.reload(), 900);
         });
     }
 
     function handleKeluar() {
         startTransition(async () => {
             const res = await presensiKeluar(presensi!.id);
-            if (res.error) setMsg({ type: 'error', text: res.error });
-            else if (res.warning) setMsg({ type: 'warning', text: res.warning });
+            if (res.error) {
+                setMsg({ type: 'error', text: res.error });
+                return;
+            }
+            if (res.warning) setMsg({ type: 'warning', text: res.warning });
             else if (res.success) setMsg({ type: 'success', text: res.success });
-            router.refresh();
+
+            setTimeout(() => window.location.reload(), 900);
         });
     }
 

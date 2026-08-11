@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { logout } from '@/lib/actions/auth';
 import {
     LayoutDashboard, Users, Clock, CalendarDays, Tag,
-    MessageSquareWarning, Star, ClipboardList, LogOut, X, Trophy, FileSearch,
+    MessageSquareWarning, Star, ClipboardList, LogOut, X, Trophy, FileSearch, BarChart3,
 } from 'lucide-react';
 
 const MENU: { group: string | null; href: string; label: string; icon: React.ElementType }[] = [
@@ -19,6 +19,7 @@ const MENU: { group: string | null; href: string; label: string; icon: React.Ele
     { group: 'Penilaian', href: '/admin/penilaian', label: 'Semua Penilaian', icon: Star },
     { group: 'Penilaian', href: '/admin/petugas-terbaik', label: 'Petugas Terbaik', icon: Trophy },
     { group: 'Laporan', href: '/admin/laporan/antrian', label: 'Lap. Antrian', icon: ClipboardList },
+    { group: 'Laporan', href: '/admin/laporan/layanan', label: 'Rekap Layanan', icon: BarChart3 },
     { group: 'Laporan', href: '/admin/laporan/penilaian', label: 'Lap. Penilaian', icon: ClipboardList },
     { group: 'Laporan', href: '/admin/laporan/presensi', label: 'Lap. Presensi', icon: ClipboardList },
 ];

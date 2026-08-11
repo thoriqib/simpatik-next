@@ -84,12 +84,14 @@ export default async function PetugasTerbaikPage({
         hariPresensiLengkap: number;
         hariTepatWaktu: number;
         jumlahLayanan: number;
+        jumlahOffline: number;
+        jumlahOnline: number;
         totalNilai: number;
         jumlahNilai: number;
     }>();
 
     (petugasList ?? []).forEach((p) => {
-        statsMap.set(p.id, { nama: p.name, hariPresensiLengkap: 0, hariTepatWaktu: 0, jumlahLayanan: 0, totalNilai: 0, jumlahNilai: 0 });
+        statsMap.set(p.id, { nama: p.name, hariPresensiLengkap: 0, hariTepatWaktu: 0, jumlahLayanan: 0, jumlahOffline: 0, jumlahOnline: 0, totalNilai: 0, jumlahNilai: 0 });
     });
 
     (jadwal ?? []).forEach((j) => {
@@ -105,13 +107,13 @@ export default async function PetugasTerbaikPage({
     (antrianList ?? []).forEach((a) => {
         if (!a.petugas_id) return;
         const s = statsMap.get(a.petugas_id);
-        if (s) s.jumlahLayanan++;
+        if (s) { s.jumlahLayanan++; s.jumlahOffline++; }
     });
 
     (permintaanDataList ?? []).forEach((pd) => {
         if (!pd.ditangani_oleh) return;
         const s = statsMap.get(pd.ditangani_oleh);
-        if (s) s.jumlahLayanan++;
+        if (s) { s.jumlahLayanan++; s.jumlahOnline++; }
     });
 
     (penilaianList ?? []).forEach((pn) => {
@@ -186,7 +188,7 @@ export default async function PetugasTerbaikPage({
                                         <div className="font-semibold text-navy-950">{r.nama}</div>
                                         <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-navy-950/50 mt-1.5">
                                             <span className="inline-flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> {r.skorPresensi.toFixed(0)}% tepat waktu</span>
-                                            <span className="inline-flex items-center gap-1"><Users className="w-3.5 h-3.5" /> {r.jumlahLayanan} pengunjung dilayani</span>
+                                            <span className="inline-flex items-center gap-1"><Users className="w-3.5 h-3.5" /> {r.jumlahLayanan} dilayani ({r.jumlahOffline} offline, {r.jumlahOnline} online)</span>
                                             <span className="inline-flex items-center gap-1"><Star className="w-3.5 h-3.5" /> {r.jumlahNilai > 0 ? `${r.rataRataNilai.toFixed(1)}/5.0` : 'Belum ada penilaian'}</span>
                                         </div>
                                     </div>

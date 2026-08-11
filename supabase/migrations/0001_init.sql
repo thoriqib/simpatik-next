@@ -395,7 +395,7 @@ create table public.permintaan_data (
     email             text not null,
     no_hp             text not null,
     kebutuhan_data    text not null,
-    status            text not null default 'baru' check (status in ('baru', 'diproses', 'selesai')),
+    status            text not null default 'baru' check (status in ('baru', 'diproses', 'selesai', 'dibatalkan')),
     tanggapan         text,
     ditangani_oleh    uuid references public.profiles(id),
     ditanggapi_pada   timestamptz,

@@ -79,7 +79,7 @@ export default async function DetailPermintaanDataPetugasPage({ params }: { para
                         <Card title="Belum Ada yang Menangani">
                             <p className="text-sm text-navy-950/60 mb-4">
                                 Permintaan ini masih baru dan belum ditindaklanjuti siapa pun. Klik tombol
-                                di bawah untuk menjadikan diri Anda penanggung jawabnya.
+                                di bawah untuk menindaklanjuti.
                             </p>
                             <KlaimAction id={permintaan.id} mode="klaim" />
                         </Card>

@@ -3,8 +3,10 @@ import { notFound } from 'next/navigation';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import Link from 'next/link';
+import { Pencil } from 'lucide-react';
 import { TanggapiForm } from './TanggapiForm';
 import { DelegasiForm } from './DelegasiForm';
+import { AdminAksiLanjutan } from './AdminAksiLanjutan';
 import type { PermintaanData } from '@/lib/types/database';
 
 export const dynamic = 'force-dynamic';
@@ -26,6 +28,8 @@ export default async function DetailPermintaanDataPage({ params }: { params: Pro
 
     const { data: petugasList } = await supabase.from('profiles').select('id, name').eq('role', 'petugas').order('name');
 
+    const belumSelesaiAtauBatal = permintaan.status !== 'selesai' && permintaan.status !== 'dibatalkan';
+
     return (
         <>
             <div className="flex items-center gap-2 text-sm text-navy-950/50 mb-5">
@@ -36,7 +40,16 @@ export default async function DetailPermintaanDataPage({ params }: { params: Pro
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-5">
-                    <Card title="Detail Permintaan">
+                    <Card>
+                        <div className="flex items-start justify-between mb-5">
+                            <h3 className="text-base font-semibold text-navy-950 tracking-tight">Detail Permintaan</h3>
+                            <Link
+                                href={`/admin/permintaan-data/${permintaan.id}/edit`}
+                                className="inline-flex items-center gap-1.5 text-xs font-medium bg-paper-100 text-navy-950 px-3 py-1.5 rounded-lg hover:bg-paper-200 transition-colors shrink-0"
+                            >
+                                <Pencil className="w-3.5 h-3.5" /> Edit
+                            </Link>
+                        </div>
                         <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm mb-5">
                             <div>
                                 <dt className="text-navy-950/40 text-xs uppercase tracking-wide mb-1">Nama Lengkap</dt>
@@ -65,7 +78,7 @@ export default async function DetailPermintaanDataPage({ params }: { params: Pro
                         </div>
                     </Card>
 
-                    {permintaan.status === 'selesai' ? (
+                    {permintaan.status === 'selesai' && (
                         <Card title="Tanggapan">
                             <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
                                 <p className="text-sm text-navy-950 leading-relaxed whitespace-pre-line">{permintaan.tanggapan}</p>
@@ -74,18 +87,32 @@ export default async function DetailPermintaanDataPage({ params }: { params: Pro
                                 Diselesaikan oleh <strong>{permintaan.profiles?.name}</strong> pada {permintaan.ditanggapi_pada && new Date(permintaan.ditanggapi_pada).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
                             </p>
                         </Card>
-                    ) : (
-                        <>
-                            <Card title="Tanggapi Langsung">
-                                <TanggapiForm id={permintaan.id} currentStatus={permintaan.status} basePath="/admin/permintaan-data" />
-                            </Card>
-                            {petugasList && petugasList.length > 0 && (
-                                <Card title="Atau Delegasikan ke Petugas">
-                                    <DelegasiForm id={permintaan.id} petugasList={petugasList} />
-                                </Card>
-                            )}
-                        </>
                     )}
+
+                    {permintaan.status === 'dibatalkan' && (
+                        <Card title="Permintaan Dibatalkan">
+                            <p className="text-sm text-navy-950/50">Permintaan ini telah dibatalkan dan tidak dihitung sebagai layanan selesai.</p>
+                        </Card>
+                    )}
+
+                    {belumSelesaiAtauBatal && (
+                        <Card title="Tanggapi Langsung">
+                            <TanggapiForm id={permintaan.id} currentStatus={permintaan.status} basePath="/admin/permintaan-data" />
+                        </Card>
+                    )}
+
+                    {/* [UPDATE] Ganti penanggung jawab kini tersedia KAPAN PUN, tidak
+                        cuma saat belum selesai — admin punya kendali penuh atas PJ
+                        permintaan, termasuk yang sudah diproses petugas lain. */}
+                    {petugasList && petugasList.length > 0 && (
+                        <Card title="Ganti/Tetapkan Penanggung Jawab">
+                            <DelegasiForm id={permintaan.id} petugasList={petugasList} />
+                        </Card>
+                    )}
+
+                    <Card title="Kelola Permintaan">
+                        <AdminAksiLanjutan id={permintaan.id} status={permintaan.status} />
+                    </Card>
                 </div>
 
                 <div className="space-y-5">

@@ -1,12 +1,10 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
 import { delegasikanPermintaanData } from '@/lib/actions/permintaan-data';
 import { UserCheck } from 'lucide-react';
 
 export function DelegasiForm({ id, petugasList }: { id: number; petugasList: { id: string; name: string }[] }) {
-    const router = useRouter();
     const [petugasId, setPetugasId] = useState(petugasList[0]?.id ?? '');
     const [isPending, startTransition] = useTransition();
     const [error, setError] = useState('');
@@ -16,8 +14,13 @@ export function DelegasiForm({ id, petugasList }: { id: number; petugasList: { i
         setError('');
         startTransition(async () => {
             const res = await delegasikanPermintaanData(id, petugasId);
-            if (res?.error) setError(res.error);
-            else router.refresh(); // ambil ulang data server component (ditangani_oleh terbaru)
+            if (res?.error) {
+                setError(res.error);
+                return;
+            }
+            // [FIX] Konsisten dengan perbaikan di PresensiPanel — reload penuh
+            // menjamin data ditangani_oleh terbaru benar-benar termuat.
+            window.location.reload();
         });
     }
 

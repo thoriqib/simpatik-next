@@ -31,6 +31,7 @@ export default async function PermintaanDataListPage({ searchParams }: { searchP
         { key: 'baru', label: 'Baru', count: jumlahBaru },
         { key: 'diproses', label: 'Diproses', count: jumlahDiproses },
         { key: 'selesai', label: 'Selesai' },
+        { key: 'dibatalkan', label: 'Dibatalkan' },
     ];
 
     return (

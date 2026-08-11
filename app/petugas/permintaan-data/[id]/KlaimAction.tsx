@@ -1,12 +1,10 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
 import { tindakLanjutiPermintaanData, ambilAlihPermintaanData } from '@/lib/actions/permintaan-data';
 import { UserPlus, RefreshCcw } from 'lucide-react';
 
 export function KlaimAction({ id, mode }: { id: number; mode: 'klaim' | 'ambil-alih' }) {
-    const router = useRouter();
     const [isPending, startTransition] = useTransition();
     const [error, setError] = useState('');
 
@@ -14,8 +12,14 @@ export function KlaimAction({ id, mode }: { id: number; mode: 'klaim' | 'ambil-a
         setError('');
         startTransition(async () => {
             const res = mode === 'klaim' ? await tindakLanjutiPermintaanData(id) : await ambilAlihPermintaanData(id);
-            if (res?.error) setError(res.error);
-            else router.refresh();
+            if (res?.error) {
+                setError(res.error);
+                return;
+            }
+            // [FIX] Konsisten dengan perbaikan di PresensiPanel — router.refresh()
+            // saja terbukti tidak selalu andal memaksa Server Component induk
+            // mengambil ulang data terbaru. Reload penuh menjamin data segar.
+            window.location.reload();
         });
     }
 

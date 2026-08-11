@@ -119,6 +119,7 @@ export interface HariLibur {
 }
 
 export type KegunaanData = 'kedinasan' | 'pribadi';
+export type StatusPermintaanData = 'baru' | 'diproses' | 'selesai' | 'dibatalkan';
 
 export interface PermintaanData {
     id: number;
@@ -128,7 +129,7 @@ export interface PermintaanData {
     email: string;
     no_hp: string;
     kebutuhan_data: string;
-    status: StatusPengaduan; // 'baru' | 'diproses' | 'selesai' — sama seperti pengaduan
+    status: StatusPermintaanData;
     tanggapan: string | null;
     ditangani_oleh: string | null;
     ditanggapi_pada: string | null;
