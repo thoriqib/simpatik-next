@@ -3,8 +3,8 @@ import { notFound } from 'next/navigation';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import Link from 'next/link';
-import { TanggapiForm } from './TanggapiForm';
-import { DelegasiForm } from './DelegasiForm';
+import { TanggapiForm } from '@/app/admin/permintaan-data/[id]/TanggapiForm';
+import { KlaimAction } from './KlaimAction';
 import type { PermintaanData } from '@/lib/types/database';
 
 export const dynamic = 'force-dynamic';
@@ -14,9 +14,10 @@ const KEGUNAAN_LABEL: Record<string, string> = {
     pribadi: 'Pribadi/Tugas Sekolah/Kuliah/Skripsi',
 };
 
-export default async function DetailPermintaanDataPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function DetailPermintaanDataPetugasPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
     const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
     // [FIX] Cast eksplisit — relasi to-one `profiles` ditebak sebagai array
     // tanpa generated types.
@@ -24,12 +25,12 @@ export default async function DetailPermintaanDataPage({ params }: { params: Pro
     const permintaan = permintaanRaw as unknown as PermintaanData | null;
     if (!permintaan) notFound();
 
-    const { data: petugasList } = await supabase.from('profiles').select('id, name').eq('role', 'petugas').order('name');
+    const punyaKu = permintaan.ditangani_oleh === user?.id;
 
     return (
         <>
             <div className="flex items-center gap-2 text-sm text-navy-950/50 mb-5">
-                <Link href="/admin/permintaan-data" className="hover:text-azure-500">Permintaan Data</Link>
+                <Link href="/petugas/permintaan-data" className="hover:text-azure-500">Permintaan Data</Link>
                 <span>/</span>
                 <span className="text-navy-950 font-medium">{permintaan.nama_lengkap}</span>
             </div>
@@ -74,17 +75,30 @@ export default async function DetailPermintaanDataPage({ params }: { params: Pro
                                 Diselesaikan oleh <strong>{permintaan.profiles?.name}</strong> pada {permintaan.ditanggapi_pada && new Date(permintaan.ditanggapi_pada).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
                             </p>
                         </Card>
+                    ) : permintaan.status === 'baru' ? (
+                        <Card title="Belum Ada yang Menangani">
+                            <p className="text-sm text-navy-950/60 mb-4">
+                                Permintaan ini masih baru dan belum ditindaklanjuti siapa pun. Klik tombol
+                                di bawah untuk menjadikan diri Anda penanggung jawabnya.
+                            </p>
+                            <KlaimAction id={permintaan.id} mode="klaim" />
+                        </Card>
+                    ) : punyaKu ? (
+                        <Card title="Tanggapi & Selesaikan">
+                            <p className="text-xs text-navy-950/50 mb-4">
+                                Permintaan ini jadi tanggung jawab Anda. Kalau berhasil diselesaikan,
+                                akan tercatat sebagai pengunjung yang Anda layani.
+                            </p>
+                            <TanggapiForm id={permintaan.id} currentStatus={permintaan.status} basePath="/petugas/permintaan-data" />
+                        </Card>
                     ) : (
-                        <>
-                            <Card title="Tanggapi Langsung">
-                                <TanggapiForm id={permintaan.id} currentStatus={permintaan.status} basePath="/admin/permintaan-data" />
-                            </Card>
-                            {petugasList && petugasList.length > 0 && (
-                                <Card title="Atau Delegasikan ke Petugas">
-                                    <DelegasiForm id={permintaan.id} petugasList={petugasList} />
-                                </Card>
-                            )}
-                        </>
+                        <Card title="Sedang Ditangani Petugas Lain">
+                            <p className="text-sm text-navy-950/60 mb-4">
+                                Permintaan ini sedang ditangani oleh <strong className="text-navy-950">{permintaan.profiles?.name}</strong>.
+                                Kalau petugas tersebut berhalangan, Anda bisa mengambil alih.
+                            </p>
+                            <KlaimAction id={permintaan.id} mode="ambil-alih" />
+                        </Card>
                     )}
                 </div>
 
@@ -97,10 +111,11 @@ export default async function DetailPermintaanDataPage({ params }: { params: Pro
                         {permintaan.profiles?.name && permintaan.status !== 'baru' && (
                             <p className="text-xs text-navy-950/60 mt-2 pt-2 border-t border-paper-200">
                                 Penanggung jawab: <strong className="text-navy-950">{permintaan.profiles.name}</strong>
+                                {punyaKu && <span className="text-azure-500"> (Saya)</span>}
                             </p>
                         )}
                     </Card>
-                    <Link href="/admin/permintaan-data" className="block text-center bg-paper-100 text-navy-950 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-paper-200 transition-colors">← Kembali ke Daftar</Link>
+                    <Link href="/petugas/permintaan-data" className="block text-center bg-paper-100 text-navy-950 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-paper-200 transition-colors">← Kembali ke Daftar</Link>
                 </div>
             </div>
         </>

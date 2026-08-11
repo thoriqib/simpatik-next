@@ -415,8 +415,8 @@ create policy "permintaan_data: publik insert" on public.permintaan_data
 create policy "permintaan_data: admin & petugas lihat" on public.permintaan_data
     for select using (app_role() in ('admin', 'petugas'));
 
-create policy "permintaan_data: admin kelola" on public.permintaan_data
-    for update using (app_role() = 'admin');
+create policy "permintaan_data: admin & petugas kelola" on public.permintaan_data
+    for update using (app_role() in ('admin', 'petugas'));
 
 create policy "permintaan_data: admin hapus" on public.permintaan_data
     for delete using (app_role() = 'admin');

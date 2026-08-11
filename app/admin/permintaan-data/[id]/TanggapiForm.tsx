@@ -4,8 +4,8 @@ import { useActionState } from 'react';
 import { tanggapiPermintaanData } from '@/lib/actions/permintaan-data';
 import { SubmitButton } from '@/components/ui/SubmitButton';
 
-export function TanggapiForm({ id, currentStatus }: { id: number; currentStatus: string }) {
-    const action = tanggapiPermintaanData.bind(null, id);
+export function TanggapiForm({ id, currentStatus, basePath }: { id: number; currentStatus: string; basePath: string }) {
+    const action = tanggapiPermintaanData.bind(null, id, basePath);
     const [state, formAction] = useActionState(action, null);
 
     return (

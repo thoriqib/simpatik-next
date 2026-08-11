@@ -15,7 +15,7 @@ export default async function PermintaanDataListPage({ searchParams }: { searchP
     const { status } = await searchParams;
     const supabase = await createClient();
 
-    let query = supabase.from('permintaan_data').select('*').order('created_at', { ascending: false });
+    let query = supabase.from('permintaan_data').select('*, profiles(name)').order('created_at', { ascending: false });
     if (status) query = query.eq('status', status);
 
     // [FIX] Cast eksplisit — konsisten dengan pola di seluruh proyek untuk
@@ -58,6 +58,7 @@ export default async function PermintaanDataListPage({ searchParams }: { searchP
                             <th className="pb-3 font-medium">Nama & Instansi</th>
                             <th className="pb-3 font-medium">Kegunaan</th>
                             <th className="pb-3 font-medium">Kontak</th>
+                            <th className="pb-3 font-medium">Ditangani Oleh</th>
                             <th className="pb-3 font-medium">Status</th>
                             <th className="pb-3 font-medium">Aksi</th>
                         </tr>
@@ -75,12 +76,13 @@ export default async function PermintaanDataListPage({ searchParams }: { searchP
                                     <div>{p.email}</div>
                                     <div>{p.no_hp}</div>
                                 </td>
+                                <td className="py-3 text-xs text-navy-950/60">{p.profiles?.name ?? <span className="text-navy-950/30 italic">Belum ada</span>}</td>
                                 <td className="py-3"><Badge status={p.status} /></td>
                                 <td className="py-3">
                                     <Link href={`/admin/permintaan-data/${p.id}`} className="text-xs font-medium bg-azure-500/10 text-azure-500 px-3 py-1.5 rounded-lg hover:bg-azure-500/20 transition-colors">Detail →</Link>
                                 </td>
                             </tr>
-                        )) : <tr><td colSpan={6} className="py-10 text-center text-navy-950/30">Belum ada permintaan data masuk</td></tr>}
+                        )) : <tr><td colSpan={7} className="py-10 text-center text-navy-950/30">Belum ada permintaan data masuk</td></tr>}
                     </tbody>
                 </table>
                 </div>

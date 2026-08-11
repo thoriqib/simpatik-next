@@ -56,6 +56,20 @@ export default async function PetugasTerbaikPage({
         .gte('tanggal', startStr).lte('tanggal', endStr);
     const antrianList = antrianRaw as unknown as AntrianRow[] | null;
 
+    // ── 2b. Permintaan data online yang diselesaikan ──────────────
+    // [UPDATE] "Pengunjung dilayani" sekarang juga mencakup permintaan
+    // data online yang berhasil diselesaikan petugas, bukan cuma antrian
+    // tatap muka — filter berdasar ditanggapi_pada (kapan benar-benar
+    // diselesaikan), bukan created_at (kapan pengunjung mengirim form).
+    type PermintaanDataRow = { ditangani_oleh: string | null };
+    const { data: permintaanDataRaw } = await supabase
+        .from('permintaan_data')
+        .select('ditangani_oleh')
+        .eq('status', 'selesai')
+        .gte('ditanggapi_pada', start.toISOString())
+        .lte('ditanggapi_pada', end.toISOString());
+    const permintaanDataList = permintaanDataRaw as unknown as PermintaanDataRow[] | null;
+
     // ── 3. Rata-rata penilaian pengunjung ─────────────────────────
     type PenilaianRow = { petugas_id: string; nilai: number; antrian: { tanggal: string } };
     const { data: penilaianRaw } = await supabase
@@ -91,6 +105,12 @@ export default async function PetugasTerbaikPage({
     (antrianList ?? []).forEach((a) => {
         if (!a.petugas_id) return;
         const s = statsMap.get(a.petugas_id);
+        if (s) s.jumlahLayanan++;
+    });
+
+    (permintaanDataList ?? []).forEach((pd) => {
+        if (!pd.ditangani_oleh) return;
+        const s = statsMap.get(pd.ditangani_oleh);
         if (s) s.jumlahLayanan++;
     });
 
@@ -151,7 +171,7 @@ export default async function PetugasTerbaikPage({
 
             <Card
                 title="Peringkat Petugas"
-                description="Skor gabungan dari 3 komponen berbobot sama: ketepatan waktu presensi, jumlah pengunjung dilayani (relatif terhadap petugas dengan volume tertinggi di triwulan ini), dan rata-rata penilaian pengunjung (skala 1–5)."
+                description="Skor gabungan dari 3 komponen berbobot sama: ketepatan waktu presensi, jumlah pengunjung dilayani — antrian tatap muka + permintaan data online yang diselesaikan (relatif terhadap petugas dengan volume tertinggi di triwulan ini), dan rata-rata penilaian pengunjung (skala 1–5)."
             >
                 {ranking.length > 0 ? (
                     <div className="space-y-3">

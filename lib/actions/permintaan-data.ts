@@ -87,7 +87,72 @@ export async function kirimPermintaanData(prevState: ActionState, formData: Form
     redirect('/permintaan-data?sukses=1');
 }
 
-export async function tanggapiPermintaanData(id: number, prevState: ActionState, formData: FormData): Promise<ActionState> {
+/**
+ * Petugas mengklaim ("Tindak Lanjuti") permintaan yang masih 'baru'.
+ * Penanggung jawab otomatis jadi petugas yang klik tombol ini.
+ * Hanya berhasil kalau statusnya MASIH 'baru' (belum diklaim orang lain) —
+ * dicek lewat .eq('status', 'baru') di query, bukan cuma di UI, supaya
+ * tidak ada race condition dua petugas klaim bersamaan.
+ */
+export async function tindakLanjutiPermintaanData(id: number) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Sesi tidak valid, silakan login ulang.' };
+
+    const { data, error } = await supabase
+        .from('permintaan_data')
+        .update({ ditangani_oleh: user.id, status: 'diproses' })
+        .eq('id', id)
+        .eq('status', 'baru') // guard: hanya klaim kalau belum ada yang pegang
+        .select('id')
+        .maybeSingle();
+
+    if (error) return { error: error.message };
+    if (!data) return { error: 'Permintaan ini sudah lebih dulu ditindaklanjuti petugas lain.' };
+
+    revalidatePath('/admin/permintaan-data');
+    revalidatePath('/petugas/permintaan-data');
+    return { success: true };
+}
+
+/**
+ * Petugas lain mengambil alih permintaan yang sedang 'diproses' oleh
+ * petugas sebelumnya (misal petugas sebelumnya berhalangan/tidak bisa
+ * menyelesaikan). Hanya berlaku selama status masih 'diproses' — kalau
+ * sudah 'selesai', tidak bisa diambil alih lagi.
+ */
+export async function ambilAlihPermintaanData(id: number) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Sesi tidak valid, silakan login ulang.' };
+
+    const { data, error } = await supabase
+        .from('permintaan_data')
+        .update({ ditangani_oleh: user.id })
+        .eq('id', id)
+        .eq('status', 'diproses') // guard: cuma bisa diambil alih kalau belum selesai
+        .select('id')
+        .maybeSingle();
+
+    if (error) return { error: error.message };
+    if (!data) return { error: 'Permintaan ini sudah selesai, tidak bisa diambil alih lagi.' };
+
+    revalidatePath('/admin/permintaan-data');
+    revalidatePath('/petugas/permintaan-data');
+    return { success: true };
+}
+
+/**
+ * Menanggapi/menyelesaikan permintaan. Dipakai oleh admin MAUPUN petugas
+ * lewat form yang sama — basePath menentukan ke mana redirect setelah
+ * berhasil (halaman admin atau petugas berbeda).
+ *
+ * Guard keamanan: petugas HANYA boleh menanggapi permintaan yang memang
+ * jadi tanggung jawabnya sendiri (ditangani_oleh = dirinya) — kalau belum,
+ * harus "Tindak Lanjuti"/"Ambil Alih" dulu. Admin boleh menanggapi permintaan
+ * siapa pun (setara kemampuan sebelumnya, tidak berubah).
+ */
+export async function tanggapiPermintaanData(id: number, basePath: string, prevState: ActionState, formData: FormData): Promise<ActionState> {
     const tanggapan = (formData.get('tanggapan') as string || '').trim();
     const status = formData.get('status') as string;
 
@@ -103,13 +168,21 @@ export async function tanggapiPermintaanData(id: number, prevState: ActionState,
 
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Sesi tidak valid, silakan login ulang.' };
+
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+    const { data: current } = await supabase.from('permintaan_data').select('ditangani_oleh').eq('id', id).single();
+
+    if (profile?.role === 'petugas' && current?.ditangani_oleh !== user.id) {
+        return { error: 'Anda bukan penanggung jawab permintaan ini. Klik "Tindak Lanjuti"/"Ambil Alih" terlebih dahulu.' };
+    }
 
     const { error } = await supabase
         .from('permintaan_data')
         .update({
             tanggapan,
             status,
-            ditangani_oleh: user!.id,
+            ditangani_oleh: user.id, // siapa pun yang menyelesaikan jadi PJ final tercatat
             ditanggapi_pada: status === 'selesai' ? new Date().toISOString() : null,
         })
         .eq('id', id);
@@ -117,5 +190,31 @@ export async function tanggapiPermintaanData(id: number, prevState: ActionState,
     if (error) return { error: error.message };
 
     revalidatePath('/admin/permintaan-data');
-    redirect('/admin/permintaan-data');
+    revalidatePath('/petugas/permintaan-data');
+    revalidatePath('/admin/petugas-terbaik'); // status 'selesai' memengaruhi skor jumlah pengunjung dilayani
+    redirect(basePath);
+}
+
+/**
+ * Khusus admin: delegasikan penanggung jawab ke petugas tertentu tanpa
+ * admin sendiri yang menanggapi. Status otomatis jadi 'diproses'.
+ */
+export async function delegasikanPermintaanData(id: number, petugasId: string) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Sesi tidak valid, silakan login ulang.' };
+
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+    if (profile?.role !== 'admin') return { error: 'Hanya admin yang bisa mendelegasikan permintaan.' };
+
+    const { error } = await supabase
+        .from('permintaan_data')
+        .update({ ditangani_oleh: petugasId, status: 'diproses' })
+        .eq('id', id);
+
+    if (error) return { error: error.message };
+
+    revalidatePath('/admin/permintaan-data');
+    revalidatePath('/petugas/permintaan-data');
+    return { success: true };
 }
