@@ -28,13 +28,24 @@ function jamPada(acuan: Date, jamStr: string): Date {
     return hasil;
 }
 
+/** Bentuk hasil konsisten untuk presensiMasuk/presensiKeluar — `data` selalu
+ * ada di tipe (walau opsional), supaya client bisa akses `res.data` dengan
+ * aman tanpa TypeScript menolak di jalur return yang tidak menyertakannya. */
+type PresensiActionResult = {
+    error?: string;
+    warning?: string;
+    success?: string;
+    info?: string;
+    data?: { id: number; waktu_masuk?: string; terlambat_menit?: number; waktu_keluar?: string; pulang_awal_menit?: number; kekurangan_menit?: number };
+};
+
 /**
  * Presensi masuk. Keterlambatan dihitung & DISIMPAN LANGSUNG saat ini
  * (bukan cuma ditampilkan sekali di pesan toast) — supaya tetap akurat
  * dan konsisten dipakai ulang oleh laporan kapan pun, bukan cuma saat
  * momen presensi terjadi.
  */
-export async function presensiMasuk(jadwalPiketId: number) {
+export async function presensiMasuk(jadwalPiketId: number): Promise<PresensiActionResult> {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { error: 'Sesi tidak valid, silakan login ulang.' };
@@ -71,6 +82,8 @@ export async function presensiMasuk(jadwalPiketId: number) {
     const batasMulai = jamPada(waktuMasuk, jadwal.shift_piket.jam_mulai);
     const terlambatMenit = menitSetelah(batasMulai, waktuMasuk);
 
+    let presensiId: number;
+
     if (existing) {
         const { error } = await supabase.from('presensi').update({ waktu_masuk: waktuMasukISO, terlambat_menit: terlambatMenit }).eq('id', existing.id);
         // [FIX] Sebelumnya error dari update/insert ini TIDAK dicek — kalau
@@ -79,14 +92,20 @@ export async function presensiMasuk(jadwalPiketId: number) {
         // tidak pernah benar-benar tersimpan tapi UI tetap menampilkan
         // "berhasil". Sekarang errornya ditangkap & ditampilkan eksplisit.
         if (error) return { error: `Gagal menyimpan presensi masuk: ${error.message}` };
+        presensiId = existing.id;
     } else {
-        const { error } = await supabase.from('presensi').insert({
+        // [FIX] .select().single() supaya dapat ID baris yang baru dibuat —
+        // dibutuhkan client untuk memanggil presensiKeluar() nanti TANPA
+        // perlu reload dulu (lihat PresensiPanel.tsx: presensi.id dipakai
+        // langsung dari state lokal, bukan nunggu refetch).
+        const { data: inserted, error } = await supabase.from('presensi').insert({
             user_id: user.id,
             jadwal_piket_id: jadwalPiketId,
             waktu_masuk: waktuMasukISO,
             terlambat_menit: terlambatMenit,
-        });
+        }).select('id').single();
         if (error) return { error: `Gagal menyimpan presensi masuk: ${error.message}` };
+        presensiId = inserted!.id;
     }
 
     await supabase.from('jadwal_piket').update({ status: 'hadir' }).eq('id', jadwalPiketId);
@@ -96,10 +115,52 @@ export async function presensiMasuk(jadwalPiketId: number) {
     revalidatePath('/admin/laporan/presensi');
 
     const jamStr = formatInTimeZone(waktuMasukISO, TZ, 'HH:mm');
+
+    // [FIX BUG PRESENSI] Sertakan data mentah hasil presensi (bukan cuma
+    // pesan teks) supaya UI client bisa update tampilan LANGSUNG dari
+    // respons ini — TANPA bergantung pada refetch/reload apa pun, yang
+    // terbukti berulang kali tidak selalu andal di kondisi tertentu
+    // (caching Next.js/Vercel yang sulit dipastikan penyebab persisnya
+    // tanpa akses log server langsung). Ini pendekatan yang jauh lebih
+    // pasti: data yang dipakai untuk render adalah data yang BARU SAJA
+    // berhasil ditulis ke database, bukan hasil query ulang yang bisa
+    // saja mengembalikan data basi.
+    const dataMasuk = { id: presensiId, waktu_masuk: waktuMasukISO, terlambat_menit: terlambatMenit };
+
     if (terlambatMenit > 0) {
-        return { warning: `Presensi masuk tercatat pukul ${jamStr} WIB. Anda terlambat ${terlambatMenit} menit.` };
+        return { warning: `Presensi masuk tercatat pukul ${jamStr} WIB. Anda terlambat ${terlambatMenit} menit.`, data: dataMasuk };
     }
-    return { success: `Presensi masuk berhasil dicatat: ${jamStr} WIB.` };
+    return { success: `Presensi masuk berhasil dicatat: ${jamStr} WIB.`, data: dataMasuk };
+}
+
+/**
+ * Khusus admin: batalkan presensi petugas (misal salah klik, atau perlu
+ * dikoreksi). Menghapus record presensi sepenuhnya (waktu masuk, keluar,
+ * keterlambatan, semuanya) dan mengembalikan status jadwal_piket ke
+ * 'terjadwal' — seolah petugas belum melakukan presensi sama sekali hari
+ * itu, supaya bisa presensi ulang dari awal kalau perlu.
+ */
+export async function batalkanPresensi(presensiId: number, jadwalPiketId: number) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Sesi tidak valid, silakan login ulang.' };
+
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+    if (profile?.role !== 'admin') return { error: 'Hanya admin yang bisa membatalkan presensi.' };
+
+    const { error: deleteError } = await supabase.from('presensi').delete().eq('id', presensiId);
+    if (deleteError) return { error: deleteError.message };
+
+    // Kembalikan status jadwal ke 'terjadwal' (bukan 'hadir' lagi, karena
+    // presensinya sudah dihapus)
+    await supabase.from('jadwal_piket').update({ status: 'terjadwal' }).eq('id', jadwalPiketId);
+
+    revalidatePath('/admin/jadwal');
+    revalidatePath('/petugas/dashboard');
+    revalidatePath('/petugas/presensi');
+    revalidatePath('/admin/laporan/presensi');
+    revalidatePath('/admin/petugas-terbaik');
+    return { success: true };
 }
 
 /**
@@ -108,7 +169,7 @@ export async function presensiMasuk(jadwalPiketId: number) {
  * catatan terlambat, dan datang lebih awal tidak "menabung" jatah pulang
  * cepat. kekurangan_menit = terlambat_menit + pulang_awal_menit.
  */
-export async function presensiKeluar(presensiId: number) {
+export async function presensiKeluar(presensiId: number): Promise<PresensiActionResult> {
     const supabase = await createClient();
 
     const { data: presensiRaw } = await supabase
@@ -150,6 +211,11 @@ export async function presensiKeluar(presensiId: number) {
     revalidatePath('/admin/laporan/presensi');
 
     const jamStr = formatInTimeZone(waktuKeluarISO, TZ, 'HH:mm');
+
+    // [FIX BUG PRESENSI] Sama seperti presensiMasuk — sertakan data mentah
+    // supaya client update tampilan langsung dari respons ini.
+    const dataKeluar = { id: presensiId, waktu_keluar: waktuKeluarISO, pulang_awal_menit: pulangAwalMenit, kekurangan_menit: kekuranganMenit };
+
     if (kekuranganMenit > 0) {
         const jam = Math.floor(kekuranganMenit / 60);
         const menit = kekuranganMenit % 60;
@@ -161,7 +227,8 @@ export async function presensiKeluar(presensiId: number) {
 
         return {
             warning: `Presensi keluar tercatat pukul ${jamStr} WIB. Kekurangan jam: ${formatKurang} (${rincian.join(', ')}).`,
+            data: dataKeluar,
         };
     }
-    return { success: `Presensi keluar berhasil dicatat: ${jamStr} WIB. Jam kerja lengkap, tidak ada kekurangan.` };
+    return { success: `Presensi keluar berhasil dicatat: ${jamStr} WIB. Jam kerja lengkap, tidak ada kekurangan.`, data: dataKeluar };
 }

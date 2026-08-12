@@ -324,6 +324,8 @@ create policy "presensi: petugas kelola milik sendiri" on public.presensi
     for all using (auth.uid() = user_id);
 create policy "presensi: admin lihat semua" on public.presensi
     for select using (app_role() = 'admin');
+create policy "presensi: admin hapus (batalkan)" on public.presensi
+    for delete using (app_role() = 'admin');
 
 -- ── antrian ───────────────────────────────────────────────────
 -- Publik (anon) perlu insert (ambil nomor) & select (tiket/display board)

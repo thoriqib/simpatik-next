@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/Badge';
 import { JadwalForm } from './JadwalForm';
 import { CsvImport } from './CsvImport';
 import { HariLiburManager } from './HariLiburManager';
+import { BatalkanPresensiButton } from './BatalkanPresensiButton';
 import { hapusJadwal } from '@/lib/actions/jadwal';
 import { getMondayOfWeek, getWeekdayDates, currentWeekMondayWIB, toDateStringLocal, parseDateLocal } from '@/lib/utils';
 import Link from 'next/link';
@@ -36,12 +37,12 @@ export default async function JadwalPage({ searchParams }: { searchParams: Promi
         status: string;
         profiles: { name: string } | null;
         shift_piket: { nama_shift: string; jam_mulai: string; jam_selesai: string } | null;
-        presensi: { waktu_masuk: string | null; waktu_keluar: string | null }[] | null;
+        presensi: { id: number; waktu_masuk: string | null; waktu_keluar: string | null }[] | null;
     };
 
     const { data: jadwalRaw } = await supabase
         .from('jadwal_piket')
-        .select('*, profiles(name), shift_piket(*), presensi(waktu_masuk, waktu_keluar)')
+        .select('*, profiles(name), shift_piket(*), presensi(id, waktu_masuk, waktu_keluar)')
         .gte('tanggal', start)
         .lte('tanggal', end)
         .order('tanggal');
@@ -118,14 +119,19 @@ export default async function JadwalPage({ searchParams }: { searchParams: Promi
                                 <td className="py-3 text-navy-950/60">{j.presensi?.[0]?.waktu_masuk ? new Date(j.presensi[0].waktu_masuk).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }) : '-'}</td>
                                 <td className="py-3 text-navy-950/60">{j.presensi?.[0]?.waktu_keluar ? new Date(j.presensi[0].waktu_keluar).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }) : '-'}</td>
                                 <td className="py-3">
-                                    {/* [FIX] .bind() menghasilkan referensi Server Action yang valid
-                                        untuk form di Server Component — closure async inline biasa
-                                        (tanpa 'use server' di dalamnya) TIDAK bisa diserialisasi
-                                        dan menyebabkan error "Functions cannot be passed directly
-                                        to Client Components". */}
-                                    <form action={hapusJadwal.bind(null, j.id)}>
-                                        <button type="submit" className="text-red-500 hover:underline text-xs">Hapus</button>
-                                    </form>
+                                    <div className="flex items-center gap-2">
+                                        {j.presensi?.[0]?.waktu_masuk && (
+                                            <BatalkanPresensiButton presensiId={j.presensi[0].id} jadwalPiketId={j.id} />
+                                        )}
+                                        {/* [FIX] .bind() menghasilkan referensi Server Action yang valid
+                                            untuk form di Server Component — closure async inline biasa
+                                            (tanpa 'use server' di dalamnya) TIDAK bisa diserialisasi
+                                            dan menyebabkan error "Functions cannot be passed directly
+                                            to Client Components". */}
+                                        <form action={hapusJadwal.bind(null, j.id)}>
+                                            <button type="submit" className="text-red-500 hover:underline text-xs">Hapus</button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                         )) : <tr><td colSpan={7} className="py-8 text-center text-navy-950/30">Belum ada jadwal untuk minggu ini</td></tr>}

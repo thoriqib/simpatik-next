@@ -269,18 +269,24 @@ export async function editPermintaanData(id: number, prevState: ActionState, for
     redirect(`/admin/permintaan-data/${id}`);
 }
 
-/** Khusus admin: batalkan permintaan (misal duplikat, spam terselip, atau tidak relevan). */
+/**
+ * Khusus admin: batalkan penyelesaian (misal petugas salah menyelesaikan
+ * atau tanggapannya keliru). Status DIKEMBALIKAN ke 'diproses' (bukan
+ * status terpisah "dibatalkan") — supaya permintaan otomatis balik ke
+ * antrian kerja petugas dan bisa ditanggapi ulang, bukan jadi "mati"
+ * di status baru yang tidak ada tindak lanjutnya.
+ */
 export async function batalkanPermintaanData(id: number) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { error: 'Sesi tidak valid, silakan login ulang.' };
 
     const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
-    if (profile?.role !== 'admin') return { error: 'Hanya admin yang bisa membatalkan permintaan.' };
+    if (profile?.role !== 'admin') return { error: 'Hanya admin yang bisa membatalkan penyelesaian.' };
 
     const { error } = await supabase
         .from('permintaan_data')
-        .update({ status: 'dibatalkan', ditanggapi_pada: new Date().toISOString() })
+        .update({ status: 'diproses', tanggapan: null, ditanggapi_pada: null })
         .eq('id', id);
 
     if (error) return { error: error.message };
@@ -288,6 +294,7 @@ export async function batalkanPermintaanData(id: number) {
     revalidatePath('/admin/permintaan-data');
     revalidatePath('/petugas/permintaan-data');
     revalidatePath('/admin/petugas-terbaik');
+    revalidatePath('/admin/laporan/layanan');
     return { success: true };
 }
 

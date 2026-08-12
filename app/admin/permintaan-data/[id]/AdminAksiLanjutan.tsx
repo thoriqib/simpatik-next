@@ -33,13 +33,13 @@ export function AdminAksiLanjutan({ id, status }: { id: number; status: string }
         <div>
             {error && <div className="bg-rose-50 border border-rose-200 text-rose-700 px-3 py-2 rounded-lg text-sm mb-3">{error}</div>}
             <div className="flex flex-wrap gap-2">
-                {status !== 'dibatalkan' && (
+                {status === 'selesai' && (
                     <button
                         onClick={() => setConfirmBatal(true)}
                         disabled={isPending}
                         className="inline-flex items-center gap-1.5 bg-paper-100 text-navy-950/70 px-3.5 py-2 rounded-xl text-xs font-medium hover:bg-paper-200 transition-colors disabled:opacity-50"
                     >
-                        <Ban className="w-3.5 h-3.5" /> Batalkan Permintaan
+                        <Ban className="w-3.5 h-3.5" /> Batalkan Penyelesaian
                     </button>
                 )}
                 <button
@@ -55,8 +55,8 @@ export function AdminAksiLanjutan({ id, status }: { id: number; status: string }
                 open={confirmBatal}
                 onClose={() => setConfirmBatal(false)}
                 onConfirm={() => { setConfirmBatal(false); handleBatalkan(); }}
-                title="Batalkan Permintaan?"
-                message="Permintaan akan ditandai 'Dibatalkan'. Data tetap tersimpan untuk arsip, tapi tidak akan dihitung sebagai layanan selesai."
+                title="Batalkan Penyelesaian?"
+                message="Status akan dikembalikan ke 'Diproses' dan tanggapan sebelumnya akan dihapus, supaya bisa ditindaklanjuti ulang oleh petugas."
             />
             <ConfirmModal
                 open={confirmHapus}

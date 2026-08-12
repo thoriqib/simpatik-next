@@ -103,6 +103,38 @@ export async function deletePetugasAccount(userId: string) {
 }
 
 /**
+ * Ubah role seorang pengguna antara 'admin' dan 'petugas'. Dipakai admin
+ * untuk menjadikan petugas tertentu sebagai admin (atau sebaliknya).
+ *
+ * Proteksi: tidak boleh menurunkan admin TERAKHIR yang tersisa — supaya
+ * tidak ada skenario semua akun kehilangan akses admin sekaligus (terkunci
+ * dari fitur admin selamanya, cuma bisa diperbaiki manual lewat SQL).
+ */
+export async function ubahRolePengguna(userId: string, roleBaru: 'admin' | 'petugas') {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Sesi tidak valid, silakan login ulang.' };
+
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+    if (profile?.role !== 'admin') return { error: 'Hanya admin yang bisa mengubah role pengguna.' };
+
+    if (roleBaru === 'petugas') {
+        const { count } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'admin');
+        const { data: target } = await supabase.from('profiles').select('role').eq('id', userId).single();
+        if (target?.role === 'admin' && (count ?? 0) <= 1) {
+            return { error: 'Tidak bisa menurunkan admin terakhir. Jadikan admin lain dulu sebelum menurunkan akun ini.' };
+        }
+    }
+
+    const { error } = await supabase.from('profiles').update({ role: roleBaru }).eq('id', userId);
+    if (error) return { error: error.message };
+
+    revalidatePath('/admin/petugas');
+    revalidatePath('/admin/pengaturan-akses');
+    return { success: true };
+}
+
+/**
  * Import massal akun petugas dari CSV (kolom: nama, email, password_opsional).
  * Password bersifat opsional per baris — jika kosong, dipakai password
  * default yang seragam (petugas WAJIB mengganti setelah login pertama).

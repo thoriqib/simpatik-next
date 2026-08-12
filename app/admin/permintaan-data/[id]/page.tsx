@@ -28,7 +28,7 @@ export default async function DetailPermintaanDataPage({ params }: { params: Pro
 
     const { data: petugasList } = await supabase.from('profiles').select('id, name').eq('role', 'petugas').order('name');
 
-    const belumSelesaiAtauBatal = permintaan.status !== 'selesai' && permintaan.status !== 'dibatalkan';
+    const belumSelesai = permintaan.status !== 'selesai';
 
     return (
         <>
@@ -89,13 +89,7 @@ export default async function DetailPermintaanDataPage({ params }: { params: Pro
                         </Card>
                     )}
 
-                    {permintaan.status === 'dibatalkan' && (
-                        <Card title="Permintaan Dibatalkan">
-                            <p className="text-sm text-navy-950/50">Permintaan ini telah dibatalkan dan tidak dihitung sebagai layanan selesai.</p>
-                        </Card>
-                    )}
-
-                    {belumSelesaiAtauBatal && (
+                    {belumSelesai && (
                         <Card title="Tanggapi Langsung">
                             <TanggapiForm id={permintaan.id} currentStatus={permintaan.status} basePath="/admin/permintaan-data" />
                         </Card>

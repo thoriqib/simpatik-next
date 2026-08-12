@@ -5,16 +5,40 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { presensiMasuk, presensiKeluar } from '@/lib/actions/presensi';
 import { LogIn, LogOut, CheckCircle2, AlertTriangle } from 'lucide-react';
-import type { JadwalPiket } from '@/lib/types/database';
+import type { JadwalPiket, Presensi } from '@/lib/types/database';
 
 export function PresensiPanel({ jadwalHariIni }: { jadwalHariIni: JadwalPiket | null }) {
     const [isPending, startTransition] = useTransition();
     const [msg, setMsg] = useState<{ type: 'success' | 'warning' | 'error' | 'info'; text: string } | null>(null);
 
-    const presensi = jadwalHariIni?.presensi?.[0];
+    // [FIX BUG PRESENSI — akar masalahnya] Sebelumnya komponen ini HANYA
+    // mengandalkan prop `jadwalHariIni` dari Server Component induk, dan
+    // memaksa refetch data itu lewat router.refresh() / window.location.reload()
+    // setelah presensi berhasil. Di beberapa kondisi (kemungkinan besar
+    // caching Next.js/Vercel pada request fetch Supabase yang sulit
+    // dipastikan tanpa akses log server), refetch itu TIDAK SELALU
+    // mengembalikan data terbaru — akibatnya tombol "Presensi Masuk" tetap
+    // tampil meski data sudah tersimpan di database.
+    //
+    // Solusi definitif: simpan hasil presensi di STATE LOKAL komponen ini,
+    // diisi LANGSUNG dari nilai balik presensiMasuk()/presensiKeluar()
+    // (data yang baru saja berhasil ditulis ke database, bukan hasil query
+    // ulang yang berisiko basi). Tampilan dibangun dari state lokal ini
+    // kalau ada, baru fallback ke prop dari server kalau belum ada aksi
+    // sama sekali. Reload tetap dilakukan setelahnya (supaya bagian lain
+    // halaman ikut segar), tapi TIDAK LAGI jadi satu-satunya sumber
+    // kebenaran untuk update tampilan presensi itu sendiri.
+    const [presensiLokal, setPresensiLokal] = useState<Partial<Presensi> | null>(null);
 
-    // Dihitung di luar JSX (bukan mengandalkan narrowing TypeScript di
-    // ternary bersarang) — lebih aman dan pasti lolos type-check.
+    const presensiAsli = jadwalHariIni?.presensi?.[0];
+    // Anotasi tipe eksplisit di sini penting — tanpa ini, TypeScript bisa
+    // menyimpulkan tipe gabungan yang ambigu dari spread dua tipe berbeda
+    // (Presensi | undefined vs Partial<Presensi>), berisiko lolos cek
+    // sintaks tapi gagal type-check saat build Vercel.
+    const presensi: Partial<Presensi> | undefined = presensiLokal
+        ? { ...presensiAsli, ...presensiLokal }
+        : presensiAsli;
+
     const jamMasuk = presensi?.waktu_masuk
         ? new Date(presensi.waktu_masuk).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' })
         : null;
@@ -27,35 +51,32 @@ export function PresensiPanel({ jadwalHariIni }: { jadwalHariIni: JadwalPiket | 
             const res = await presensiMasuk(jadwalHariIni!.id);
             if (res.error) {
                 setMsg({ type: 'error', text: res.error });
-                return; // [FIX] gagal → JANGAN reload, biar pesan error tetap terlihat & data tidak ke-refresh percuma
+                return;
             }
+            // Update tampilan LANGSUNG dari data respons — tidak nunggu reload
+            if (res.data) setPresensiLokal((prev) => ({ ...prev, ...res.data }));
+
             if (res.warning) setMsg({ type: 'warning', text: res.warning });
             else if (res.success) setMsg({ type: 'success', text: res.success });
             else if (res.info) setMsg({ type: 'info', text: res.info });
 
-            // [FIX BUG] router.refresh() saja terbukti TIDAK selalu memaksa
-            // Server Component induk mengambil ulang data presensi terbaru
-            // di semua kondisi — akibatnya tombol "Presensi Masuk" tetap
-            // tampil meski presensi sudah tersimpan di database. Solusinya:
-            // tampilkan pesan konfirmasi dulu (state di atas), beri jeda
-            // singkat supaya sempat terbaca, lalu paksa reload PENUH
-            // (window.location.reload) yang menjamin data benar-benar segar
-            // — bukan cuma soft-refresh yang bisa gagal diam-diam.
-            setTimeout(() => window.location.reload(), 900);
+            setTimeout(() => window.location.reload(), 1200);
         });
     }
 
     function handleKeluar() {
         startTransition(async () => {
-            const res = await presensiKeluar(presensi!.id);
+            const res = await presensiKeluar(presensi!.id!);
             if (res.error) {
                 setMsg({ type: 'error', text: res.error });
                 return;
             }
+            if (res.data) setPresensiLokal((prev) => ({ ...prev, ...res.data }));
+
             if (res.warning) setMsg({ type: 'warning', text: res.warning });
             else if (res.success) setMsg({ type: 'success', text: res.success });
 
-            setTimeout(() => window.location.reload(), 900);
+            setTimeout(() => window.location.reload(), 1200);
         });
     }
 
@@ -108,9 +129,7 @@ export function PresensiPanel({ jadwalHariIni }: { jadwalHariIni: JadwalPiket | 
                                 </button>
                             </div>
 
-                            {/* Info keterlambatan tampil PERSISTEN (dari data tersimpan),
-                                bukan cuma sekilas lewat toast yang gampang terlewat. */}
-                            {presensi.terlambat_menit > 0 && (
+                            {(presensi.terlambat_menit ?? 0) > 0 && (
                                 <div className="inline-flex items-center gap-1.5 text-amber-600 text-xs font-medium bg-amber-500/10 px-3 py-1.5 rounded-lg">
                                     <AlertTriangle className="w-3.5 h-3.5" />
                                     Terlambat {presensi.terlambat_menit} menit dari jadwal masuk
@@ -122,10 +141,10 @@ export function PresensiPanel({ jadwalHariIni }: { jadwalHariIni: JadwalPiket | 
                             <div className="flex flex-wrap items-center gap-6 text-sm">
                                 <div className="text-emerald-600">Masuk: <strong className="tabular font-mono">{jamMasuk}</strong></div>
                                 <div className="text-amber-500">Keluar: <strong className="tabular font-mono">{jamKeluar}</strong></div>
-                                {presensi.kekurangan_menit > 0 ? (
+                                {(presensi.kekurangan_menit ?? 0) > 0 ? (
                                     <span className="inline-flex items-center gap-1.5 text-rose-600 font-medium text-xs">
                                         <AlertTriangle className="w-3.5 h-3.5" />
-                                        Kurang {Math.floor(presensi.kekurangan_menit / 60)}j {presensi.kekurangan_menit % 60}m
+                                        Kurang {Math.floor((presensi.kekurangan_menit ?? 0) / 60)}j {(presensi.kekurangan_menit ?? 0) % 60}m
                                     </span>
                                 ) : (
                                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-600">
@@ -135,13 +154,12 @@ export function PresensiPanel({ jadwalHariIni }: { jadwalHariIni: JadwalPiket | 
                                 )}
                             </div>
 
-                            {/* Rincian: terlambat + pulang awal, biar transparan asal kekurangannya dari mana */}
-                            {(presensi.terlambat_menit > 0 || presensi.pulang_awal_menit > 0) && (
+                            {((presensi.terlambat_menit ?? 0) > 0 || (presensi.pulang_awal_menit ?? 0) > 0) && (
                                 <div className="flex flex-wrap gap-2 text-xs text-navy-950/50">
-                                    {presensi.terlambat_menit > 0 && (
+                                    {(presensi.terlambat_menit ?? 0) > 0 && (
                                         <span className="bg-paper-100 px-2.5 py-1 rounded-lg">⏰ Terlambat masuk: {presensi.terlambat_menit} menit</span>
                                     )}
-                                    {presensi.pulang_awal_menit > 0 && (
+                                    {(presensi.pulang_awal_menit ?? 0) > 0 && (
                                         <span className="bg-paper-100 px-2.5 py-1 rounded-lg">🚪 Pulang lebih awal: {presensi.pulang_awal_menit} menit</span>
                                     )}
                                 </div>
