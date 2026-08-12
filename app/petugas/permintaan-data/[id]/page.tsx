@@ -3,9 +3,9 @@ import { notFound } from 'next/navigation';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import Link from 'next/link';
-import { TanggapiForm } from '@/app/admin/permintaan-data/[id]/TanggapiForm';
+import { ChatThread } from '@/components/permintaan-data/ChatThread';
 import { KlaimAction } from './KlaimAction';
-import type { PermintaanData } from '@/lib/types/database';
+import type { PermintaanData, PermintaanDataPesan } from '@/lib/types/database';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,6 +26,13 @@ export default async function DetailPermintaanDataPetugasPage({ params }: { para
     if (!permintaan) notFound();
 
     const punyaKu = permintaan.ditangani_oleh === user?.id;
+
+    const { data: pesanRaw } = await supabase
+        .from('permintaan_data_pesan')
+        .select('*')
+        .eq('permintaan_data_id', permintaan.id)
+        .order('created_at');
+    const pesan = (pesanRaw ?? []) as PermintaanDataPesan[];
 
     return (
         <>
@@ -66,16 +73,7 @@ export default async function DetailPermintaanDataPetugasPage({ params }: { para
                         </div>
                     </Card>
 
-                    {permintaan.status === 'selesai' ? (
-                        <Card title="Tanggapan">
-                            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
-                                <p className="text-sm text-navy-950 leading-relaxed whitespace-pre-line">{permintaan.tanggapan}</p>
-                            </div>
-                            <p className="text-xs text-navy-950/40 mt-3">
-                                Diselesaikan oleh <strong>{permintaan.profiles?.name}</strong> pada {permintaan.ditanggapi_pada && new Date(permintaan.ditanggapi_pada).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
-                            </p>
-                        </Card>
-                    ) : permintaan.status === 'baru' ? (
+                    {permintaan.status === 'baru' ? (
                         <Card title="Belum Ada yang Menangani">
                             <p className="text-sm text-navy-950/60 mb-4">
                                 Permintaan ini masih baru dan belum ditindaklanjuti siapa pun. Klik tombol
@@ -83,21 +81,30 @@ export default async function DetailPermintaanDataPetugasPage({ params }: { para
                             </p>
                             <KlaimAction id={permintaan.id} mode="klaim" />
                         </Card>
-                    ) : punyaKu ? (
-                        <Card title="Tanggapi & Selesaikan">
-                            <p className="text-xs text-navy-950/50 mb-4">
-                                Permintaan ini jadi tanggung jawab Anda. Kalau berhasil diselesaikan,
-                                akan tercatat sebagai pengunjung yang Anda layani.
-                            </p>
-                            <TanggapiForm id={permintaan.id} currentStatus={permintaan.status} basePath="/petugas/permintaan-data" />
-                        </Card>
-                    ) : (
+                    ) : !punyaKu && permintaan.status === 'diproses' ? (
                         <Card title="Sedang Ditangani Petugas Lain">
                             <p className="text-sm text-navy-950/60 mb-4">
                                 Permintaan ini sedang ditangani oleh <strong className="text-navy-950">{permintaan.profiles?.name}</strong>.
                                 Kalau petugas tersebut berhalangan, Anda bisa mengambil alih.
                             </p>
                             <KlaimAction id={permintaan.id} mode="ambil-alih" />
+                        </Card>
+                    ) : (
+                        <Card
+                            title="Percakapan"
+                            description={
+                                permintaan.status === 'selesai'
+                                    ? 'Percakapan sudah ditutup (status selesai).'
+                                    : 'Permintaan ini jadi tanggung jawab Anda. Kalau berhasil diselesaikan, akan tercatat sebagai pengunjung yang Anda layani.'
+                            }
+                        >
+                            <ChatThread
+                                permintaanId={permintaan.id}
+                                pesanAwal={pesan}
+                                namaPengunjung={permintaan.nama_lengkap}
+                                bisaKirim={punyaKu && permintaan.status === 'diproses'}
+                                bisaSelesaikan={punyaKu && permintaan.status === 'diproses'}
+                            />
                         </Card>
                     )}
                 </div>

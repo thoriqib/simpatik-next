@@ -124,7 +124,54 @@ Buka `http://localhost:3000`.
 - [ ] Buka `/display-antrian` di 2 tab; panggil antrian dari dashboard petugas di tab lain → tab display **update otomatis tanpa refresh** (Realtime)
 - [ ] Selesaikan 1 antrian sebagai petugas → tombol "Beri Penilaian" muncul di halaman tiket
 - [ ] Kirim pengaduan dengan lampiran → file bisa dibuka dari halaman detail admin
-- [ ] Import CSV jadwal (format: `nama_petugas,shift,tanggal`) di `/admin/jadwal`
+- [ ] Import CSV jadwal (format: `email_petugas,shift,tanggal`) di `/admin/jadwal`
+- [ ] Kirim form di `/permintaan-data` → dapat link `/permintaan-data/lacak/{token}` di layar
+- [ ] Petugas klik "Tindak Lanjuti" di permintaan tsb → buka link lacak dari tab lain → kirim pesan dari sisi petugas → muat ulang halaman lacak → pesan muncul di sisi pengunjung
+- [ ] Petugas klik "Tandai Selesai" → buka lagi link lacak → kotak kirim pesan sudah hilang (percakapan ditutup)
+
+---
+
+## 💬 Chat/Lacak Permintaan Data — Cara Kerja & Keamanan
+
+Setiap permintaan data dapat **token unik** (UUID acak, mustahil ditebak)
+saat dibuat. Link `/permintaan-data/lacak/{token}` inilah yang jadi
+"identitas" pengunjung untuk memantau & membalas tanpa perlu login.
+
+**Kenapa aman dari kebocoran data pengunjung lain:**
+Pengunjung publik **tidak pernah** diberi akses `SELECT` langsung ke tabel
+`permintaan_data` atau `permintaan_data_pesan` — kalau diizinkan, siapa
+pun bisa membaca **semua** data pengunjung lain lewat `anon key` tanpa
+tahu token siapa pun. Sebagai gantinya, akses publik **hanya** lewat 2
+function `SECURITY DEFINER` di database (`get_permintaan_data_publik`,
+`kirim_pesan_pengunjung`) yang mewajibkan token persis sebagai parameter
+— satu-satunya cara tahu token adalah menerima link-nya (di layar/email).
+
+**Alur status:**
+- `baru` → petugas klik "Tindak Lanjuti" (atau admin balas langsung, otomatis klaim)
+- `diproses` → chat aktif, pengunjung & petugas bisa saling kirim pesan
+- `selesai` → chat ditutup, pengunjung tidak bisa kirim pesan lagi (riwayat tetap bisa dibaca)
+
+**Refresh pesan**: sesuai kesepakatan, chat ini **bukan real-time** —
+pesan sendiri langsung muncul (optimistic update), tapi untuk melihat
+balasan pihak lain perlu klik tombol "Muat ulang" (reload manual).
+
+---
+
+## 📧 Setup Email (Resend) — Opsional tapi Direkomendasikan
+
+Link lacak permintaan data otomatis dikirim ke email pengunjung **kalau**
+`RESEND_API_KEY` sudah diisi. Kalau belum, tidak error — link tetap
+tampil di layar sebagai jalur utama, email cuma pelengkap.
+
+1. Daftar gratis di [resend.com](https://resend.com) (3.000 email/bulan gratis)
+2. Verifikasi domain pengirim (atau pakai `onboarding@resend.dev` dulu untuk testing — cuma bisa kirim ke email pemilik akun Resend, tidak cocok untuk produksi)
+3. Buat API Key di dashboard Resend
+4. Isi di Vercel → Project Settings → Environment Variables:
+   ```
+   RESEND_API_KEY=re_xxxxxxxxxxxx
+   RESEND_FROM_EMAIL="Simpatik BPS Kota Jambi <noreply@domain-anda.id>"
+   ```
+5. Redeploy agar env var baru terbaca
 
 ---
 

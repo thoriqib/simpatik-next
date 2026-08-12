@@ -4,10 +4,10 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import Link from 'next/link';
 import { Pencil } from 'lucide-react';
-import { TanggapiForm } from './TanggapiForm';
+import { ChatThread } from '@/components/permintaan-data/ChatThread';
 import { DelegasiForm } from './DelegasiForm';
 import { AdminAksiLanjutan } from './AdminAksiLanjutan';
-import type { PermintaanData } from '@/lib/types/database';
+import type { PermintaanData, PermintaanDataPesan } from '@/lib/types/database';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,7 +28,17 @@ export default async function DetailPermintaanDataPage({ params }: { params: Pro
 
     const { data: petugasList } = await supabase.from('profiles').select('id, name').eq('role', 'petugas').order('name');
 
-    const belumSelesai = permintaan.status !== 'selesai';
+    const { data: pesanRaw } = await supabase
+        .from('permintaan_data_pesan')
+        .select('*')
+        .eq('permintaan_data_id', permintaan.id)
+        .order('created_at');
+    const pesan = (pesanRaw ?? []) as PermintaanDataPesan[];
+
+    // Admin selalu boleh kirim pesan (kecuali sudah selesai) — mengirim
+    // pesan pertama di permintaan 'baru' otomatis jadi klaim, lihat
+    // lib/actions/permintaan-data.ts (kirimPesanPetugas).
+    const bisaKirim = permintaan.status !== 'selesai';
 
     return (
         <>
@@ -78,26 +88,19 @@ export default async function DetailPermintaanDataPage({ params }: { params: Pro
                         </div>
                     </Card>
 
-                    {permintaan.status === 'selesai' && (
-                        <Card title="Tanggapan">
-                            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
-                                <p className="text-sm text-navy-950 leading-relaxed whitespace-pre-line">{permintaan.tanggapan}</p>
-                            </div>
-                            <p className="text-xs text-navy-950/40 mt-3">
-                                Diselesaikan oleh <strong>{permintaan.profiles?.name}</strong> pada {permintaan.ditanggapi_pada && new Date(permintaan.ditanggapi_pada).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
-                            </p>
-                        </Card>
-                    )}
+                    <Card title="Percakapan" description={permintaan.status === 'selesai' ? 'Percakapan sudah ditutup (status selesai).' : 'Balasan Anda otomatis menjadikan Anda penanggung jawab kalau belum ada.'}>
+                        <ChatThread
+                            permintaanId={permintaan.id}
+                            pesanAwal={pesan}
+                            namaPengunjung={permintaan.nama_lengkap}
+                            bisaKirim={bisaKirim}
+                            bisaSelesaikan={permintaan.status !== 'selesai'}
+                        />
+                    </Card>
 
-                    {belumSelesai && (
-                        <Card title="Tanggapi Langsung">
-                            <TanggapiForm id={permintaan.id} currentStatus={permintaan.status} basePath="/admin/permintaan-data" />
-                        </Card>
-                    )}
-
-                    {/* [UPDATE] Ganti penanggung jawab kini tersedia KAPAN PUN, tidak
-                        cuma saat belum selesai — admin punya kendali penuh atas PJ
-                        permintaan, termasuk yang sudah diproses petugas lain. */}
+                    {/* Ganti penanggung jawab tersedia KAPAN PUN — admin punya
+                        kendali penuh atas PJ permintaan, termasuk yang sudah
+                        diproses petugas lain. */}
                     {petugasList && petugasList.length > 0 && (
                         <Card title="Ganti/Tetapkan Penanggung Jawab">
                             <DelegasiForm id={permintaan.id} petugasList={petugasList} />

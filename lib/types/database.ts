@@ -123,6 +123,7 @@ export type StatusPermintaanData = 'baru' | 'diproses' | 'selesai' | 'dibatalkan
 
 export interface PermintaanData {
     id: number;
+    token: string;
     nama_lengkap: string;
     instansi: string;
     kegunaan_data: KegunaanData;
@@ -135,4 +136,30 @@ export interface PermintaanData {
     ditanggapi_pada: string | null;
     created_at: string;
     profiles?: Profile | null;
+}
+
+export type PengirimPesan = 'pengunjung' | 'petugas';
+
+export interface PermintaanDataPesan {
+    id: number;
+    permintaan_data_id: number;
+    pengirim: PengirimPesan;
+    petugas_id: string | null;
+    pesan: string;
+    created_at: string;
+    petugas_nama?: string | null; // hanya terisi dari function get_permintaan_data_publik
+}
+
+/** Bentuk hasil RPC get_permintaan_data_publik (dipetakan dari JSON Postgres). */
+export interface PermintaanDataPublikResult {
+    id: number;
+    nama_lengkap: string;
+    instansi: string;
+    kegunaan_data: KegunaanData;
+    kebutuhan_data: string;
+    status: StatusPermintaanData;
+    created_at: string;
+    ditanggapi_pada: string | null;
+    petugas_nama: string | null;
+    pesan: PermintaanDataPesan[];
 }

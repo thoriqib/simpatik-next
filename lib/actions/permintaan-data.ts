@@ -3,7 +3,9 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
+import { kirimEmailLinkPermintaanData } from '@/lib/email';
 import type { ActionState } from './auth';
+import type { PermintaanDataPublikResult } from '@/lib/types/database';
 
 // ═══════════════════════════════════════════════════════════════
 // Validasi input — form ini diisi PUBLIK tanpa login, jadi semua
@@ -69,22 +71,32 @@ export async function kirimPermintaanData(prevState: ActionState, formData: Form
     // TIDAK PERNAH menyertakan `status`, `ditangani_oleh`, `tanggapan`
     // dari input form (meski RLS sudah membatasi publik hanya bisa
     // INSERT, defense-in-depth: jangan beri kesempatan field itu
-    // di-override lewat request yang dimanipulasi).
-    const { error } = await supabase.from('permintaan_data').insert({
-        nama_lengkap: namaLengkap,
-        instansi,
-        kegunaan_data: kegunaanData,
-        email,
-        no_hp: noHp,
-        kebutuhan_data: kebutuhanData,
-    });
+    // di-override lewat request yang dimanipulasi). `token` TIDAK
+    // dikirim di sini — biar Postgres yang generate (gen_random_uuid()
+    // default di kolom), supaya token selalu murni buatan server.
+    const { data: inserted, error } = await supabase
+        .from('permintaan_data')
+        .insert({
+            nama_lengkap: namaLengkap,
+            instansi,
+            kegunaan_data: kegunaanData,
+            email,
+            no_hp: noHp,
+            kebutuhan_data: kebutuhanData,
+        })
+        .select('token')
+        .single();
 
-    if (error) {
+    if (error || !inserted) {
         return { error: 'Gagal mengirim permintaan. Silakan coba lagi beberapa saat lagi.' };
     }
 
+    // Kirim email berisi link (best-effort — kalau gagal/API key belum
+    // diisi, TIDAK menggagalkan alur utama, link tetap tampil di layar).
+    await kirimEmailLinkPermintaanData({ to: email, namaLengkap, token: inserted.token });
+
     revalidatePath('/admin/permintaan-data');
-    redirect('/permintaan-data?sukses=1');
+    redirect(`/permintaan-data?token=${inserted.token}`);
 }
 
 /**
@@ -143,29 +155,63 @@ export async function ambilAlihPermintaanData(id: number) {
 }
 
 /**
- * Menanggapi/menyelesaikan permintaan. Dipakai oleh admin MAUPUN petugas
- * lewat form yang sama — basePath menentukan ke mana redirect setelah
- * berhasil (halaman admin atau petugas berbeda).
+ * Petugas/admin mengirim pesan di percakapan permintaan data.
  *
- * Guard keamanan: petugas HANYA boleh menanggapi permintaan yang memang
- * jadi tanggung jawabnya sendiri (ditangani_oleh = dirinya) — kalau belum,
- * harus "Tindak Lanjuti"/"Ambil Alih" dulu. Admin boleh menanggapi permintaan
- * siapa pun (setara kemampuan sebelumnya, tidak berubah).
+ * Guard keamanan: petugas HANYA boleh kirim pesan di permintaan yang
+ * memang jadi tanggung jawabnya (ditangani_oleh = dirinya), dan hanya
+ * kalau statusnya 'diproses' (belum selesai). Admin boleh kirim pesan
+ * kapan pun kecuali sudah 'selesai' — kalau permintaan masih 'baru' dan
+ * admin yang kirim pesan duluan, otomatis jadi penanggung jawabnya
+ * (setara klik "Tindak Lanjuti").
  */
-export async function tanggapiPermintaanData(id: number, basePath: string, prevState: ActionState, formData: FormData): Promise<ActionState> {
-    const tanggapan = (formData.get('tanggapan') as string || '').trim();
-    const status = formData.get('status') as string;
+export async function kirimPesanPetugas(permintaanId: number, pesan: string) {
+    const teks = pesan.trim();
+    if (!teks) return { error: 'Pesan tidak boleh kosong.' };
+    if (teks.length > 2000) return { error: 'Pesan maksimal 2000 karakter.' };
 
-    if (!tanggapan || tanggapan.length < 5) {
-        return { error: 'Tanggapan minimal 5 karakter.' };
-    }
-    if (tanggapan.length > 2000) {
-        return { error: 'Tanggapan maksimal 2000 karakter.' };
-    }
-    if (!['diproses', 'selesai'].includes(status)) {
-        return { error: 'Status tidak valid.' };
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Sesi tidak valid, silakan login ulang.' };
+
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+    const { data: current } = await supabase.from('permintaan_data').select('status, ditangani_oleh').eq('id', permintaanId).single();
+
+    if (!current) return { error: 'Permintaan tidak ditemukan.' };
+    if (current.status === 'selesai') return { error: 'Percakapan sudah ditutup (status selesai).' };
+
+    if (profile?.role === 'petugas') {
+        if (current.status === 'baru') {
+            return { error: 'Klik "Tindak Lanjuti" terlebih dahulu sebelum mengirim pesan.' };
+        }
+        if (current.ditangani_oleh !== user.id) {
+            return { error: 'Anda bukan penanggung jawab permintaan ini. Klik "Ambil Alih" terlebih dahulu.' };
+        }
     }
 
+    const { error } = await supabase.from('permintaan_data_pesan').insert({
+        permintaan_data_id: permintaanId,
+        pengirim: 'petugas',
+        petugas_id: user.id,
+        pesan: teks,
+    });
+    if (error) return { error: error.message };
+
+    // Admin kirim pesan duluan di permintaan yang masih 'baru' → otomatis jadi PJ
+    if (profile?.role === 'admin' && current.status === 'baru') {
+        await supabase.from('permintaan_data').update({ ditangani_oleh: user.id, status: 'diproses' }).eq('id', permintaanId);
+    }
+
+    revalidatePath('/admin/permintaan-data');
+    revalidatePath('/petugas/permintaan-data');
+    return { success: true };
+}
+
+/**
+ * Tandai permintaan selesai — menutup percakapan (pengunjung tidak bisa
+ * kirim pesan lagi setelah ini). Tidak perlu tanggapan terpisah lagi,
+ * karena seluruh riwayat chat SUDAH JADI catatan tanggapannya.
+ */
+export async function selesaikanPermintaan(id: number) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { error: 'Sesi tidak valid, silakan login ulang.' };
@@ -174,25 +220,52 @@ export async function tanggapiPermintaanData(id: number, basePath: string, prevS
     const { data: current } = await supabase.from('permintaan_data').select('ditangani_oleh').eq('id', id).single();
 
     if (profile?.role === 'petugas' && current?.ditangani_oleh !== user.id) {
-        return { error: 'Anda bukan penanggung jawab permintaan ini. Klik "Tindak Lanjuti"/"Ambil Alih" terlebih dahulu.' };
+        return { error: 'Anda bukan penanggung jawab permintaan ini.' };
     }
 
     const { error } = await supabase
         .from('permintaan_data')
-        .update({
-            tanggapan,
-            status,
-            ditangani_oleh: user.id, // siapa pun yang menyelesaikan jadi PJ final tercatat
-            ditanggapi_pada: status === 'selesai' ? new Date().toISOString() : null,
-        })
+        .update({ status: 'selesai', ditangani_oleh: user.id, ditanggapi_pada: new Date().toISOString() })
         .eq('id', id);
 
     if (error) return { error: error.message };
 
     revalidatePath('/admin/permintaan-data');
     revalidatePath('/petugas/permintaan-data');
-    revalidatePath('/admin/petugas-terbaik'); // status 'selesai' memengaruhi skor jumlah pengunjung dilayani
-    redirect(basePath);
+    revalidatePath('/admin/petugas-terbaik'); // memengaruhi skor jumlah pengunjung dilayani
+    revalidatePath('/admin/laporan/layanan');
+    return { success: true };
+}
+
+/**
+ * Publik: ambil detail + seluruh pesan by token, lewat function
+ * SECURITY DEFINER (lihat migration 0010) — TIDAK mengakses tabel
+ * langsung, supaya publik tidak bisa mem-bypass token dengan query
+ * manual ke permintaan_data/permintaan_data_pesan.
+ */
+export async function ambilPermintaanDataPublik(token: string): Promise<PermintaanDataPublikResult | null> {
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc('get_permintaan_data_publik', { p_token: token });
+
+    if (error || !data || data.error) return null;
+    return data as PermintaanDataPublikResult;
+}
+
+/** Publik: kirim pesan lewat token (dipanggil dari halaman lacak, tanpa login). */
+export async function kirimPesanPengunjungPublik(token: string, pesan: string) {
+    const teks = pesan.trim();
+    if (!teks) return { error: 'Pesan tidak boleh kosong.' };
+    if (teks.length > 2000) return { error: 'Pesan maksimal 2000 karakter.' };
+
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc('kirim_pesan_pengunjung', { p_token: token, p_pesan: teks });
+
+    if (error) return { error: 'Gagal mengirim pesan. Silakan coba lagi.' };
+    if (data?.error) return { error: data.error as string };
+
+    revalidatePath('/admin/permintaan-data');
+    revalidatePath('/petugas/permintaan-data');
+    return { success: true };
 }
 
 /**

@@ -1,31 +1,29 @@
-import Link from 'next/link';
 import { CheckCircle2 } from 'lucide-react';
 import { PermintaanDataForm } from './PermintaanDataForm';
+import { LinkSuksesCard } from './LinkSuksesCard';
 
 export const dynamic = 'force-dynamic';
 
 export default async function PermintaanDataPage({
     searchParams,
 }: {
-    searchParams: Promise<{ sukses?: string }>;
+    searchParams: Promise<{ token?: string }>;
 }) {
     const params = await searchParams;
 
-    if (params.sukses === '1') {
+    if (params.token) {
         return (
-            <div className="text-center py-10">
+            <div className="text-center py-6">
                 <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
                     <CheckCircle2 className="w-8 h-8 text-emerald-600" />
                 </div>
                 <h2 className="text-xl font-bold text-navy-950">Permintaan Terkirim</h2>
                 <p className="text-sm text-navy-950/50 mt-2 max-w-sm mx-auto">
-                    Terima kasih. Permintaan/konsultasi data Anda sudah kami terima dan akan
-                    segera ditindaklanjuti oleh petugas BPS Kota Jambi. Kami akan menghubungi
-                    Anda lewat email atau nomor HP yang didaftarkan.
+                    Simpan link di bawah untuk memantau status & berkomunikasi langsung dengan
+                    petugas. Link ini juga sudah dikirim ke email Anda.
                 </p>
-                <Link href="/permintaan-data" className="inline-block mt-6 text-sm text-azure-500 hover:text-navy-700 font-medium transition-colors">
-                    Kirim Permintaan Lain
-                </Link>
+
+                <LinkSuksesCard token={params.token} />
             </div>
         );
     }
