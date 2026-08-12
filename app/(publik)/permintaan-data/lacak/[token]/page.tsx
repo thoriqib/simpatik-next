@@ -53,11 +53,6 @@ export default async function LacakPermintaanDataPage({ params }: { params: Prom
                     <div className="text-xs text-navy-950/40 uppercase tracking-wide mb-1.5">Permintaan Anda</div>
                     <p className="text-sm text-navy-950 leading-relaxed whitespace-pre-line">{data.kebutuhan_data}</p>
                 </div>
-                {data.petugas_nama && (
-                    <p className="text-xs text-navy-950/50 mt-3 pt-3 border-t border-paper-200">
-                        Ditangani oleh: <strong className="text-navy-950">{data.petugas_nama}</strong>
-                    </p>
-                )}
             </div>
 
             {statusInfo && (

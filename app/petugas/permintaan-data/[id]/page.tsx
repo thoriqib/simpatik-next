@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import Link from 'next/link';
 import { ChatThread } from '@/components/permintaan-data/ChatThread';
+import { LinkLacakCard } from '@/components/permintaan-data/LinkLacakCard';
 import { KlaimAction } from './KlaimAction';
 import { unstable_noStore as noStore } from 'next/cache';
 import type { PermintaanData, PermintaanDataPesan } from '@/lib/types/database';
@@ -76,6 +77,9 @@ export default async function DetailPermintaanDataPetugasPage({ params }: { para
                         <div className="pt-4 border-t border-paper-200">
                             <dt className="text-navy-950/40 text-xs uppercase tracking-wide mb-1.5">Data/Konsultasi yang Dibutuhkan</dt>
                             <dd className="text-sm text-navy-950 leading-relaxed whitespace-pre-line">{permintaan.kebutuhan_data}</dd>
+                        </div>
+                        <div className="pt-4 mt-4 border-t border-paper-200">
+                            <LinkLacakCard token={permintaan.token} />
                         </div>
                     </Card>
 

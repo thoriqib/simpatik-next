@@ -555,7 +555,9 @@ grant execute on function public.kirim_penilaian_permintaan_data(uuid, smallint,
 
 -- [UPDATE] get_permintaan_data_publik dibuat ulang (create or replace) supaya
 -- juga mengembalikan status penilaian — halaman lacak butuh tahu apakah
--- harus tampilkan form penilaian atau ucapan terima kasih.
+-- harus tampilkan form penilaian atau ucapan terima kasih. petugas_nama
+-- SENGAJA TIDAK disertakan — siapa yang menangani hanya diketahui staf
+-- internal (admin/petugas), bukan pengunjung.
 create or replace function public.get_permintaan_data_publik(p_token uuid)
 returns jsonb
 language plpgsql
@@ -568,10 +570,9 @@ declare
     v_penilaian record;
 begin
     select pd.id, pd.nama_lengkap, pd.instansi, pd.kegunaan_data, pd.kebutuhan_data,
-           pd.status, pd.created_at, pd.ditanggapi_pada, pr.name as petugas_nama
+           pd.status, pd.created_at, pd.ditanggapi_pada
     into v_permintaan
     from public.permintaan_data pd
-    left join public.profiles pr on pr.id = pd.ditangani_oleh
     where pd.token = p_token;
 
     if v_permintaan.id is null then
@@ -583,13 +584,11 @@ begin
             'id', pp.id,
             'pengirim', pp.pengirim,
             'pesan', pp.pesan,
-            'created_at', pp.created_at,
-            'petugas_nama', prof.name
+            'created_at', pp.created_at
         ) order by pp.created_at
     ), '[]'::jsonb)
     into v_pesan
     from public.permintaan_data_pesan pp
-    left join public.profiles prof on prof.id = pp.petugas_id
     where pp.permintaan_data_id = v_permintaan.id;
 
     select nilai, komentar into v_penilaian from public.penilaian where permintaan_data_id = v_permintaan.id;
@@ -603,7 +602,6 @@ begin
         'status', v_permintaan.status,
         'created_at', v_permintaan.created_at,
         'ditanggapi_pada', v_permintaan.ditanggapi_pada,
-        'petugas_nama', v_permintaan.petugas_nama,
         'pesan', v_pesan,
         'sudah_dinilai', v_penilaian.nilai is not null,
         'nilai_diberikan', v_penilaian.nilai,

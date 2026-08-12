@@ -69,7 +69,7 @@ export function ChatPengunjung({
                                 p.pengirim === 'pengunjung' ? 'bg-azure-500 text-white rounded-br-sm' : 'bg-white border border-paper-200 text-navy-950 rounded-bl-sm'
                             }`}>
                                 <div className="text-[10px] uppercase tracking-wide opacity-70 mb-0.5">
-                                    {p.pengirim === 'pengunjung' ? 'Anda' : (p.petugas_nama ?? 'Petugas BPS')}
+                                    {p.pengirim === 'pengunjung' ? 'Anda' : 'Petugas BPS'}
                                 </div>
                                 <div className="whitespace-pre-line leading-relaxed">{p.pesan}</div>
                                 <div className={`text-[10px] mt-1 ${p.pengirim === 'pengunjung' ? 'text-white/60' : 'text-navy-950/40'}`}>

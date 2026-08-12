@@ -40,4 +40,5 @@ export async function hapusPenilaian(id: number) {
     const supabase = await createClient();
     await supabase.from('penilaian').delete().eq('id', id);
     revalidatePath('/admin/penilaian');
+    revalidatePath('/admin/petugas-terbaik');
 }

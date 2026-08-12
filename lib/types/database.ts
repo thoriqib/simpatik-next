@@ -149,10 +149,11 @@ export interface PermintaanDataPesan {
     petugas_id: string | null;
     pesan: string;
     created_at: string;
-    petugas_nama?: string | null; // hanya terisi dari function get_permintaan_data_publik
 }
 
-/** Bentuk hasil RPC get_permintaan_data_publik (dipetakan dari JSON Postgres). */
+/** Bentuk hasil RPC get_permintaan_data_publik (dipetakan dari JSON Postgres).
+ *  CATATAN: petugas_nama SENGAJA tidak disertakan — siapa yang menangani
+ *  hanya diketahui staf internal (admin/petugas), bukan pengunjung. */
 export interface PermintaanDataPublikResult {
     id: number;
     nama_lengkap: string;
@@ -162,7 +163,6 @@ export interface PermintaanDataPublikResult {
     status: StatusPermintaanData;
     created_at: string;
     ditanggapi_pada: string | null;
-    petugas_nama: string | null;
     pesan: PermintaanDataPesan[];
     sudah_dinilai: boolean;
     nilai_diberikan: number | null;

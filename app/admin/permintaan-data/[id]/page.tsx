@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/Badge';
 import Link from 'next/link';
 import { Pencil } from 'lucide-react';
 import { ChatThread } from '@/components/permintaan-data/ChatThread';
+import { LinkLacakCard } from '@/components/permintaan-data/LinkLacakCard';
 import { DelegasiForm } from './DelegasiForm';
 import { AdminAksiLanjutan } from './AdminAksiLanjutan';
 import { unstable_noStore as noStore } from 'next/cache';
@@ -95,6 +96,9 @@ export default async function DetailPermintaanDataPage({ params }: { params: Pro
                     </Card>
 
                     <Card title="Percakapan" description={permintaan.status === 'selesai' ? 'Percakapan sudah ditutup (status selesai).' : 'Balasan Anda otomatis menjadikan Anda penanggung jawab kalau belum ada.'}>
+                        <div className="mb-4 pb-4 border-b border-paper-200">
+                            <LinkLacakCard token={permintaan.token} />
+                        </div>
                         <ChatThread
                             permintaanId={permintaan.id}
                             pesanAwal={pesan}
