@@ -3,6 +3,7 @@ import { ambilPermintaanDataPublik } from '@/lib/actions/permintaan-data';
 import { Badge } from '@/components/ui/Badge';
 import { ChatPengunjung } from './ChatPengunjung';
 import { Clock, CheckCircle2, MessageCircleOff } from 'lucide-react';
+import { unstable_noStore as noStore } from 'next/cache';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,6 +13,12 @@ const KEGUNAAN_LABEL: Record<string, string> = {
 };
 
 export default async function LacakPermintaanDataPage({ params }: { params: Promise<{ token: string }> }) {
+    // [FIX BUG] Lihat catatan lengkap di app/petugas/dashboard/page.tsx —
+    // halaman publik ini sepenuhnya bergantung pada tombol "Muat ulang"
+    // untuk melihat balasan terbaru, jadi kalau ada cache basi, pengunjung
+    // bisa terus-menerus tidak melihat balasan petugas walau sudah dikirim.
+    noStore();
+
     const { token } = await params;
     const data = await ambilPermintaanDataPublik(token);
 

@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import Link from 'next/link';
+import { unstable_noStore as noStore } from 'next/cache';
 import type { PermintaanData } from '@/lib/types/database';
 
 export const dynamic = 'force-dynamic';
@@ -12,6 +13,9 @@ const KEGUNAAN_LABEL: Record<string, string> = {
 };
 
 export default async function PermintaanDataListPage({ searchParams }: { searchParams: Promise<{ status?: string }> }) {
+    // [FIX BUG] Lihat catatan lengkap di app/petugas/dashboard/page.tsx
+    noStore();
+
     const { status } = await searchParams;
     const supabase = await createClient();
 

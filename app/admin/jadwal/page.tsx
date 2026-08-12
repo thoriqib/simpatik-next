@@ -9,11 +9,17 @@ import { hapusJadwal } from '@/lib/actions/jadwal';
 import { getMondayOfWeek, getWeekdayDates, currentWeekMondayWIB, toDateStringLocal, parseDateLocal } from '@/lib/utils';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight, CalendarClock } from 'lucide-react';
+import { unstable_noStore as noStore } from 'next/cache';
 import type { HariLibur } from '@/lib/types/database';
 
 export const dynamic = 'force-dynamic';
 
 export default async function JadwalPage({ searchParams }: { searchParams: Promise<{ minggu?: string }> }) {
+    // [FIX BUG] Lihat catatan lengkap di app/petugas/dashboard/page.tsx —
+    // dynamic='force-dynamic' saja tidak cukup menjamin data segar di
+    // semua kondisi reload, terutama setelah BatalkanPresensiButton.
+    noStore();
+
     const params = await searchParams;
 
     // ── Tentukan Senin minggu yang ditampilkan (default: minggu ini WIB) ──

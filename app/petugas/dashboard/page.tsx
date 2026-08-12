@@ -3,11 +3,23 @@ import { Card } from '@/components/ui/Card';
 import { todayDateStringWIB } from '@/lib/utils';
 import { PresensiPanel } from './PresensiPanel';
 import { AntrianPanel } from './AntrianPanel';
+import { unstable_noStore as noStore } from 'next/cache';
 import type { JadwalPiket, Antrian } from '@/lib/types/database';
 
 export const dynamic = 'force-dynamic';
 
 export default async function PetugasDashboard() {
+    // [FIX BUG PRESENSI — akar masalah sebenarnya] `dynamic = 'force-dynamic'`
+    // saja ternyata TIDAK CUKUP untuk menjamin data selalu segar di semua
+    // kondisi navigasi/reload — gejalanya: presensi sempat tampil benar,
+    // tapi begitu reload/pindah halaman lalu kembali, tampilan balik ke
+    // "belum presensi" meski datanya sudah benar di database. noStore()
+    // adalah API resmi Next.js yang secara eksplisit mematikan SEMUA
+    // lapisan cache (termasuk Vercel Data Cache) untuk render ini,
+    // dipanggil di awal Server Component — perlindungan paling tegas yang
+    // tersedia, tidak bergantung pada asumsi soal cache mana yang bermasalah.
+    noStore();
+
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     const today = todayDateStringWIB();

@@ -3,11 +3,15 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { todayDateStringWIB } from '@/lib/utils';
 import { PresensiPanel } from '../dashboard/PresensiPanel';
+import { unstable_noStore as noStore } from 'next/cache';
 import type { JadwalPiket } from '@/lib/types/database';
 
 export const dynamic = 'force-dynamic';
 
 export default async function PresensiPetugasPage({ searchParams }: { searchParams: Promise<{ bulan?: string; tahun?: string }> }) {
+    // [FIX BUG PRESENSI] Lihat catatan lengkap di app/petugas/dashboard/page.tsx
+    noStore();
+
     const params = await searchParams;
     const now = new Date();
     const bulan = Number(params.bulan) || now.getMonth() + 1;

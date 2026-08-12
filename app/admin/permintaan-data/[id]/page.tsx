@@ -7,6 +7,7 @@ import { Pencil } from 'lucide-react';
 import { ChatThread } from '@/components/permintaan-data/ChatThread';
 import { DelegasiForm } from './DelegasiForm';
 import { AdminAksiLanjutan } from './AdminAksiLanjutan';
+import { unstable_noStore as noStore } from 'next/cache';
 import type { PermintaanData, PermintaanDataPesan } from '@/lib/types/database';
 
 export const dynamic = 'force-dynamic';
@@ -17,6 +18,11 @@ const KEGUNAAN_LABEL: Record<string, string> = {
 };
 
 export default async function DetailPermintaanDataPage({ params }: { params: Promise<{ id: string }> }) {
+    // [FIX BUG] Lihat catatan lengkap di app/petugas/dashboard/page.tsx —
+    // halaman ini banyak bergantung pada reload setelah aksi (delegasi,
+    // batalkan, hapus, kirim pesan), jadi rawan kena bug caching yang sama.
+    noStore();
+
     const { id } = await params;
     const supabase = await createClient();
 

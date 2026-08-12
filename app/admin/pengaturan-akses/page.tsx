@@ -1,10 +1,14 @@
 import { createClient } from '@/lib/supabase/server';
 import { Card } from '@/components/ui/Card';
 import { RoleTable } from './RoleTable';
+import { unstable_noStore as noStore } from 'next/cache';
 
 export const dynamic = 'force-dynamic';
 
 export default async function PengaturanAksesPage() {
+    // [FIX BUG] Lihat catatan lengkap di app/petugas/dashboard/page.tsx
+    noStore();
+
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
