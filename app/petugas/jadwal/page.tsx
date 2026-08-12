@@ -1,11 +1,15 @@
 import { createClient } from '@/lib/supabase/server';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import { unstable_noStore as noStore } from 'next/cache';
 import type { JadwalPiket } from '@/lib/types/database';
 
 export const dynamic = 'force-dynamic';
 
 export default async function JadwalPetugasSayaPage({ searchParams }: { searchParams: Promise<{ bulan?: string; tahun?: string }> }) {
+    // [FIX BUG] Lihat catatan lengkap di app/petugas/dashboard/page.tsx
+    noStore();
+
     const params = await searchParams;
     const now = new Date();
     const bulan = Number(params.bulan) || now.getMonth() + 1;
@@ -16,16 +20,30 @@ export default async function JadwalPetugasSayaPage({ searchParams }: { searchPa
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
-    // [FIX] Cast eksplisit — relasi to-one `shift_piket` ditebak sebagai
-    // array tanpa generated types.
+    // [FIX BUG] Sebelumnya presensi diambil lewat embedded select
+    // `jadwal_piket.presensi(*)` — pola ini terbukti jadi sumber bug.
+    // Sekarang dua query terpisah digabung manual di JavaScript.
     const { data: jadwalRaw } = await supabase
         .from('jadwal_piket')
-        .select('*, shift_piket(*), presensi(*)')
+        .select('*, shift_piket(*)')
         .eq('user_id', user!.id)
         .gte('tanggal', start).lte('tanggal', end)
         .order('tanggal');
 
-    const jadwal = jadwalRaw as unknown as JadwalPiket[] | null;
+    const jadwalTanpaPresensi = jadwalRaw as unknown as Omit<JadwalPiket, 'presensi'>[] | null;
+    const jadwalIds = (jadwalTanpaPresensi ?? []).map((j) => j.id);
+
+    const { data: presensiList } = await supabase
+        .from('presensi')
+        .select('*')
+        .in('jadwal_piket_id', jadwalIds.length > 0 ? jadwalIds : [-1]);
+
+    const presensiByJadwalId = new Map((presensiList ?? []).map((p) => [p.jadwal_piket_id, p]));
+
+    const jadwal = (jadwalTanpaPresensi ?? []).map((j) => ({
+        ...j,
+        presensi: presensiByJadwalId.has(j.id) ? [presensiByJadwalId.get(j.id)!] : [],
+    })) as unknown as JadwalPiket[];
 
     const rekap = { hadir: 0, izin: 0, sakit: 0, alpha: 0, terjadwal: 0 };
     (jadwal ?? []).forEach((j) => { rekap[j.status as keyof typeof rekap]++; });

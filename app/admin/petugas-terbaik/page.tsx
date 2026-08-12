@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { Card } from '@/components/ui/Card';
 import { Trophy, Clock, Users, Star, Medal } from 'lucide-react';
+import { unstable_noStore as noStore } from 'next/cache';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,6 +24,8 @@ export default async function PetugasTerbaikPage({
     searchParams: Promise<{ tahun?: string; kuartal?: string }>;
 }) {
     const params = await searchParams;
+    noStore();
+
     const now = new Date();
     const kuartalSekarang = Math.floor(now.getMonth() / 3) + 1;
     const tahun = Number(params.tahun) || now.getFullYear();
@@ -37,15 +40,24 @@ export default async function PetugasTerbaikPage({
     const { data: petugasList } = await supabase.from('profiles').select('id, name').eq('role', 'petugas');
 
     // ── 1. Ketepatan waktu presensi ──────────────────────────────
-    type JadwalPresensiRow = {
-        user_id: string;
-        presensi: { waktu_masuk: string | null; waktu_keluar: string | null; kekurangan_menit: number }[] | null;
-    };
+    // [FIX BUG] Sebelumnya presensi diambil lewat embedded select
+    // `jadwal_piket.presensi(...)` — pola ini terbukti jadi sumber bug.
+    // Sekarang dua query terpisah digabung manual di JavaScript, supaya
+    // skor petugas terbaik dihitung dari data yang benar-benar akurat.
+    type JadwalRow = { id: number; user_id: string };
     const { data: jadwalRaw } = await supabase
         .from('jadwal_piket')
-        .select('user_id, presensi(waktu_masuk, waktu_keluar, kekurangan_menit)')
+        .select('id, user_id')
         .gte('tanggal', startStr).lte('tanggal', endStr);
-    const jadwal = jadwalRaw as unknown as JadwalPresensiRow[] | null;
+    const jadwal = jadwalRaw as unknown as JadwalRow[] | null;
+
+    const jadwalIds = (jadwal ?? []).map((j) => j.id);
+    type PresensiRow = { jadwal_piket_id: number; waktu_masuk: string | null; waktu_keluar: string | null; kekurangan_menit: number };
+    const { data: presensiRaw } = await supabase
+        .from('presensi')
+        .select('jadwal_piket_id, waktu_masuk, waktu_keluar, kekurangan_menit')
+        .in('jadwal_piket_id', jadwalIds.length > 0 ? jadwalIds : [-1]);
+    const presensiByJadwalId = new Map(((presensiRaw ?? []) as PresensiRow[]).map((p) => [p.jadwal_piket_id, p]));
 
     // ── 2. Jumlah pengunjung dilayani (antrian selesai) ──────────
     type AntrianRow = { petugas_id: string | null };
@@ -97,7 +109,7 @@ export default async function PetugasTerbaikPage({
     (jadwal ?? []).forEach((j) => {
         const s = statsMap.get(j.user_id);
         if (!s) return;
-        const p = j.presensi?.[0];
+        const p = presensiByJadwalId.get(j.id);
         if (p?.waktu_masuk && p?.waktu_keluar) {
             s.hariPresensiLengkap++;
             if (p.kekurangan_menit === 0) s.hariTepatWaktu++;

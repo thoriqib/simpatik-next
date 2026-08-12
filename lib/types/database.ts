@@ -38,6 +38,7 @@ export interface JadwalPiket {
     shift_id: number;
     tanggal: string;
     status: StatusJadwal;
+    keterangan: string | null;
     created_at: string;
     profiles?: Profile;
     shift_piket?: ShiftPiket;

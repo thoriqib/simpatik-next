@@ -6,6 +6,7 @@ import { CsvImport } from './CsvImport';
 import { HariLiburManager } from './HariLiburManager';
 import { BatalkanPresensiButton } from './BatalkanPresensiButton';
 import { EditPresensiButton } from './EditPresensiModal';
+import { UbahStatusButton } from './UbahStatusModal';
 import { hapusJadwal } from '@/lib/actions/jadwal';
 import { getMondayOfWeek, getWeekdayDates, currentWeekMondayWIB, toDateStringLocal, parseDateLocal } from '@/lib/utils';
 import Link from 'next/link';
@@ -36,25 +37,41 @@ export default async function JadwalPage({ searchParams }: { searchParams: Promi
     const supabase = await createClient();
 
     // [FIX] Cast eksplisit — relasi to-one (profiles, shift_piket) ditebak
-    // sebagai array tanpa generated types. `presensi` tetap array (memang
-    // diakses via presensi?.[0] di JSX, konsisten dengan bentuk aslinya).
+    // sebagai array tanpa generated types.
     type JadwalRow = {
         id: number;
         tanggal: string;
         status: string;
+        keterangan: string | null;
         profiles: { name: string } | null;
         shift_piket: { nama_shift: string; jam_mulai: string; jam_selesai: string } | null;
-        presensi: { id: number; waktu_masuk: string | null; waktu_keluar: string | null }[] | null;
     };
 
+    // [FIX BUG] Sebelumnya presensi diambil lewat embedded select
+    // `jadwal_piket.presensi(...)` — pola ini terbukti jadi sumber bug
+    // (jam masuk/keluar tidak muncul meski ada di database). Sekarang dua
+    // query terpisah digabung manual di JavaScript.
     const { data: jadwalRaw } = await supabase
         .from('jadwal_piket')
-        .select('*, profiles(name), shift_piket(*), presensi(id, waktu_masuk, waktu_keluar)')
+        .select('id, tanggal, status, keterangan, profiles(name), shift_piket(*)')
         .gte('tanggal', start)
         .lte('tanggal', end)
         .order('tanggal');
 
-    const jadwal = jadwalRaw as unknown as JadwalRow[] | null;
+    const jadwalTanpaPresensi = jadwalRaw as unknown as JadwalRow[] | null;
+    const jadwalIds = (jadwalTanpaPresensi ?? []).map((j) => j.id);
+
+    const { data: presensiList } = await supabase
+        .from('presensi')
+        .select('id, jadwal_piket_id, waktu_masuk, waktu_keluar')
+        .in('jadwal_piket_id', jadwalIds.length > 0 ? jadwalIds : [-1]);
+
+    const presensiByJadwalId = new Map((presensiList ?? []).map((p) => [p.jadwal_piket_id, p]));
+
+    const jadwal = (jadwalTanpaPresensi ?? []).map((j) => ({
+        ...j,
+        presensi: presensiByJadwalId.get(j.id) ?? null,
+    }));
 
     const { data: petugas } = await supabase.from('profiles').select('id, name').eq('role', 'petugas').order('name');
     const { data: shifts } = await supabase.from('shift_piket').select('*').eq('is_aktif', true);
@@ -122,21 +139,30 @@ export default async function JadwalPage({ searchParams }: { searchParams: Promi
                                 <td className="py-3">{new Date(j.tanggal).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' })}</td>
                                 <td className="py-3 font-medium">{j.profiles?.name}</td>
                                 <td className="py-3">{j.shift_piket?.nama_shift} <span className="text-navy-950/30 text-xs">({j.shift_piket?.jam_mulai}–{j.shift_piket?.jam_selesai})</span></td>
-                                <td className="py-3"><Badge status={j.status} /></td>
-                                <td className="py-3 text-navy-950/60">{j.presensi?.[0]?.waktu_masuk ? new Date(j.presensi[0].waktu_masuk).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }) : '-'}</td>
-                                <td className="py-3 text-navy-950/60">{j.presensi?.[0]?.waktu_keluar ? new Date(j.presensi[0].waktu_keluar).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }) : '-'}</td>
                                 <td className="py-3">
-                                    <div className="flex items-center gap-2">
-                                        <EditPresensiButton
-                                            presensiId={j.presensi?.[0]?.id ?? null}
+                                    <Badge status={j.status} />
+                                    {j.keterangan && <div className="text-xs text-navy-950/40 mt-1 max-w-40 truncate" title={j.keterangan}>{j.keterangan}</div>}
+                                </td>
+                                <td className="py-3 text-navy-950/60">{j.presensi?.waktu_masuk ? new Date(j.presensi.waktu_masuk).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }) : '-'}</td>
+                                <td className="py-3 text-navy-950/60">{j.presensi?.waktu_keluar ? new Date(j.presensi.waktu_keluar).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }) : '-'}</td>
+                                <td className="py-3">
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <UbahStatusButton
                                             jadwalPiketId={j.id}
-                                            tanggal={j.tanggal}
-                                            waktuMasukAwal={j.presensi?.[0]?.waktu_masuk ?? null}
-                                            waktuKeluarAwal={j.presensi?.[0]?.waktu_keluar ?? null}
+                                            statusAwal={j.status}
+                                            keteranganAwal={j.keterangan}
                                             namaPetugas={j.profiles?.name ?? '-'}
                                         />
-                                        {j.presensi?.[0]?.waktu_masuk && (
-                                            <BatalkanPresensiButton presensiId={j.presensi[0].id} jadwalPiketId={j.id} />
+                                        <EditPresensiButton
+                                            presensiId={j.presensi?.id ?? null}
+                                            jadwalPiketId={j.id}
+                                            tanggal={j.tanggal}
+                                            waktuMasukAwal={j.presensi?.waktu_masuk ?? null}
+                                            waktuKeluarAwal={j.presensi?.waktu_keluar ?? null}
+                                            namaPetugas={j.profiles?.name ?? '-'}
+                                        />
+                                        {j.presensi?.waktu_masuk && j.presensi?.id && (
+                                            <BatalkanPresensiButton presensiId={j.presensi.id} jadwalPiketId={j.id} />
                                         )}
                                         {/* [FIX] .bind() menghasilkan referensi Server Action yang valid
                                             untuk form di Server Component — closure async inline biasa

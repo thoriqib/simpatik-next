@@ -98,6 +98,7 @@ create table public.jadwal_piket (
     tanggal     date not null,
     status      text not null default 'terjadwal'
                 check (status in ('terjadwal','hadir','izin','sakit','alpha')),
+    keterangan  text, -- alasan izin/sakit/alpha, diisi admin
     created_at  timestamptz not null default now(),
     unique (user_id, tanggal, shift_id)
 );

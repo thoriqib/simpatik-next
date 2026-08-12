@@ -1,9 +1,13 @@
 import { createClient } from '@/lib/supabase/server';
 import { Card } from '@/components/ui/Card';
+import { unstable_noStore as noStore } from 'next/cache';
 
 export const dynamic = 'force-dynamic';
 
 export default async function LaporanPresensiPage({ searchParams }: { searchParams: Promise<{ bulan?: string; tahun?: string }> }) {
+    // [FIX BUG] Lihat catatan lengkap di app/petugas/dashboard/page.tsx
+    noStore();
+
     const params = await searchParams;
     const now = new Date();
     const bulan = Number(params.bulan) || now.getMonth() + 1;
@@ -14,19 +18,28 @@ export default async function LaporanPresensiPage({ searchParams }: { searchPara
     const supabase = await createClient();
 
     // [FIX] Cast eksplisit — relasi to-one `profiles` ditebak sebagai array
-    // tanpa generated types; `presensi` tetap array (sesuai akses presensi?.[0]).
-    type JadwalPresensiRow = {
-        status: string;
-        profiles: { name: string } | null;
-        presensi: { terlambat_menit: number; pulang_awal_menit: number; kekurangan_menit: number }[] | null;
-    };
+    // tanpa generated types.
+    type JadwalRow = { id: number; status: string; profiles: { name: string } | null };
 
+    // [FIX BUG] Sebelumnya presensi diambil lewat embedded select
+    // `jadwal_piket.presensi(...)` — pola ini terbukti jadi sumber bug (data
+    // presensi tidak muncul meski ada di database). Sekarang dua query
+    // terpisah digabung manual, konsisten dengan pola yang sudah terbukti
+    // andal di PresensiPanel & halaman Riwayat Presensi petugas.
     const { data: jadwalRaw } = await supabase
         .from('jadwal_piket')
-        .select('*, profiles(name), presensi(terlambat_menit, pulang_awal_menit, kekurangan_menit)')
+        .select('id, status, profiles(name)')
         .gte('tanggal', start).lte('tanggal', end);
 
-    const jadwal = jadwalRaw as unknown as JadwalPresensiRow[] | null;
+    const jadwal = jadwalRaw as unknown as JadwalRow[] | null;
+    const jadwalIds = (jadwal ?? []).map((j) => j.id);
+
+    const { data: presensiList } = await supabase
+        .from('presensi')
+        .select('jadwal_piket_id, terlambat_menit, pulang_awal_menit, kekurangan_menit')
+        .in('jadwal_piket_id', jadwalIds.length > 0 ? jadwalIds : [-1]);
+
+    const presensiByJadwalId = new Map((presensiList ?? []).map((p) => [p.jadwal_piket_id, p]));
 
     const rekapMap = new Map<string, {
         nama: string; hadir: number; izin: number; sakit: number; alpha: number; terjadwal: number; total: number;
@@ -44,11 +57,12 @@ export default async function LaporanPresensiPage({ searchParams }: { searchPara
         const r = rekapMap.get(nama)!;
         r.total++;
         r[j.status as 'hadir' | 'izin' | 'sakit' | 'alpha' | 'terjadwal']++;
+        const p = presensiByJadwalId.get(j.id);
         // [UPDATE] Kekurangan = total terlambat + total pulang awal (dihitung
         // independen per hari, TIDAK saling menutupi — lihat lib/actions/presensi.ts)
-        r.totalTerlambat += j.presensi?.[0]?.terlambat_menit ?? 0;
-        r.totalPulangAwal += j.presensi?.[0]?.pulang_awal_menit ?? 0;
-        r.totalKekurangan += j.presensi?.[0]?.kekurangan_menit ?? 0;
+        r.totalTerlambat += p?.terlambat_menit ?? 0;
+        r.totalPulangAwal += p?.pulang_awal_menit ?? 0;
+        r.totalKekurangan += p?.kekurangan_menit ?? 0;
     });
     const rekap = Array.from(rekapMap.values()).sort((a, b) => b.totalKekurangan - a.totalKekurangan);
     const bulanNama = new Date(tahun, bulan - 1).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });

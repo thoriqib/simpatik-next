@@ -35,14 +35,32 @@ export default async function PresensiPetugasPage({ searchParams }: { searchPara
 
     const shiftInfo = (jadwalHariIni?.shift_piket ?? null) as unknown as { nama_shift: string; jam_mulai: string; jam_selesai: string } | null;
 
+    // [FIX BUG] Sebelumnya presensi diambil lewat embedded select
+    // `jadwal_piket.presensi(*)` — ternyata pola ini yang jadi sumber bug
+    // (jam masuk/keluar tidak tercatat di tabel riwayat meski datanya ada
+    // di database, terbukti dari PresensiPanel yang query LANGSUNG ke
+    // tabel presensi selalu berhasil). Sekarang dipakai pola yang sama:
+    // dua query terpisah (jadwal_piket, lalu presensi), digabung manual
+    // di JavaScript — bukan mengandalkan embed PostgREST yang bermasalah.
     const { data: jadwalBulanRaw } = await supabase
         .from('jadwal_piket')
-        .select('*, shift_piket(*), presensi(*)')
+        .select('*, shift_piket(*)')
         .eq('user_id', user!.id)
         .gte('tanggal', start).lte('tanggal', end)
         .order('tanggal');
 
-    const jadwalBulan = jadwalBulanRaw as unknown as JadwalPiket[] | null;
+    const jadwalIds = (jadwalBulanRaw ?? []).map((j) => j.id);
+    const { data: presensiList } = await supabase
+        .from('presensi')
+        .select('*')
+        .in('jadwal_piket_id', jadwalIds.length > 0 ? jadwalIds : [-1]);
+
+    const presensiByJadwalId = new Map((presensiList ?? []).map((p) => [p.jadwal_piket_id, p]));
+
+    const jadwalBulan = (jadwalBulanRaw ?? []).map((j) => ({
+        ...j,
+        presensi: presensiByJadwalId.has(j.id) ? [presensiByJadwalId.get(j.id)] : [],
+    })) as unknown as JadwalPiket[];
 
     const rekap = { hadir: 0, izin: 0, sakit: 0, alpha: 0, terjadwal: 0, totalKekurangan: 0 };
     (jadwalBulan ?? []).forEach((j) => {

@@ -28,6 +28,39 @@ export async function hapusJadwal(id: number) {
 }
 
 /**
+ * Khusus admin: ubah status kehadiran jadwal piket jadi Izin/Sakit/Alpha/
+ * Terjadwal, dengan keterangan opsional (alasan). Kalau jadwal itu sudah
+ * ada presensi (petugas sudah masuk/keluar), presensinya TIDAK dihapus
+ * otomatis — admin perlu batalkan presensi dulu lewat tombol terpisah
+ * kalau memang ingin mengubah jadi izin/sakit murni tanpa jejak presensi.
+ */
+export async function ubahStatusJadwal(jadwalPiketId: number, status: string, keterangan: string) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Sesi tidak valid, silakan login ulang.' };
+
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+    if (profile?.role !== 'admin') return { error: 'Hanya admin yang bisa mengubah status kehadiran.' };
+
+    if (!['terjadwal', 'hadir', 'izin', 'sakit', 'alpha'].includes(status)) {
+        return { error: 'Status tidak valid.' };
+    }
+
+    const { error } = await supabase
+        .from('jadwal_piket')
+        .update({ status, keterangan: keterangan.trim() || null })
+        .eq('id', jadwalPiketId);
+
+    if (error) return { error: error.message };
+
+    revalidatePath('/admin/jadwal');
+    revalidatePath('/petugas/jadwal');
+    revalidatePath('/petugas/presensi');
+    revalidatePath('/admin/laporan/presensi');
+    return { success: true };
+}
+
+/**
  * Import massal jadwal dari CSV (kolom: email_petugas, shift, tanggal DD/MM/YYYY).
  * [UPDATE] Dicocokkan lewat EMAIL, bukan nama — email selalu unik dan tidak
  * pernah mengandung koma/gelar yang bisa memecah kolom CSV, jauh lebih aman
