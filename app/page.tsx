@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import {
     CalendarDays, MessageSquareWarning, FileSearch, Star, Ticket,
-    ArrowRight, Building2, ShieldCheck, Clock3, Sparkles,
+    ArrowRight, Building2, ShieldCheck, Clock3, Sparkles, MapPin, Phone,
 } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
@@ -66,7 +66,7 @@ export default function LandingPage() {
                             Permintaan Data
                         </Link>
                         <Link href="/login" className="text-sm bg-navy-700 text-white px-4 py-2 rounded-xl font-medium hover:bg-navy-800 transition-colors">
-                            Masuk
+                            Masuk Sebagai Petugas
                         </Link>
                     </nav>
                 </div>
@@ -92,19 +92,19 @@ export default function LandingPage() {
                     </p>
                     <div className="animate-fade-in-up flex flex-col sm:flex-row items-center justify-center gap-3 mt-8" style={{ animationDelay: '0.3s' }}>
                         <Link
-                            href="/jadwal-petugas"
+                            href="/permintaan-data"
                             className="group inline-flex items-center gap-2 bg-navy-700 text-white px-6 py-3.5 rounded-xl font-semibold text-sm hover:bg-navy-800 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-card w-full sm:w-auto justify-center"
                         >
-                            <CalendarDays className="w-4 h-4" />
-                            Lihat Jadwal Petugas
+                            <FileSearch className="w-4 h-4" />
+                            Buat Konsultasi/Permintaan Data
                             <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
                         </Link>
                         <Link
-                            href="/pengaduan"
+                            href="/jadwal-petugas"
                             className="inline-flex items-center gap-2 bg-white text-navy-950 border border-paper-200 px-6 py-3.5 rounded-xl font-semibold text-sm hover:bg-paper-100 transition-all hover:scale-[1.02] active:scale-[0.98] w-full sm:w-auto justify-center"
                         >
-                            <MessageSquareWarning className="w-4 h-4" />
-                            Kirim Pengaduan
+                            <CalendarDays className="w-4 h-4" />
+                            Lihat Jadwal Petugas
                         </Link>
                     </div>
                 </div>
@@ -155,11 +155,21 @@ export default function LandingPage() {
                                 hingga layanan konsultasi data bagi masyarakat, akademisi, dan instansi
                                 pemerintah.
                             </p>
-                            <p className="text-white/60 text-sm sm:text-base leading-relaxed">
+                            <p className="text-white/60 text-sm sm:text-base leading-relaxed mb-6">
                                 Lewat Simpatik, kami ingin memastikan setiap masyarakat yang membutuhkan
                                 data maupun layanan statistik bisa terlayani dengan cepat, transparan, dan
                                 mudah dijangkau — baik datang langsung ke kantor maupun secara daring.
                             </p>
+                            <div className="space-y-2.5 text-sm">
+                                <div className="flex items-start gap-2.5 text-white/70">
+                                    <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-amber-400" />
+                                    <span>Jl. Jend. Basuki Rahmat, Kota Baru, Kota Jambi, Jambi 38128</span>
+                                </div>
+                                <div className="flex items-center gap-2.5 text-white/70">
+                                    <Phone className="w-4 h-4 shrink-0 text-amber-400" />
+                                    <span>(0741) 40539</span>
+                                </div>
+                            </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="bg-white/5 border border-white/10 rounded-2xl p-6">

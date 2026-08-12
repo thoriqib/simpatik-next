@@ -9,39 +9,27 @@ import type { ActionState } from './auth';
 export async function kirimPengaduan(prevState: ActionState, formData: FormData): Promise<ActionState> {
     const subjek = formData.get('subjek') as string;
     const isi = formData.get('isi_pengaduan') as string;
-    const file = formData.get('lampiran') as File | null;
 
     if (!subjek || !isi) {
         return { error: 'Subjek dan isi pengaduan wajib diisi.' };
     }
 
     const supabase = await createClient();
-    let lampiranPath: string | null = null;
-
-    if (file && file.size > 0) {
-        if (file.size > 2 * 1024 * 1024) {
-            return { error: 'Lampiran maksimal 2MB.' };
-        }
-        const ext = file.name.split('.').pop();
-        const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-
-        const { error: uploadError } = await supabase.storage.from('pengaduan').upload(fileName, file);
-        if (uploadError) {
-            return { error: 'Gagal mengunggah lampiran: ' + uploadError.message };
-        }
-        lampiranPath = fileName;
-    }
 
     const { error } = await supabase.from('pengaduan').insert({
         subjek,
         isi_pengaduan: isi,
-        lampiran_path: lampiranPath,
     });
 
     if (error) return { error: error.message };
 
     revalidatePath('/admin/pengaduan');
-    redirect('/?pengaduan=sukses');
+    // [FIX] Sebelumnya redirect ke '/?pengaduan=sukses' — tapi '/' sekarang
+    // landing page yang tidak pernah menangani parameter itu (bahkan
+    // sebelumnya juga tidak ditangani), jadi pesan sukses tidak pernah
+    // benar-benar tampil. Sekarang redirect ke halaman pengaduan itu
+    // sendiri dengan parameter yang DITANGANI (lihat page.tsx).
+    redirect('/pengaduan?sukses=1');
 }
 
 export async function tanggapiPengaduan(id: number, prevState: ActionState, formData: FormData): Promise<ActionState> {
