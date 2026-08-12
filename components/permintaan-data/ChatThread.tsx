@@ -154,6 +154,9 @@ export function ChatThread({
                 pending={isPending}
                 title="Tandai Selesai?"
                 message="Percakapan akan ditutup — pengunjung tidak bisa mengirim pesan lagi setelah ini. Riwayat chat tetap tersimpan sebagai catatan tanggapan."
+                confirmText="Ya, Tandai Selesai"
+                pendingText="Memproses..."
+                variant="primary"
             />
         </div>
     );

@@ -57,6 +57,9 @@ export function AdminAksiLanjutan({ id, status }: { id: number; status: string }
                 onConfirm={() => { setConfirmBatal(false); handleBatalkan(); }}
                 title="Batalkan Penyelesaian?"
                 message="Status akan dikembalikan ke 'Diproses' dan tanggapan sebelumnya akan dihapus, supaya bisa ditindaklanjuti ulang oleh petugas."
+                confirmText="Ya, Batalkan"
+                pendingText="Memproses..."
+                variant="primary"
             />
             <ConfirmModal
                 open={confirmHapus}

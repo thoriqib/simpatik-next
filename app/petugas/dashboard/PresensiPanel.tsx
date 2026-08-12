@@ -11,23 +11,18 @@ export function PresensiPanel({ jadwalHariIni }: { jadwalHariIni: JadwalPiket | 
     const [isPending, startTransition] = useTransition();
     const [msg, setMsg] = useState<{ type: 'success' | 'warning' | 'error' | 'info'; text: string } | null>(null);
 
-    // [FIX BUG PRESENSI — akar masalahnya] Sebelumnya komponen ini HANYA
-    // mengandalkan prop `jadwalHariIni` dari Server Component induk, dan
-    // memaksa refetch data itu lewat router.refresh() / window.location.reload()
-    // setelah presensi berhasil. Di beberapa kondisi (kemungkinan besar
-    // caching Next.js/Vercel pada request fetch Supabase yang sulit
-    // dipastikan tanpa akses log server), refetch itu TIDAK SELALU
-    // mengembalikan data terbaru — akibatnya tombol "Presensi Masuk" tetap
-    // tampil meski data sudah tersimpan di database.
-    //
-    // Solusi definitif: simpan hasil presensi di STATE LOKAL komponen ini,
-    // diisi LANGSUNG dari nilai balik presensiMasuk()/presensiKeluar()
-    // (data yang baru saja berhasil ditulis ke database, bukan hasil query
-    // ulang yang berisiko basi). Tampilan dibangun dari state lokal ini
-    // kalau ada, baru fallback ke prop dari server kalau belum ada aksi
-    // sama sekali. Reload tetap dilakukan setelahnya (supaya bagian lain
-    // halaman ikut segar), tapi TIDAK LAGI jadi satu-satunya sumber
-    // kebenaran untuk update tampilan presensi itu sendiri.
+    // [FIX BUG PRESENSI — akar masalahnya] Sebelumnya komponen ini memaksa
+    // window.location.reload() beberapa saat setelah presensi berhasil,
+    // dengan asumsi itu "jaminan tambahan" data segar. Ternyata reload
+    // itu SENDIRI yang jadi penyebab bug: tampilan sempat benar sesaat
+    // (dari state lokal), lalu reload membuatnya kembali ke tampilan
+    // "belum presensi" — kemungkinan besar karena cache di level
+    // Vercel/edge yang sempat menyajikan HTML basi meski data di database
+    // sudah benar. Solusi definitif: JANGAN reload sama sekali. State
+    // lokal di bawah ini diisi LANGSUNG dari nilai balik
+    // presensiMasuk()/presensiKeluar() (data yang baru saja berhasil
+    // ditulis ke database) dan jadi SATU-SATUNYA sumber kebenaran
+    // tampilan komponen ini — tidak pernah bergantung pada refetch/reload.
     const [presensiLokal, setPresensiLokal] = useState<Partial<Presensi> | null>(null);
 
     const presensiAsli = jadwalHariIni?.presensi?.[0];
@@ -53,14 +48,20 @@ export function PresensiPanel({ jadwalHariIni }: { jadwalHariIni: JadwalPiket | 
                 setMsg({ type: 'error', text: res.error });
                 return;
             }
-            // Update tampilan LANGSUNG dari data respons — tidak nunggu reload
+            // Update tampilan LANGSUNG dari data respons — ini SATU-SATUNYA
+            // sumber kebenaran untuk komponen ini sekarang. [FIX BUG] Sebelumnya
+            // ada window.location.reload() beberapa saat setelah ini — ternyata
+            // reload itu sendiri yang jadi penyebab tampilan "kembali ke belum
+            // presensi" (kemungkinan besar cache di level Vercel/edge yang
+            // sempat menyajikan HTML basi meski datanya sudah benar tersimpan
+            // di database). State lokal di sini sudah terbukti akurat (diisi
+            // langsung dari hasil tulis database, bukan hasil query ulang),
+            // jadi reload dihapus sepenuhnya — tidak dibutuhkan lagi.
             if (res.data) setPresensiLokal((prev) => ({ ...prev, ...res.data }));
 
             if (res.warning) setMsg({ type: 'warning', text: res.warning });
             else if (res.success) setMsg({ type: 'success', text: res.success });
             else if (res.info) setMsg({ type: 'info', text: res.info });
-
-            setTimeout(() => window.location.reload(), 1200);
         });
     }
 
@@ -75,8 +76,6 @@ export function PresensiPanel({ jadwalHariIni }: { jadwalHariIni: JadwalPiket | 
 
             if (res.warning) setMsg({ type: 'warning', text: res.warning });
             else if (res.success) setMsg({ type: 'success', text: res.success });
-
-            setTimeout(() => window.location.reload(), 1200);
         });
     }
 

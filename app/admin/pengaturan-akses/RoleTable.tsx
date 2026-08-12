@@ -88,6 +88,9 @@ export function RoleTable({ staf, currentUserId }: { staf: Staf[]; currentUserId
                         ? `${target?.name} akan kehilangan akses admin dan hanya bisa mengakses fitur petugas.`
                         : `${target?.name} akan mendapat akses penuh sebagai admin, termasuk kelola petugas, jenis layanan, dan seluruh laporan.`
                 }
+                confirmText={target?.role === 'admin' ? 'Ya, Turunkan' : 'Ya, Jadikan Admin'}
+                pendingText="Memproses..."
+                variant={target?.role === 'admin' ? 'danger' : 'primary'}
             />
         </>
     );

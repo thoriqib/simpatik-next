@@ -29,10 +29,30 @@ export function Modal({ open, onClose, title, children }: { open: boolean; onClo
 
 export function ConfirmModal({
     open, onClose, onConfirm, title, message, pending,
+    confirmText = 'Ya, Hapus',
+    pendingText = 'Menghapus...',
+    variant = 'danger',
 }: {
-    open: boolean; onClose: () => void; onConfirm: () => void; title: string; message: string; pending?: boolean;
+    open: boolean;
+    onClose: () => void;
+    onConfirm: () => void;
+    title: string;
+    message: string;
+    pending?: boolean;
+    /** Teks tombol konfirmasi — default "Ya, Hapus" untuk kompatibilitas
+     *  dengan pemakaian lama (hapus data). Isi custom untuk konteks lain
+     *  (misal "Ya, Tandai Selesai"). */
+    confirmText?: string;
+    /** Teks tombol saat pending/loading — default "Menghapus...". */
+    pendingText?: string;
+    /** Warna tombol konfirmasi — "danger" (merah, untuk aksi hapus/destruktif)
+     *  atau "primary" (biru navy, untuk aksi konfirmasi netral/positif). */
+    variant?: 'danger' | 'primary';
 }) {
     if (!open) return null;
+    const variantClass = variant === 'danger'
+        ? 'bg-rose-600 hover:bg-rose-700'
+        : 'bg-navy-700 hover:bg-navy-800';
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy-950/40 backdrop-blur-sm">
             <div className="bg-white rounded-2xl shadow-card max-w-sm w-full p-6">
@@ -42,8 +62,8 @@ export function ConfirmModal({
                 </div>
                 <div className="flex gap-3">
                     <button onClick={onClose} className="flex-1 bg-paper-100 text-navy-950 py-2.5 rounded-xl text-sm font-semibold hover:bg-paper-200 transition-colors">Batal</button>
-                    <button onClick={onConfirm} disabled={pending} className="flex-1 bg-rose-600 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-rose-700 transition-colors disabled:opacity-50">
-                        {pending ? 'Menghapus...' : 'Ya, Hapus'}
+                    <button onClick={onConfirm} disabled={pending} className={`flex-1 text-white py-2.5 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 ${variantClass}`}>
+                        {pending ? pendingText : confirmText}
                     </button>
                 </div>
             </div>
