@@ -66,7 +66,7 @@ export default function LoginPage() {
                 <div className="text-center mt-6">
                     <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white transition-colors">
                         <ArrowLeft className="w-3.5 h-3.5" />
-                        Kembali ke Halaman Antrian
+                        Kembali ke Beranda
                     </Link>
                 </div>
                 <p className="text-center text-xs text-white/25 mt-4">

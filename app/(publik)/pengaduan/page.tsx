@@ -52,7 +52,7 @@ export default function PengaduanPage() {
             </div>
 
             <div className="mt-4 text-center">
-                <Link href="/" className="text-sm text-navy-950/50 hover:underline">← Kembali ke Halaman Antrian</Link>
+                <Link href="/" className="text-sm text-navy-950/50 hover:underline">← Kembali ke Beranda</Link>
             </div>
         </>
     );

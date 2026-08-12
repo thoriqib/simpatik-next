@@ -33,10 +33,14 @@ karena berlaku bahkan jika ada bug di kode aplikasi.
 ```
 simpatik-next/
 ├── app/
-│   ├── (publik)/              ← Route group, berbagi layout publik (tanpa login)
-│   │   ├── page.tsx            → Ambil antrian (halaman utama "/")
+│   ├── page.tsx                ← Landing page Simpatik (halaman utama "/", di luar route group publik)
+│   ├── (publik)/                ← Route group, berbagi layout publik (tanpa login)
+│   │   ├── antrian/page.tsx      → Ambil antrian — SENGAJA tidak ada di menu navigasi
+│   │   │                           (cuma untuk kios/tablet di ruang pelayanan, cegah
+│   │   │                           pengunjung ambil nomor dari luar kantor)
 │   │   ├── antrian/[kode]/tiket/page.tsx
 │   │   ├── jadwal-petugas/page.tsx
+│   │   ├── permintaan-data/page.tsx (+ lacak/[token]/page.tsx)
 │   │   ├── penilaian/[kode]/page.tsx
 │   │   └── pengaduan/page.tsx
 │   ├── display-antrian/        ← Fullscreen, layout sendiri, Supabase Realtime
@@ -115,7 +119,8 @@ Buka `http://localhost:3000`.
 
 ## ✅ Checklist Verifikasi Setelah Setup
 
-- [ ] `/` menampilkan form ambil antrian dengan jenis layanan dari seed
+- [ ] `/` menampilkan landing page Simpatik (hero, fitur, profil BPS Kota Jambi)
+- [ ] `/antrian` menampilkan form ambil antrian dengan jenis layanan dari seed — dan TIDAK muncul di menu navigasi publik manapun
 - [ ] Ambil nomor antrian → redirect ke `/antrian/{kode}/tiket` dengan kode benar
 - [ ] `/login` → login admin → redirect ke `/admin/dashboard`
 - [ ] `/login` → login petugas → redirect ke `/petugas/dashboard`
