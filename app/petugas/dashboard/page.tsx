@@ -4,36 +4,30 @@ import { todayDateStringWIB } from '@/lib/utils';
 import { PresensiPanel } from './PresensiPanel';
 import { AntrianPanel } from './AntrianPanel';
 import { unstable_noStore as noStore } from 'next/cache';
-import type { JadwalPiket, Antrian } from '@/lib/types/database';
+import type { Antrian } from '@/lib/types/database';
 
 export const dynamic = 'force-dynamic';
 
 export default async function PetugasDashboard() {
-    // [FIX BUG PRESENSI — akar masalah sebenarnya] `dynamic = 'force-dynamic'`
-    // saja ternyata TIDAK CUKUP untuk menjamin data selalu segar di semua
-    // kondisi navigasi/reload — gejalanya: presensi sempat tampil benar,
-    // tapi begitu reload/pindah halaman lalu kembali, tampilan balik ke
-    // "belum presensi" meski datanya sudah benar di database. noStore()
-    // adalah API resmi Next.js yang secara eksplisit mematikan SEMUA
-    // lapisan cache (termasuk Vercel Data Cache) untuk render ini,
-    // dipanggil di awal Server Component — perlindungan paling tegas yang
-    // tersedia, tidak bergantung pada asumsi soal cache mana yang bermasalah.
     noStore();
 
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     const today = todayDateStringWIB();
 
-    // [FIX] Cast eksplisit — relasi to-one `shift_piket` ditebak sebagai
-    // array tanpa generated types, padahal diakses sebagai objek di PresensiPanel.
-    const { data: jadwalHariIniRaw } = await supabase
+    // [RANCANG ULANG] Server cuma perlu tahu APAKAH ada jadwal piket hari
+    // ini + info shift (data yang jarang berubah, aman dirender server).
+    // Status presensi (yang sering berubah & sebelumnya jadi sumber bug)
+    // sekarang diambil sendiri oleh PresensiPanel langsung dari browser —
+    // lihat komentar lengkap di PresensiPanel.tsx.
+    const { data: jadwalHariIni } = await supabase
         .from('jadwal_piket')
-        .select('*, shift_piket(*), presensi(*)')
+        .select('id, shift_piket(nama_shift, jam_mulai, jam_selesai)')
         .eq('user_id', user!.id)
         .eq('tanggal', today)
         .maybeSingle();
 
-    const jadwalHariIni = jadwalHariIniRaw as unknown as JadwalPiket | null;
+    const shiftInfo = (jadwalHariIni?.shift_piket ?? null) as unknown as { nama_shift: string; jam_mulai: string; jam_selesai: string } | null;
 
     const { data: antrianAktifRaw } = await supabase
         .from('antrian')
@@ -58,7 +52,7 @@ export default async function PetugasDashboard() {
                 <p className="text-sm text-navy-950/50 mt-0.5">Presensi & antrian pelayanan hari ini</p>
             </div>
 
-            <PresensiPanel jadwalHariIni={jadwalHariIni ?? null} />
+            <PresensiPanel jadwalPiketId={jadwalHariIni?.id ?? null} shiftInfo={shiftInfo} userId={user!.id} />
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-5 mb-5">
                 <Card className="!p-5 text-center">

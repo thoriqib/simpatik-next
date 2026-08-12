@@ -134,12 +134,94 @@ export async function presensiMasuk(jadwalPiketId: number): Promise<PresensiActi
 }
 
 /**
- * Khusus admin: batalkan presensi petugas (misal salah klik, atau perlu
- * dikoreksi). Menghapus record presensi sepenuhnya (waktu masuk, keluar,
- * keterlambatan, semuanya) dan mengembalikan status jadwal_piket ke
- * 'terjadwal' — seolah petugas belum melakukan presensi sama sekali hari
- * itu, supaya bisa presensi ulang dari awal kalau perlu.
+ * Konversi tanggal (YYYY-MM-DD) + jam (HH:MM) yang dimaksudkan sebagai
+ * WIB (UTC+7) jadi ISO string UTC yang benar untuk disimpan ke database.
+ * Dipakai khusus untuk edit manual oleh admin — perhitungan murni
+ * aritmatika (Date.UTC), TIDAK bergantung pada zona waktu server tempat
+ * kode ini jalan, jadi hasilnya selalu benar di mana pun Vercel
+ * menjalankan fungsi ini.
  */
+function wibKeUtcIso(tanggal: string, jam: string): string {
+    const [tahun, bulan, hari] = tanggal.split('-').map(Number);
+    const [jamNum, menitNum] = jam.split(':').map(Number);
+    const utcMillis = Date.UTC(tahun, bulan - 1, hari, jamNum - 7, menitNum, 0);
+    return new Date(utcMillis).toISOString();
+}
+
+/**
+ * Khusus admin: edit atau isi manual waktu presensi petugas (misal
+ * petugas lupa presensi, atau ada kesalahan input). Menghitung ulang
+ * terlambat_menit, pulang_awal_menit, kekurangan_menit berdasarkan jam
+ * shift yang berlaku — konsisten dengan logika presensiMasuk/presensiKeluar,
+ * TIDAK ada jalur berbeda yang bisa menghasilkan angka tidak sinkron.
+ *
+ * Petugas TIDAK PERNAH bisa memanggil ini — hanya field ini yang boleh
+ * mengoreksi waktu presensi setelah tercatat, sesuai aturan yang diminta.
+ */
+export async function editPresensiAdmin(params: {
+    jadwalPiketId: number;
+    presensiId: number | null; // null kalau petugas belum presensi sama sekali (admin isi manual dari nol)
+    tanggal: string; // YYYY-MM-DD, dari jadwal_piket.tanggal
+    waktuMasuk: string; // "HH:MM"
+    waktuKeluar: string; // "HH:MM" atau string kosong kalau belum/tidak keluar
+}) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Sesi tidak valid, silakan login ulang.' };
+
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+    if (profile?.role !== 'admin') return { error: 'Hanya admin yang bisa mengedit waktu presensi.' };
+
+    if (!params.waktuMasuk) return { error: 'Jam masuk wajib diisi.' };
+
+    const { data: jadwalRaw } = await supabase
+        .from('jadwal_piket')
+        .select('user_id, shift_piket(*)')
+        .eq('id', params.jadwalPiketId)
+        .single();
+    const jadwal = jadwalRaw as unknown as { user_id: string; shift_piket: { jam_mulai: string; jam_selesai: string } } | null;
+    if (!jadwal) return { error: 'Jadwal tidak ditemukan.' };
+
+    const waktuMasukISO = wibKeUtcIso(params.tanggal, params.waktuMasuk);
+    const batasMulaiISO = wibKeUtcIso(params.tanggal, jadwal.shift_piket.jam_mulai.slice(0, 5));
+    const terlambatMenit = Math.max(0, Math.round((new Date(waktuMasukISO).getTime() - new Date(batasMulaiISO).getTime()) / 60000));
+
+    let waktuKeluarISO: string | null = null;
+    let pulangAwalMenit = 0;
+    let kekuranganMenit = terlambatMenit;
+
+    if (params.waktuKeluar) {
+        waktuKeluarISO = wibKeUtcIso(params.tanggal, params.waktuKeluar);
+        const batasSelesaiISO = wibKeUtcIso(params.tanggal, jadwal.shift_piket.jam_selesai.slice(0, 5));
+        pulangAwalMenit = Math.max(0, Math.round((new Date(batasSelesaiISO).getTime() - new Date(waktuKeluarISO).getTime()) / 60000));
+        kekuranganMenit = terlambatMenit + pulangAwalMenit;
+    }
+
+    const payload = {
+        user_id: jadwal.user_id,
+        jadwal_piket_id: params.jadwalPiketId,
+        waktu_masuk: waktuMasukISO,
+        waktu_keluar: waktuKeluarISO,
+        terlambat_menit: terlambatMenit,
+        pulang_awal_menit: pulangAwalMenit,
+        kekurangan_menit: kekuranganMenit,
+    };
+
+    const { error } = params.presensiId
+        ? await supabase.from('presensi').update(payload).eq('id', params.presensiId)
+        : await supabase.from('presensi').insert(payload);
+
+    if (error) return { error: error.message };
+
+    await supabase.from('jadwal_piket').update({ status: 'hadir' }).eq('id', params.jadwalPiketId);
+
+    revalidatePath('/admin/jadwal');
+    revalidatePath('/petugas/dashboard');
+    revalidatePath('/petugas/presensi');
+    revalidatePath('/admin/laporan/presensi');
+    revalidatePath('/admin/petugas-terbaik');
+    return { success: true };
+}
 export async function batalkanPresensi(presensiId: number, jadwalPiketId: number) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();

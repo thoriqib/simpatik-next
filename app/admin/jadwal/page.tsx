@@ -5,6 +5,7 @@ import { JadwalForm } from './JadwalForm';
 import { CsvImport } from './CsvImport';
 import { HariLiburManager } from './HariLiburManager';
 import { BatalkanPresensiButton } from './BatalkanPresensiButton';
+import { EditPresensiButton } from './EditPresensiModal';
 import { hapusJadwal } from '@/lib/actions/jadwal';
 import { getMondayOfWeek, getWeekdayDates, currentWeekMondayWIB, toDateStringLocal, parseDateLocal } from '@/lib/utils';
 import Link from 'next/link';
@@ -126,6 +127,14 @@ export default async function JadwalPage({ searchParams }: { searchParams: Promi
                                 <td className="py-3 text-navy-950/60">{j.presensi?.[0]?.waktu_keluar ? new Date(j.presensi[0].waktu_keluar).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }) : '-'}</td>
                                 <td className="py-3">
                                     <div className="flex items-center gap-2">
+                                        <EditPresensiButton
+                                            presensiId={j.presensi?.[0]?.id ?? null}
+                                            jadwalPiketId={j.id}
+                                            tanggal={j.tanggal}
+                                            waktuMasukAwal={j.presensi?.[0]?.waktu_masuk ?? null}
+                                            waktuKeluarAwal={j.presensi?.[0]?.waktu_keluar ?? null}
+                                            namaPetugas={j.profiles?.name ?? '-'}
+                                        />
                                         {j.presensi?.[0]?.waktu_masuk && (
                                             <BatalkanPresensiButton presensiId={j.presensi[0].id} jadwalPiketId={j.id} />
                                         )}

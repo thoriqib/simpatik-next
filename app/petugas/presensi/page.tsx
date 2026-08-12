@@ -23,16 +23,17 @@ export default async function PresensiPetugasPage({ searchParams }: { searchPara
     const { data: { user } } = await supabase.auth.getUser();
     const today = todayDateStringWIB();
 
-    // [FIX] Cast eksplisit — relasi to-one `shift_piket` ditebak sebagai
-    // array tanpa generated types.
-    const { data: jadwalHariIniRaw } = await supabase
+    // [RANCANG ULANG] Server cuma perlu tahu APAKAH ada jadwal hari ini +
+    // info shift — status presensi-nya sendiri diambil PresensiPanel
+    // langsung dari browser (lihat komentar lengkap di PresensiPanel.tsx).
+    const { data: jadwalHariIni } = await supabase
         .from('jadwal_piket')
-        .select('*, shift_piket(*), presensi(*)')
+        .select('id, shift_piket(nama_shift, jam_mulai, jam_selesai)')
         .eq('user_id', user!.id)
         .eq('tanggal', today)
         .maybeSingle();
 
-    const jadwalHariIni = jadwalHariIniRaw as unknown as JadwalPiket | null;
+    const shiftInfo = (jadwalHariIni?.shift_piket ?? null) as unknown as { nama_shift: string; jam_mulai: string; jam_selesai: string } | null;
 
     const { data: jadwalBulanRaw } = await supabase
         .from('jadwal_piket')
@@ -60,7 +61,7 @@ export default async function PresensiPetugasPage({ searchParams }: { searchPara
         <>
             <h1 className="text-lg font-semibold text-navy-950 mb-4">Presensi Saya</h1>
 
-            <PresensiPanel jadwalHariIni={jadwalHariIni ?? null} />
+            <PresensiPanel jadwalPiketId={jadwalHariIni?.id ?? null} shiftInfo={shiftInfo} userId={user!.id} />
 
             <div className="mt-5">
                 <Card title="Riwayat Presensi Bulan Ini">
