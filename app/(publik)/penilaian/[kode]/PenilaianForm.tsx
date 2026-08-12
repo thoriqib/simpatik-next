@@ -4,7 +4,7 @@ import { useActionState, useState } from 'react';
 import { kirimPenilaian } from '@/lib/actions/penilaian';
 import { SubmitButton } from '@/components/ui/SubmitButton';
 
-export function PenilaianForm({ antrianId, petugasId }: { antrianId: number; petugasId: string }) {
+export function PenilaianForm({ antrianId, petugasId, kodeAntrian }: { antrianId: number; petugasId: string; kodeAntrian: string }) {
     const [state, formAction] = useActionState(kirimPenilaian, null);
     const [rating, setRating] = useState(0);
     const [hover, setHover] = useState(0);
@@ -18,6 +18,7 @@ export function PenilaianForm({ antrianId, petugasId }: { antrianId: number; pet
             <input type="hidden" name="antrian_id" value={antrianId} />
             <input type="hidden" name="petugas_id" value={petugasId} />
             <input type="hidden" name="nilai" value={rating} />
+            <input type="hidden" name="kode_antrian" value={kodeAntrian} />
 
             {state?.error && (
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm mb-4">{state.error}</div>

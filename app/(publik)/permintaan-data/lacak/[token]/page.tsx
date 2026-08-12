@@ -2,7 +2,8 @@ import { notFound } from 'next/navigation';
 import { ambilPermintaanDataPublik } from '@/lib/actions/permintaan-data';
 import { Badge } from '@/components/ui/Badge';
 import { ChatPengunjung } from './ChatPengunjung';
-import { Clock, CheckCircle2, MessageCircleOff } from 'lucide-react';
+import { PenilaianPermintaanData } from './PenilaianPermintaanData';
+import { Clock, CheckCircle2, MessageCircleOff, Star } from 'lucide-react';
 import { unstable_noStore as noStore } from 'next/cache';
 
 export const dynamic = 'force-dynamic';
@@ -70,6 +71,21 @@ export default async function LacakPermintaanDataPage({ params }: { params: Prom
                 <h2 className="text-base font-semibold text-navy-950 mb-4">Percakapan</h2>
                 <ChatPengunjung token={token} pesanAwal={data.pesan} aktif={data.status === 'diproses'} />
             </div>
+
+            {data.status === 'selesai' && (
+                <div className="bg-white rounded-2xl shadow-soft border border-paper-200 p-6 mt-5">
+                    <h2 className="text-base font-semibold text-navy-950 mb-4 flex items-center gap-2">
+                        <Star className="w-4 h-4 text-amber-500" />
+                        Penilaian Pelayanan
+                    </h2>
+                    <PenilaianPermintaanData
+                        token={token}
+                        sudahDinilai={data.sudah_dinilai}
+                        nilaiDiberikan={data.nilai_diberikan}
+                        komentarDiberikan={data.komentar_diberikan}
+                    />
+                </div>
+            )}
 
             <p className="text-xs text-navy-950/40 text-center mt-5">
                 Simpan link ini baik-baik. Siapa pun yang memiliki link ini bisa melihat & membalas percakapan.

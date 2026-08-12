@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
+import { formatInTimeZone } from 'date-fns-tz';
 import type { ActionState } from './auth';
 
 /**
@@ -11,6 +12,15 @@ import type { ActionState } from './auth';
  * Setara AntrianPublikController@ambil di Laravel.
  */
 export async function ambilAntrian(prevState: ActionState, formData: FormData): Promise<ActionState> {
+    // [FIX KEAMANAN] Validasi jam blokir keras (18:00–07:00 WIB) di SERVER,
+    // bukan cuma popup di client — client-side check bisa dilewati siapa
+    // saja lewat devtools/request manual. Ini pertahanan berlapis, bukan
+    // satu-satunya lapisan (UI juga menyembunyikan form di jam ini).
+    const jamWIB = Number(formatInTimeZone(new Date(), 'Asia/Jakarta', 'H'));
+    if (jamWIB >= 18 || jamWIB < 7) {
+        return { error: 'Pengambilan nomor antrian ditutup pukul 18.00–07.00 WIB. Silakan coba lagi besok pagi.' };
+    }
+
     const jenisLayananId = Number(formData.get('jenis_layanan_id'));
     const nama = formData.get('nama_pengunjung') as string;
     const noHp = (formData.get('no_hp') as string) || null;

@@ -28,7 +28,12 @@ export async function kirimPenilaian(prevState: ActionState, formData: FormData)
     }
 
     revalidatePath('/admin/penilaian');
-    redirect('/?penilaian=sukses');
+    revalidatePath('/admin/petugas-terbaik');
+    // [FIX] Sebelumnya redirect ke '/?penilaian=sukses' — '/' sekarang landing
+    // page yang tidak menangani parameter itu (pesan sukses tidak pernah
+    // tampil). Redirect ke halaman penilaian itu sendiri dengan parameter
+    // yang benar-benar ditangani.
+    redirect(`/penilaian/${formData.get('kode_antrian')}?sukses=1`);
 }
 
 export async function hapusPenilaian(id: number) {

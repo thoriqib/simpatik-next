@@ -151,12 +151,18 @@ create index idx_antrian_kode on public.antrian(kode_antrian, tanggal);
 -- TABEL: penilaian
 -- ═══════════════════════════════════════════════════════════════
 create table public.penilaian (
-    id           bigint generated always as identity primary key,
-    antrian_id   bigint not null unique references public.antrian(id) on delete cascade,
-    petugas_id   uuid not null references public.profiles(id),
-    nilai        smallint not null check (nilai between 1 and 5),
-    komentar     text,
-    created_at   timestamptz not null default now()
+    id                  bigint generated always as identity primary key,
+    antrian_id          bigint unique references public.antrian(id) on delete cascade,
+    permintaan_data_id  bigint unique, -- FK ke permintaan_data ditambahkan lewat ALTER TABLE di bawah,
+                                        -- karena tabel permintaan_data baru didefinisikan belakangan
+    petugas_id          uuid not null references public.profiles(id),
+    nilai               smallint not null check (nilai between 1 and 5),
+    komentar            text,
+    created_at          timestamptz not null default now(),
+    constraint penilaian_satu_sumber check (
+        (antrian_id is not null and permintaan_data_id is null) or
+        (antrian_id is null and permintaan_data_id is not null)
+    )
 );
 
 -- ═══════════════════════════════════════════════════════════════
@@ -451,58 +457,10 @@ create policy "pesan: admin & petugas kirim" on public.permintaan_data_pesan
 -- akses publik HANYA lewat 2 function SECURITY DEFINER di bawah, yang
 -- mewajibkan token persis sebagai parameter. Ini mencegah siapa pun
 -- membaca/menulis data pengunjung lain lewat anon key tanpa tahu token.
-
-create or replace function public.get_permintaan_data_publik(p_token uuid)
-returns jsonb
-language plpgsql
-security definer
-set search_path = public
-as $$
-declare
-    v_permintaan record;
-    v_pesan jsonb;
-begin
-    select pd.id, pd.nama_lengkap, pd.instansi, pd.kegunaan_data, pd.kebutuhan_data,
-           pd.status, pd.created_at, pd.ditanggapi_pada, pr.name as petugas_nama
-    into v_permintaan
-    from public.permintaan_data pd
-    left join public.profiles pr on pr.id = pd.ditangani_oleh
-    where pd.token = p_token;
-
-    if v_permintaan.id is null then
-        return jsonb_build_object('error', 'not_found');
-    end if;
-
-    select coalesce(jsonb_agg(
-        jsonb_build_object(
-            'id', pp.id,
-            'pengirim', pp.pengirim,
-            'pesan', pp.pesan,
-            'created_at', pp.created_at,
-            'petugas_nama', prof.name
-        ) order by pp.created_at
-    ), '[]'::jsonb)
-    into v_pesan
-    from public.permintaan_data_pesan pp
-    left join public.profiles prof on prof.id = pp.petugas_id
-    where pp.permintaan_data_id = v_permintaan.id;
-
-    return jsonb_build_object(
-        'id', v_permintaan.id,
-        'nama_lengkap', v_permintaan.nama_lengkap,
-        'instansi', v_permintaan.instansi,
-        'kegunaan_data', v_permintaan.kegunaan_data,
-        'kebutuhan_data', v_permintaan.kebutuhan_data,
-        'status', v_permintaan.status,
-        'created_at', v_permintaan.created_at,
-        'ditanggapi_pada', v_permintaan.ditanggapi_pada,
-        'petugas_nama', v_permintaan.petugas_nama,
-        'pesan', v_pesan
-    );
-end;
-$$;
-
-grant execute on function public.get_permintaan_data_publik(uuid) to anon, authenticated;
+--
+-- (Function get_permintaan_data_publik & grant-nya didefinisikan sekali
+-- saja, lengkap dengan info penilaian, di bagian bawah file ini setelah
+-- tabel penilaian.permintaan_data_id selesai dideklarasikan.)
 
 create or replace function public.kirim_pesan_pengunjung(p_token uuid, p_pesan text)
 returns jsonb
@@ -540,6 +498,121 @@ end;
 $$;
 
 grant execute on function public.kirim_pesan_pengunjung(uuid, text) to anon, authenticated;
+
+-- ═══════════════════════════════════════════════════════════════
+-- Lengkapi FK penilaian.permintaan_data_id — tabel permintaan_data baru
+-- selesai didefinisikan di atas, jadi FK-nya ditambahkan di sini.
+-- ═══════════════════════════════════════════════════════════════
+alter table public.penilaian
+    add constraint penilaian_permintaan_data_id_fkey
+    foreign key (permintaan_data_id) references public.permintaan_data(id) on delete cascade;
+
+-- ═══════════════════════════════════════════════════════════════
+-- FUNCTION: kirim penilaian dari pengunjung untuk permintaan data
+-- online, via token (SECURITY DEFINER — pola sama dengan kirim_pesan_pengunjung).
+-- ═══════════════════════════════════════════════════════════════
+create or replace function public.kirim_penilaian_permintaan_data(p_token uuid, p_nilai smallint, p_komentar text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+    v_id bigint;
+    v_status text;
+    v_ditangani_oleh uuid;
+    v_sudah_ada bigint;
+begin
+    select id, status, ditangani_oleh into v_id, v_status, v_ditangani_oleh
+    from public.permintaan_data where token = p_token;
+
+    if v_id is null then
+        return jsonb_build_object('error', 'Permintaan tidak ditemukan.');
+    end if;
+    if v_status <> 'selesai' then
+        return jsonb_build_object('error', 'Penilaian hanya bisa diberikan setelah permintaan selesai ditangani.');
+    end if;
+    if v_ditangani_oleh is null then
+        return jsonb_build_object('error', 'Belum ada petugas yang menangani permintaan ini.');
+    end if;
+    if p_nilai is null or p_nilai < 1 or p_nilai > 5 then
+        return jsonb_build_object('error', 'Nilai wajib dipilih (1-5).');
+    end if;
+
+    select id into v_sudah_ada from public.penilaian where permintaan_data_id = v_id;
+    if v_sudah_ada is not null then
+        return jsonb_build_object('error', 'Permintaan ini sudah pernah dinilai.');
+    end if;
+
+    insert into public.penilaian (permintaan_data_id, petugas_id, nilai, komentar)
+    values (v_id, v_ditangani_oleh, p_nilai, nullif(trim(p_komentar), ''));
+
+    return jsonb_build_object('success', true);
+end;
+$$;
+
+grant execute on function public.kirim_penilaian_permintaan_data(uuid, smallint, text) to anon, authenticated;
+
+-- [UPDATE] get_permintaan_data_publik dibuat ulang (create or replace) supaya
+-- juga mengembalikan status penilaian — halaman lacak butuh tahu apakah
+-- harus tampilkan form penilaian atau ucapan terima kasih.
+create or replace function public.get_permintaan_data_publik(p_token uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+    v_permintaan record;
+    v_pesan jsonb;
+    v_penilaian record;
+begin
+    select pd.id, pd.nama_lengkap, pd.instansi, pd.kegunaan_data, pd.kebutuhan_data,
+           pd.status, pd.created_at, pd.ditanggapi_pada, pr.name as petugas_nama
+    into v_permintaan
+    from public.permintaan_data pd
+    left join public.profiles pr on pr.id = pd.ditangani_oleh
+    where pd.token = p_token;
+
+    if v_permintaan.id is null then
+        return jsonb_build_object('error', 'not_found');
+    end if;
+
+    select coalesce(jsonb_agg(
+        jsonb_build_object(
+            'id', pp.id,
+            'pengirim', pp.pengirim,
+            'pesan', pp.pesan,
+            'created_at', pp.created_at,
+            'petugas_nama', prof.name
+        ) order by pp.created_at
+    ), '[]'::jsonb)
+    into v_pesan
+    from public.permintaan_data_pesan pp
+    left join public.profiles prof on prof.id = pp.petugas_id
+    where pp.permintaan_data_id = v_permintaan.id;
+
+    select nilai, komentar into v_penilaian from public.penilaian where permintaan_data_id = v_permintaan.id;
+
+    return jsonb_build_object(
+        'id', v_permintaan.id,
+        'nama_lengkap', v_permintaan.nama_lengkap,
+        'instansi', v_permintaan.instansi,
+        'kegunaan_data', v_permintaan.kegunaan_data,
+        'kebutuhan_data', v_permintaan.kebutuhan_data,
+        'status', v_permintaan.status,
+        'created_at', v_permintaan.created_at,
+        'ditanggapi_pada', v_permintaan.ditanggapi_pada,
+        'petugas_nama', v_permintaan.petugas_nama,
+        'pesan', v_pesan,
+        'sudah_dinilai', v_penilaian.nilai is not null,
+        'nilai_diberikan', v_penilaian.nilai,
+        'komentar_diberikan', v_penilaian.komentar
+    );
+end;
+$$;
+
+grant execute on function public.get_permintaan_data_publik(uuid) to anon, authenticated;
 
 -- ═══════════════════════════════════════════════════════════════
 -- REALTIME: aktifkan untuk tabel antrian

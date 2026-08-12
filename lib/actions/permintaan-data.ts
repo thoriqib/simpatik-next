@@ -269,6 +269,31 @@ export async function kirimPesanPengunjungPublik(token: string, pesan: string) {
 }
 
 /**
+ * Publik: kirim penilaian untuk petugas yang menangani permintaan data
+ * online, lewat token (tanpa login) — sama pola amannya dengan kirim
+ * pesan, lewat function SECURITY DEFINER yang validasi status 'selesai'
+ * dan mencegah dinilai dua kali.
+ */
+export async function kirimPenilaianPermintaanDataPublik(token: string, nilai: number, komentar: string) {
+    if (!nilai || nilai < 1 || nilai > 5) return { error: 'Nilai wajib dipilih.' };
+    if (komentar.length > 1000) return { error: 'Komentar maksimal 1000 karakter.' };
+
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc('kirim_penilaian_permintaan_data', {
+        p_token: token,
+        p_nilai: nilai,
+        p_komentar: komentar,
+    });
+
+    if (error) return { error: 'Gagal mengirim penilaian. Silakan coba lagi.' };
+    if (data?.error) return { error: data.error as string };
+
+    revalidatePath('/admin/penilaian');
+    revalidatePath('/admin/petugas-terbaik');
+    return { success: true };
+}
+
+/**
  * Khusus admin: delegasikan penanggung jawab ke petugas tertentu tanpa
  * admin sendiri yang menanggapi. Status otomatis jadi 'diproses'.
  * Bisa dipakai kapan pun (termasuk untuk GANTI penanggung jawab yang

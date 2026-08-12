@@ -82,13 +82,27 @@ export default async function PetugasTerbaikPage({
         .lte('ditanggapi_pada', end.toISOString());
     const permintaanDataList = permintaanDataRaw as unknown as PermintaanDataRow[] | null;
 
-    // ── 3. Rata-rata penilaian pengunjung ─────────────────────────
+    // ── 3. Rata-rata penilaian pengunjung (offline + online) ──────
     type PenilaianRow = { petugas_id: string; nilai: number; antrian: { tanggal: string } };
     const { data: penilaianRaw } = await supabase
         .from('penilaian')
         .select('petugas_id, nilai, antrian!inner(tanggal)')
         .gte('antrian.tanggal', startStr).lte('antrian.tanggal', endStr);
     const penilaianList = penilaianRaw as unknown as PenilaianRow[] | null;
+
+    // [UPDATE] Penilaian dari layanan online (permintaan data) TIDAK ikut
+    // tertangkap query di atas — `antrian!inner` mewajibkan antrian_id
+    // terisi, padahal penilaian online justru punya antrian_id NULL
+    // (pakai permintaan_data_id). Query terpisah, filter berdasar
+    // created_at penilaian itu sendiri (bukan tanggal antrian yang memang
+    // tidak ada untuk baris ini).
+    type PenilaianOnlineRow = { petugas_id: string; nilai: number };
+    const { data: penilaianOnlineRaw } = await supabase
+        .from('penilaian')
+        .select('petugas_id, nilai')
+        .not('permintaan_data_id', 'is', null)
+        .gte('created_at', start.toISOString()).lte('created_at', end.toISOString());
+    const penilaianOnlineList = penilaianOnlineRaw as unknown as PenilaianOnlineRow[] | null;
 
     // ── Agregasi per petugas ──────────────────────────────────────
     const statsMap = new Map<string, {
@@ -129,6 +143,13 @@ export default async function PetugasTerbaikPage({
     });
 
     (penilaianList ?? []).forEach((pn) => {
+        const s = statsMap.get(pn.petugas_id);
+        if (!s) return;
+        s.totalNilai += pn.nilai;
+        s.jumlahNilai++;
+    });
+
+    (penilaianOnlineList ?? []).forEach((pn) => {
         const s = statsMap.get(pn.petugas_id);
         if (!s) return;
         s.totalNilai += pn.nilai;
@@ -185,7 +206,7 @@ export default async function PetugasTerbaikPage({
 
             <Card
                 title="Peringkat Petugas"
-                description="Skor gabungan dari 3 komponen berbobot sama: ketepatan waktu presensi, jumlah pengunjung dilayani — antrian tatap muka + permintaan data online yang diselesaikan (relatif terhadap petugas dengan volume tertinggi di triwulan ini), dan rata-rata penilaian pengunjung (skala 1–5)."
+                description="Skor gabungan dari 3 komponen berbobot sama: ketepatan waktu presensi, jumlah pengunjung dilayani — antrian tatap muka + permintaan data online yang diselesaikan (relatif terhadap petugas dengan volume tertinggi di triwulan ini), dan rata-rata penilaian pengunjung dari kedua jalur layanan (skala 1–5)."
             >
                 {ranking.length > 0 ? (
                     <div className="space-y-3">

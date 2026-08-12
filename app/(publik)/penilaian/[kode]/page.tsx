@@ -2,12 +2,36 @@ import { createClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import { todayDateStringWIB } from '@/lib/utils';
 import { PenilaianForm } from './PenilaianForm';
+import { CheckCircle2 } from 'lucide-react';
 import type { Antrian } from '@/lib/types/database';
 
 export const dynamic = 'force-dynamic';
 
-export default async function PenilaianPage({ params }: { params: Promise<{ kode: string }> }) {
+export default async function PenilaianPage({
+    params,
+    searchParams,
+}: {
+    params: Promise<{ kode: string }>;
+    searchParams: Promise<{ sukses?: string }>;
+}) {
     const { kode } = await params;
+    const { sukses } = await searchParams;
+
+    if (sukses === '1') {
+        return (
+            <div className="text-center py-10">
+                <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle2 className="w-8 h-8 text-emerald-600" />
+                </div>
+                <h2 className="text-xl font-bold text-navy-950">Terima Kasih!</h2>
+                <p className="text-sm text-navy-950/50 mt-2 max-w-sm mx-auto">
+                    Penilaian Anda sudah kami terima dan jadi masukan berharga untuk peningkatan
+                    kualitas layanan kami.
+                </p>
+            </div>
+        );
+    }
+
     const supabase = await createClient();
 
     // [FIX] Cast eksplisit — relasi to-one (jenis_layanan, profiles) ditebak
@@ -50,7 +74,7 @@ export default async function PenilaianPage({ params }: { params: Promise<{ kode
                     </div>
                 </div>
 
-                <PenilaianForm antrianId={antrian.id} petugasId={profil.id} />
+                <PenilaianForm antrianId={antrian.id} petugasId={profil.id} kodeAntrian={antrian.kode_antrian} />
             </div>
         </>
     );

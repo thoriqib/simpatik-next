@@ -79,7 +79,8 @@ export interface Antrian {
 
 export interface Penilaian {
     id: number;
-    antrian_id: number;
+    antrian_id: number | null;
+    permintaan_data_id: number | null;
     petugas_id: string;
     nilai: number;
     komentar: string | null;
@@ -163,4 +164,7 @@ export interface PermintaanDataPublikResult {
     ditanggapi_pada: string | null;
     petugas_nama: string | null;
     pesan: PermintaanDataPesan[];
+    sudah_dinilai: boolean;
+    nilai_diberikan: number | null;
+    komentar_diberikan: string | null;
 }
