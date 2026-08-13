@@ -50,21 +50,48 @@ export function ChatThread({
     }, [pesanList.length]);
 
     // ── Langganan Postgres Changes — pesan baru muncul otomatis ──
+    // [FIX] Koneksi realtime TIDAK otomatis memakai token sesi login —
+    // ini gotcha yang sudah dikenal luas di Supabase: tanpa
+    // `realtime.setAuth()` eksplisit, koneksi diam-diam dianggap sebagai
+    // "anon" untuk keperluan RLS, jadi kebijakan RLS yang mewajibkan
+    // role admin/petugas (app_role()) menyaring habis semua event —
+    // status koneksi tetap terlihat "SUBSCRIBED" (berhasil terhubung),
+    // tapi tidak ada satu pun pesan yang benar-benar sampai. Ini akar
+    // masalah kenapa chat sisi staf belum terasa live sebelumnya.
     useEffect(() => {
         const supabase = createClient();
-        const channel = supabase
-            .channel(`permintaan-data-pesan-${permintaanId}`)
-            .on(
-                'postgres_changes',
-                { event: 'INSERT', schema: 'public', table: 'permintaan_data_pesan', filter: `permintaan_data_id=eq.${permintaanId}` },
-                (payload) => {
-                    const pesanBaru = payload.new as PermintaanDataPesan;
-                    setPesanList((prev) => (prev.some((p) => p.id === pesanBaru.id) ? prev : [...prev, pesanBaru]));
-                }
-            )
-            .subscribe((status) => setLive(status === 'SUBSCRIBED'));
+        let channel: ReturnType<typeof supabase.channel> | null = null;
 
-        return () => { supabase.removeChannel(channel); };
+        (async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session?.access_token) {
+                supabase.realtime.setAuth(session.access_token);
+            }
+
+            channel = supabase
+                .channel(`permintaan-data-pesan-${permintaanId}`)
+                .on(
+                    'postgres_changes',
+                    { event: 'INSERT', schema: 'public', table: 'permintaan_data_pesan', filter: `permintaan_data_id=eq.${permintaanId}` },
+                    (payload) => {
+                        const pesanBaru = payload.new as PermintaanDataPesan;
+                        setPesanList((prev) => (prev.some((p) => p.id === pesanBaru.id) ? prev : [...prev, pesanBaru]));
+                    }
+                )
+                .subscribe((status) => setLive(status === 'SUBSCRIBED'));
+        })();
+
+        // Token sesi bisa diperbarui (refresh) selama komponen ini hidup
+        // (misal presensi/percakapan dibuka lama) — pastikan koneksi
+        // realtime ikut memakai token terbaru, bukan yang sudah kedaluwarsa.
+        const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+            if (session?.access_token) supabase.realtime.setAuth(session.access_token);
+        });
+
+        return () => {
+            if (channel) supabase.removeChannel(channel);
+            authListener.subscription.unsubscribe();
+        };
     }, [permintaanId]);
 
     function handleKirim(e: React.FormEvent) {

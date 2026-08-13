@@ -59,6 +59,7 @@ export default async function PermintaanDataListPage({ searchParams }: { searchP
                     <thead>
                         <tr className="border-b text-navy-950/50 text-left">
                             <th className="pb-3 font-medium">Tgl Masuk</th>
+                            <th className="pb-3 font-medium">Jam Masuk</th>
                             <th className="pb-3 font-medium">Nama & Instansi</th>
                             <th className="pb-3 font-medium">Kegunaan</th>
                             <th className="pb-3 font-medium">Kontak</th>
@@ -71,6 +72,7 @@ export default async function PermintaanDataListPage({ searchParams }: { searchP
                         {permintaan && permintaan.length > 0 ? permintaan.map((p) => (
                             <tr key={p.id} className={`hover:bg-paper-50 ${p.status === 'baru' ? 'border-l-4 border-l-rose-400' : ''}`}>
                                 <td className="py-3 text-navy-950/50 text-xs whitespace-nowrap">{new Date(p.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
+                                <td className="py-3 text-navy-950/50 text-xs whitespace-nowrap font-mono tabular">{new Date(p.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' })} WIB</td>
                                 <td className="py-3">
                                     <div className="font-medium text-navy-950">{p.nama_lengkap}</div>
                                     <div className="text-xs text-navy-950/40">{p.instansi}</div>
@@ -86,7 +88,7 @@ export default async function PermintaanDataListPage({ searchParams }: { searchP
                                     <Link href={`/admin/permintaan-data/${p.id}`} className="text-xs font-medium bg-azure-500/10 text-azure-500 px-3 py-1.5 rounded-lg hover:bg-azure-500/20 transition-colors">Detail →</Link>
                                 </td>
                             </tr>
-                        )) : <tr><td colSpan={7} className="py-10 text-center text-navy-950/30">Belum ada permintaan data masuk</td></tr>}
+                        )) : <tr><td colSpan={8} className="py-10 text-center text-navy-950/30">Belum ada permintaan data masuk</td></tr>}
                     </tbody>
                 </table>
                 </div>
