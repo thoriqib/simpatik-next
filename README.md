@@ -156,9 +156,18 @@ function `SECURITY DEFINER` di database (`get_permintaan_data_publik`,
 - `diproses` → chat aktif, pengunjung & petugas bisa saling kirim pesan
 - `selesai` → chat ditutup, pengunjung tidak bisa kirim pesan lagi (riwayat tetap bisa dibaca)
 
-**Refresh pesan**: sesuai kesepakatan, chat ini **bukan real-time** —
-pesan sendiri langsung muncul (optimistic update), tapi untuk melihat
-balasan pihak lain perlu klik tombol "Muat ulang" (reload manual).
+**Realtime**: pesan baru muncul otomatis di kedua sisi tanpa perlu
+refresh — indikator titik hijau "Live" menandakan koneksi aktif. Dua
+mekanisme berbeda dipakai sesuai model keamanan:
+- **Sisi staf** (admin/petugas): Postgres Changes biasa (mereka sudah
+  punya akses SELECT lewat RLS normal)
+- **Sisi publik** (pengunjung via token): Broadcast from Database —
+  trigger di database menyiarkan pesan baru ke topik privat bernama
+  dari token itu sendiri, supaya publik tetap TIDAK PERNAH butuh akses
+  SELECT langsung ke tabel manapun (lihat migration `0014_realtime_chat.sql`)
+
+Tombol "Muat ulang" tetap tersedia sebagai jaring pengaman kalau koneksi
+realtime sempat terputus.
 
 ---
 

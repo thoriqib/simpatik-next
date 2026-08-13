@@ -618,3 +618,47 @@ grant execute on function public.get_permintaan_data_publik(uuid) to anon, authe
 -- status antrian tersiar otomatis ke semua layar tanpa polling/refresh.
 -- ═══════════════════════════════════════════════════════════════
 alter publication supabase_realtime add table public.antrian;
+
+-- ═══════════════════════════════════════════════════════════════
+-- REALTIME: chat permintaan data (staf via Postgres Changes,
+-- publik via Broadcast from Database — lihat catatan lengkap di
+-- migration 0014_realtime_chat.sql)
+-- ═══════════════════════════════════════════════════════════════
+alter publication supabase_realtime add table public.permintaan_data_pesan;
+
+create or replace function public.broadcast_pesan_permintaan_data()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+    v_token uuid;
+begin
+    select token into v_token from public.permintaan_data where id = new.permintaan_data_id;
+
+    if v_token is not null then
+        perform realtime.broadcast_changes(
+            'permintaan-data:' || v_token::text,
+            tg_op,
+            tg_op,
+            tg_table_name,
+            tg_table_schema,
+            new,
+            null
+        );
+    end if;
+
+    return new;
+end;
+$$;
+
+create trigger trg_broadcast_pesan_permintaan_data
+    after insert on public.permintaan_data_pesan
+    for each row execute function public.broadcast_pesan_permintaan_data();
+
+create policy "permintaan_data: dengar broadcast topik sendiri"
+    on "realtime"."messages"
+    for select
+    to anon, authenticated
+    using (topic like 'permintaan-data:%');

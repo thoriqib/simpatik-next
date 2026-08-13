@@ -1,15 +1,22 @@
 'use client';
 
 import { useState, useTransition, useRef, useEffect } from 'react';
+import { createClient } from '@/lib/supabase/client';
 import { kirimPesanPengunjungPublik } from '@/lib/actions/permintaan-data';
-import { Send, RefreshCw } from 'lucide-react';
+import { Send, RefreshCw, Circle } from 'lucide-react';
 import type { PermintaanDataPesan } from '@/lib/types/database';
 
 /**
  * Chat pengunjung di halaman lacak (publik, tanpa login, akses via token).
- * Pola sama seperti ChatThread admin/petugas — pesan sendiri langsung
- * ditambahkan ke state lokal (optimistic), refresh manual pakai reload
- * penuh untuk lihat balasan petugas (lihat catatan lengkap di ChatThread.tsx).
+ *
+ * [REALTIME] Berlangganan lewat "Broadcast from Database" — BUKAN
+ * Postgres Changes biasa, karena pengunjung publik memang TIDAK PERNAH
+ * diberi akses SELECT langsung ke tabel manapun (prinsip keamanan sejak
+ * awal fitur ini dibuat). Sebagai gantinya, trigger di database
+ * menyiarkan pesan baru ke topik privat bernama dari TOKEN itu sendiri
+ * (mis. "permintaan-data:{token}") — token yang tidak bisa ditebak itu
+ * jadi "kunci" untuk bisa mendengarkan siaran ini, prinsipnya sama
+ * seperti akses lewat link unik yang sudah ada.
  */
 export function ChatPengunjung({
     token,
@@ -24,11 +31,31 @@ export function ChatPengunjung({
     const [pesanList, setPesanList] = useState<PermintaanDataPesan[]>(pesanAwal);
     const [teks, setTeks] = useState('');
     const [error, setError] = useState('');
+    const [live, setLive] = useState(false);
     const bawahRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         bawahRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [pesanList.length]);
+
+    // ── Langganan Broadcast — pesan baru dari petugas muncul otomatis ──
+    useEffect(() => {
+        const supabase = createClient();
+        const channel = supabase
+            .channel(`permintaan-data:${token}`, { config: { private: true } })
+            .on('broadcast', { event: 'INSERT' }, (payload) => {
+                // Bentuk payload dari realtime.broadcast_changes() dibuat
+                // mirip Postgres Changes — dicoba beberapa kemungkinan letak
+                // record baru supaya tetap jalan meski ada perbedaan versi.
+                const rec = (payload.payload?.record ?? payload.payload?.new ?? payload.new) as PermintaanDataPesan | undefined;
+                if (rec?.id) {
+                    setPesanList((prev) => (prev.some((p) => p.id === rec.id) ? prev : [...prev, rec]));
+                }
+            })
+            .subscribe((status) => setLive(status === 'SUBSCRIBED'));
+
+        return () => { supabase.removeChannel(channel); };
+    }, [token]);
 
     function handleKirim(e: React.FormEvent) {
         e.preventDefault();
@@ -42,17 +69,8 @@ export function ChatPengunjung({
                 setError(res.error);
                 return;
             }
-            setPesanList((prev) => [
-                ...prev,
-                {
-                    id: -Date.now(),
-                    permintaan_data_id: 0,
-                    pengirim: 'pengunjung',
-                    petugas_id: null,
-                    pesan: teksKirim,
-                    created_at: new Date().toISOString(),
-                },
-            ]);
+            // Tidak perlu optimistic append lagi — pesan kita sendiri juga
+            // akan tersiar balik lewat channel yang sama di atas.
             setTeks('');
         });
     }
@@ -60,6 +78,13 @@ export function ChatPengunjung({
     return (
         <div>
             {error && <div className="bg-rose-50 border border-rose-200 text-rose-700 px-3 py-2 rounded-lg text-sm mb-3">{error}</div>}
+
+            {aktif && (
+                <div className="flex items-center gap-1.5 mb-2 text-xs">
+                    <Circle className={`w-2 h-2 ${live ? 'fill-emerald-500 text-emerald-500' : 'fill-navy-950/20 text-navy-950/20'}`} />
+                    <span className={live ? 'text-emerald-600 font-medium' : 'text-navy-950/40'}>{live ? 'Live — balasan petugas muncul otomatis' : 'Menghubungkan...'}</span>
+                </div>
+            )}
 
             <div className="border border-paper-200 rounded-xl overflow-hidden">
                 <div className="max-h-96 overflow-y-auto p-4 space-y-3 bg-paper-50">

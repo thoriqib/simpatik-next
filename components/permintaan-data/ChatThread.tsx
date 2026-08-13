@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useTransition, useRef, useEffect } from 'react';
+import { createClient } from '@/lib/supabase/client';
 import { kirimPesanPetugas, selesaikanPermintaan } from '@/lib/actions/permintaan-data';
 import { ConfirmModal } from '@/components/ui/Modal';
-import { Send, CheckCheck, RefreshCw } from 'lucide-react';
+import { Send, CheckCheck, RefreshCw, Circle } from 'lucide-react';
 import type { PermintaanDataPesan } from '@/lib/types/database';
 
 /**
@@ -11,13 +12,17 @@ import type { PermintaanDataPesan } from '@/lib/types/database';
  * admin & petugas — perbedaan hak akses (siapa boleh kirim/selesaikan)
  * sudah divalidasi di server action, komponen ini cuma render + kirim.
  *
- * [FIX BUG PRESENSI — pelajaran dipakai ulang di sini] router.refresh()
- * terbukti tidak selalu andal memaksa Server Component induk mengambil
- * data terbaru. Pesan yang BARU DIKIRIM langsung ditambahkan ke STATE
- * LOKAL (optimistic append, memakai teks yang memang baru saja dikirim)
- * — tidak menunggu refetch apa pun. Untuk melihat balasan pihak lain,
- * tombol "Muat ulang" memakai window.location.reload() (bukan
- * router.refresh()) yang terbukti selalu mengambil data segar.
+ * [REALTIME] Sekarang berlangganan Postgres Changes langsung dari
+ * browser ke Supabase — pesan baru (dari siapa pun: petugas lain yang
+ * mengetik di layar berbeda, ATAU pengunjung) muncul otomatis TANPA
+ * perlu refresh sama sekali. Ini legal karena admin/petugas memang
+ * sudah punya akses SELECT lewat RLS biasa ke tabel ini.
+ *
+ * Pesan yang KITA KIRIM SENDIRI juga muncul lewat jalur realtime yang
+ * sama (bukan optimistic append terpisah) — menghindari potensi bug
+ * duplikasi/id-mismatch antara pesan "sementara" dan pesan asli dari
+ * server. Tombol "Muat ulang" tetap ada sebagai jaring pengaman kalau
+ * koneksi realtime sempat putus.
  */
 export function ChatThread({
     permintaanId,
@@ -37,11 +42,30 @@ export function ChatThread({
     const [teks, setTeks] = useState('');
     const [error, setError] = useState('');
     const [confirmSelesai, setConfirmSelesai] = useState(false);
+    const [live, setLive] = useState(false);
     const bawahRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         bawahRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [pesanList.length]);
+
+    // ── Langganan Postgres Changes — pesan baru muncul otomatis ──
+    useEffect(() => {
+        const supabase = createClient();
+        const channel = supabase
+            .channel(`permintaan-data-pesan-${permintaanId}`)
+            .on(
+                'postgres_changes',
+                { event: 'INSERT', schema: 'public', table: 'permintaan_data_pesan', filter: `permintaan_data_id=eq.${permintaanId}` },
+                (payload) => {
+                    const pesanBaru = payload.new as PermintaanDataPesan;
+                    setPesanList((prev) => (prev.some((p) => p.id === pesanBaru.id) ? prev : [...prev, pesanBaru]));
+                }
+            )
+            .subscribe((status) => setLive(status === 'SUBSCRIBED'));
+
+        return () => { supabase.removeChannel(channel); };
+    }, [permintaanId]);
 
     function handleKirim(e: React.FormEvent) {
         e.preventDefault();
@@ -55,19 +79,9 @@ export function ChatThread({
                 setError(res.error);
                 return;
             }
-            // Optimistic append — pakai teks yang memang baru saja dikirim,
-            // bukan nunggu refetch (lihat catatan di atas komponen).
-            setPesanList((prev) => [
-                ...prev,
-                {
-                    id: -Date.now(), // id sementara, negatif supaya tidak bentrok id asli dari server
-                    permintaan_data_id: permintaanId,
-                    pengirim: 'petugas',
-                    petugas_id: null,
-                    pesan: teksKirim,
-                    created_at: new Date().toISOString(),
-                },
-            ]);
+            // Tidak perlu optimistic append lagi — pesan akan muncul
+            // otomatis lewat langganan realtime di atas (termasuk pesan
+            // kita sendiri, karena insert-nya juga tersiar ke channel ini).
             setTeks('');
         });
     }
@@ -87,6 +101,11 @@ export function ChatThread({
     return (
         <div>
             {error && <div className="bg-rose-50 border border-rose-200 text-rose-700 px-3 py-2 rounded-lg text-sm mb-3">{error}</div>}
+
+            <div className="flex items-center gap-1.5 mb-2 text-xs">
+                <Circle className={`w-2 h-2 ${live ? 'fill-emerald-500 text-emerald-500' : 'fill-navy-950/20 text-navy-950/20'}`} />
+                <span className={live ? 'text-emerald-600 font-medium' : 'text-navy-950/40'}>{live ? 'Live — pesan baru muncul otomatis' : 'Menghubungkan...'}</span>
+            </div>
 
             <div className="border border-paper-200 rounded-xl overflow-hidden">
                 <div className="max-h-96 overflow-y-auto p-4 space-y-3 bg-paper-50">
