@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import {
     CalendarDays, MessageSquareWarning, FileSearch, Star, Ticket,
-    ArrowRight, Building2, ShieldCheck, Clock3, Sparkles, MapPin, Phone,
+    ArrowRight, Building2, ShieldCheck, Clock3, Sparkles, MapPin, Phone, Link2,
 } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
@@ -43,6 +43,12 @@ const FITUR = [
         deskripsi: 'Setiap permintaan dan pengaduan diproses dengan kendali akses yang ketat — hanya petugas berwenang yang bisa menanganinya.',
         warna: 'bg-navy-950/10 text-navy-950',
     },
+    {
+        icon: Link2,
+        judul: 'Pesta Koja',
+        deskripsi: 'Pusat akses cepat ke seluruh layanan digital BPS Kota Jambi — konsultasi WhatsApp, publikasi, rekomendasi statistik, dan lainnya dalam satu tempat.',
+        warna: 'bg-emerald-600/10 text-emerald-600',
+    },
 ];
 
 export default function LandingPage() {
@@ -64,6 +70,9 @@ export default function LandingPage() {
                         </Link>
                         <Link href="/permintaan-data" className="hidden sm:inline-block text-sm text-navy-950/60 hover:text-navy-950 px-3 py-2 rounded-lg hover:bg-paper-100 transition-colors">
                             Permintaan Data
+                        </Link>
+                        <Link href="/pesta-koja" className="hidden sm:inline-block text-sm text-navy-950/60 hover:text-navy-950 px-3 py-2 rounded-lg hover:bg-paper-100 transition-colors">
+                            Pesta Koja
                         </Link>
                         <Link href="/login" className="text-sm bg-navy-700 text-white px-4 py-2 rounded-xl font-medium hover:bg-navy-800 transition-colors">
                             Masuk Sebagai Petugas

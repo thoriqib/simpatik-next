@@ -168,3 +168,14 @@ export interface PermintaanDataPublikResult {
     nilai_diberikan: number | null;
     komentar_diberikan: string | null;
 }
+
+export interface PestaKojaLink {
+    id: number;
+    judul: string;
+    deskripsi: string;
+    url: string;
+    ikon: string;
+    urutan: number;
+    is_aktif: boolean;
+    created_at: string;
+}
