@@ -3,6 +3,7 @@ import { ambilPermintaanDataPublik } from '@/lib/actions/permintaan-data';
 import { Badge } from '@/components/ui/Badge';
 import { ChatPengunjung } from './ChatPengunjung';
 import { PenilaianPermintaanData } from './PenilaianPermintaanData';
+import { SkdBanner } from '@/components/SkdBanner';
 import { Clock, CheckCircle2, MessageCircleOff, Star } from 'lucide-react';
 import { unstable_noStore as noStore } from 'next/cache';
 
@@ -79,6 +80,12 @@ export default async function LacakPermintaanDataPage({ params }: { params: Prom
                         nilaiDiberikan={data.nilai_diberikan}
                         komentarDiberikan={data.komentar_diberikan}
                     />
+                </div>
+            )}
+
+            {data.status === 'selesai' && (
+                <div className="mt-5">
+                    <SkdBanner />
                 </div>
             )}
 

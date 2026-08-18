@@ -1,6 +1,7 @@
 import Link from 'next/link';
+import { PublicFooter } from '@/components/layouts/PublicFooter';
 import {
-    CalendarDays, MessageSquareWarning, FileSearch, Star, Ticket,
+    MessageSquareWarning, FileSearch, Star, Ticket,
     ArrowRight, Building2, ShieldCheck, Clock3, Sparkles, MapPin, Phone, Link2,
 } from 'lucide-react';
 
@@ -18,12 +19,6 @@ const FITUR = [
         judul: 'Permintaan Data Online',
         deskripsi: 'Ajukan permintaan atau konsultasi data dari mana saja. Dapat link unik untuk berkomunikasi langsung dengan petugas sampai selesai.',
         warna: 'bg-azure-500/10 text-azure-500',
-    },
-    {
-        icon: CalendarDays,
-        judul: 'Jadwal Petugas Transparan',
-        deskripsi: 'Lihat siapa yang bertugas dan kapan, setiap minggu — supaya kunjungan Anda ke kantor lebih terarah.',
-        warna: 'bg-emerald-600/10 text-emerald-600',
     },
     {
         icon: MessageSquareWarning,
@@ -58,13 +53,13 @@ export default function LandingPage() {
             <header className="sticky top-0 z-30 bg-paper-50/80 backdrop-blur-md border-b border-paper-200">
                 <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-azure-500 to-navy-700 flex items-center justify-center font-bold text-white text-sm shrink-0">S</div>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src="/logo/logo-bps.webp" alt="Logo BPS" className="w-7 h-auto shrink-0" />
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src="/logo/logo-pst-icon.svg" alt="Logo Pelayanan Statistik Terpadu" className="w-7 h-7 shrink-0" />
                         <span className="font-bold text-navy-950 tracking-tight">Simpatik</span>
                     </div>
                     <nav className="flex items-center gap-1 sm:gap-2">
-                        <Link href="/jadwal-petugas" className="hidden sm:inline-block text-sm text-navy-950/60 hover:text-navy-950 px-3 py-2 rounded-lg hover:bg-paper-100 transition-colors">
-                            Jadwal Petugas
-                        </Link>
                         <Link href="/pengaduan" className="hidden sm:inline-block text-sm text-navy-950/60 hover:text-navy-950 px-3 py-2 rounded-lg hover:bg-paper-100 transition-colors">
                             Pengaduan
                         </Link>
@@ -97,7 +92,7 @@ export default function LandingPage() {
                     </p>
                     <p className="animate-fade-in-up text-sm sm:text-base text-navy-950/50 mt-4 max-w-xl mx-auto leading-relaxed" style={{ animationDelay: '0.2s' }}>
                         Mempermudah masyarakat mengakses layanan statistik BPS Kota Jambi — dari
-                        permintaan data, jadwal petugas, hingga pengaduan — semua dalam satu tempat.
+                        permintaan data, konsultasi, hingga pengaduan — semua dalam satu tempat.
                     </p>
                     <div className="animate-fade-in-up flex flex-col sm:flex-row items-center justify-center gap-3 mt-8" style={{ animationDelay: '0.3s' }}>
                         <Link
@@ -109,11 +104,11 @@ export default function LandingPage() {
                             <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
                         </Link>
                         <Link
-                            href="/jadwal-petugas"
+                            href="/pesta-koja"
                             className="inline-flex items-center gap-2 bg-white text-navy-950 border border-paper-200 px-6 py-3.5 rounded-xl font-semibold text-sm hover:bg-paper-100 transition-all hover:scale-[1.02] active:scale-[0.98] w-full sm:w-auto justify-center"
                         >
-                            <CalendarDays className="w-4 h-4" />
-                            Lihat Jadwal Petugas
+                            <Link2 className="w-4 h-4" />
+                            Lihat Pesta Koja
                         </Link>
                     </div>
                 </div>
@@ -210,15 +205,15 @@ export default function LandingPage() {
             <section className="max-w-4xl mx-auto px-5 sm:px-8 py-16 sm:py-20 text-center">
                 <h2 className="text-2xl sm:text-3xl font-bold text-navy-950 tracking-tight mb-3">Butuh Bantuan Kami?</h2>
                 <p className="text-navy-950/50 text-sm sm:text-base mb-8 max-w-md mx-auto">
-                    Cek jadwal petugas sebelum berkunjung, atau sampaikan pengaduan Anda kapan saja.
+                    Jelajahi seluruh layanan digital kami di Pesta Koja, atau sampaikan pengaduan Anda kapan saja.
                 </p>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                     <Link
-                        href="/jadwal-petugas"
+                        href="/pesta-koja"
                         className="inline-flex items-center gap-2 bg-navy-700 text-white px-6 py-3.5 rounded-xl font-semibold text-sm hover:bg-navy-800 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-card w-full sm:w-auto justify-center"
                     >
-                        <CalendarDays className="w-4 h-4" />
-                        Lihat Jadwal Petugas
+                        <Link2 className="w-4 h-4" />
+                        Lihat Pesta Koja
                     </Link>
                     <Link
                         href="/pengaduan"
@@ -231,11 +226,7 @@ export default function LandingPage() {
             </section>
 
             {/* ── Footer ── */}
-            <footer className="border-t border-paper-200">
-                <div className="max-w-6xl mx-auto px-5 sm:px-8 py-6 text-center text-xs text-navy-950/40">
-                    © {new Date().getFullYear()} Simpatik — BPS Kota Jambi
-                </div>
-            </footer>
+            <PublicFooter />
         </div>
     );
 }

@@ -3,11 +3,12 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { logout } from '@/lib/actions/auth';
-import { LayoutDashboard, CalendarDays, Clock, LogOut, X, FileSearch } from 'lucide-react';
+import { LayoutDashboard, CalendarDays, Clock, LogOut, X, FileSearch, Users } from 'lucide-react';
 
 const MENU = [
     { href: '/petugas/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/petugas/jadwal', label: 'Jadwal Saya', icon: CalendarDays },
+    { href: '/jadwal-petugas', label: 'Jadwal Semua Petugas', icon: Users },
     { href: '/petugas/presensi', label: 'Presensi', icon: Clock },
     { href: '/petugas/permintaan-data', label: 'Permintaan Data', icon: FileSearch },
 ];
@@ -24,8 +25,11 @@ export function PetugasSidebar({ name, mobileOpen, onClose }: { name: string; mo
                 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
 
                 <div className="flex items-center justify-between px-6 py-6">
-                    <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-azure-500 to-navy-700 flex items-center justify-center font-bold text-sm shrink-0">S</div>
+                    <div className="flex items-center gap-2.5">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src="/logo/logo-bps.webp" alt="Logo BPS" className="w-7 h-auto shrink-0" />
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src="/logo/logo-pst-icon.svg" alt="Logo PST" className="w-7 h-7 shrink-0" />
                         <div>
                             <div className="font-bold text-sm leading-tight tracking-tight">Simpatik</div>
                             <div className="text-xs text-white/40">BPS Kota Jambi</div>

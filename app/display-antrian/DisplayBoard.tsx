@@ -121,11 +121,10 @@ export function DisplayBoard({
 
             <div className="flex items-center justify-between px-6 sm:px-10 py-5 border-b border-white/10">
                 <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-azure-500 to-navy-700 flex items-center justify-center font-bold text-sm shrink-0">S</div>
-                    <div>
-                        <div className="text-lg sm:text-xl font-bold tracking-tight">Simpatik</div>
-                        <div className="text-white/40 text-xs sm:text-sm">Sistem Informasi Pelayanan Statistik — BPS Kota Jambi</div>
-                    </div>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/logo/logo-bps.webp" alt="Logo BPS" className="w-8 h-auto shrink-0" />
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/logo/logo-pst-full.svg" alt="Pelayanan Statistik Terpadu — Badan Pusat Statistik" className="h-7 sm:h-8 w-auto" />
                 </div>
                 <div className="flex items-center gap-4">
                     <button

@@ -17,8 +17,11 @@ export default function LoginPage() {
 
             <div className="w-full max-w-md relative">
                 <div className="text-center mb-8">
-                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-azure-500 to-navy-700 flex items-center justify-center font-bold text-xl text-white mx-auto mb-4 shadow-card">
-                        S
+                    <div className="flex items-center justify-center gap-3 mb-4">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src="/logo/logo-bps.webp" alt="Logo BPS" className="w-10 h-auto shrink-0" />
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src="/logo/logo-pst-full.svg" alt="Pelayanan Statistik Terpadu — Badan Pusat Statistik" className="h-9 w-auto" />
                     </div>
                     <h1 className="text-2xl font-bold text-white tracking-tight">Simpatik</h1>
                     <p className="text-white/40 text-sm mt-1">Sistem Informasi Pelayanan Statistik — BPS Kota Jambi</p>

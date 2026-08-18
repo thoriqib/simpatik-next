@@ -1,5 +1,7 @@
 import { Resend } from 'resend';
 
+const SKD_URL = 'https://skd.bps.go.id/skd/s/1571';
+
 /**
  * Integrasi email lewat Resend (https://resend.com) — gratis sampai
  * 3.000 email/bulan, cukup untuk kebutuhan notifikasi seperti ini.
@@ -61,6 +63,13 @@ export async function kirimEmailLinkPermintaanData(params: {
                         <p style="font-size: 13px; color: #6B7280;">Atau salin link berikut ke browser Anda:</p>
                         <p style="font-size: 12px; color: #1B3A5F; word-break: break-all;">${link}</p>
                         <p style="font-size: 13px; color: #6B7280; margin-top: 24px;">Simpan link ini baik-baik — siapa pun yang memilikinya bisa melihat & membalas percakapan ini.</p>
+                        <div style="margin-top: 28px; padding: 16px; background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 12px;">
+                            <p style="font-size: 13px; color: #92620A; margin: 0 0 8px; font-weight: 600;">Bantu Kami Lebih Baik Lagi</p>
+                            <p style="font-size: 13px; color: #92620A; margin: 0 0 12px;">Isi Survei Kebutuhan Data (SKD) — masukan Anda membantu BPS Kota Jambi merancang layanan statistik yang lebih sesuai kebutuhan masyarakat.</p>
+                            <a href="${SKD_URL}" style="display: inline-block; background: #D97706; color: white; padding: 8px 20px; border-radius: 999px; text-decoration: none; font-weight: 600; font-size: 13px;">
+                                Isi Survei SKD
+                            </a>
+                        </div>
                     </div>
                 </div>
             `,

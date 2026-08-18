@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { todayDateStringWIB } from '@/lib/utils';
 import { PenilaianForm } from './PenilaianForm';
 import { CheckCircle2 } from 'lucide-react';
+import { SkdBanner } from '@/components/SkdBanner';
 import type { Antrian } from '@/lib/types/database';
 
 export const dynamic = 'force-dynamic';
@@ -28,6 +29,9 @@ export default async function PenilaianPage({
                     Penilaian Anda sudah kami terima dan jadi masukan berharga untuk peningkatan
                     kualitas layanan kami.
                 </p>
+                <div className="mt-6 max-w-sm mx-auto text-left">
+                    <SkdBanner />
+                </div>
             </div>
         );
     }

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { logout } from '@/lib/actions/auth';
 import {
-    LayoutDashboard, Users, Clock, CalendarDays, Tag,
+    LayoutDashboard, Users, Clock, CalendarDays, CalendarClock, Tag,
     MessageSquareWarning, Star, ClipboardList, LogOut, X, Trophy, FileSearch, BarChart3, ShieldCheck, Link2,
 } from 'lucide-react';
 
@@ -13,6 +13,7 @@ const MENU: { group: string | null; href: string; label: string; icon: React.Ele
     { group: 'Petugas', href: '/admin/petugas', label: 'Data Petugas', icon: Users },
     { group: 'Petugas', href: '/admin/shift', label: 'Pengaturan Shift', icon: Clock },
     { group: 'Petugas', href: '/admin/jadwal', label: 'Jadwal Piket', icon: CalendarDays },
+    { group: 'Petugas', href: '/jadwal-petugas', label: 'Jadwal Semua Petugas', icon: CalendarClock },
     { group: 'Petugas', href: '/admin/pengaturan-akses', label: 'Pengaturan Akses', icon: ShieldCheck },
     { group: 'Layanan', href: '/admin/jenis-layanan', label: 'Jenis Layanan', icon: Tag },
     { group: 'Layanan', href: '/admin/permintaan-data', label: 'Permintaan Data', icon: FileSearch },
@@ -41,8 +42,11 @@ export function AdminSidebar({ name, mobileOpen, onClose }: { name: string; mobi
                 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
 
                 <div className="flex items-center justify-between px-6 py-6">
-                    <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-azure-500 to-navy-700 flex items-center justify-center font-bold text-sm shrink-0">S</div>
+                    <div className="flex items-center gap-2.5">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src="/logo/logo-bps.webp" alt="Logo BPS" className="w-7 h-auto shrink-0" />
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src="/logo/logo-pst-icon.svg" alt="Logo PST" className="w-7 h-7 shrink-0" />
                         <div>
                             <div className="font-bold text-sm leading-tight tracking-tight">Simpatik</div>
                             <div className="text-xs text-white/40">BPS Kota Jambi</div>

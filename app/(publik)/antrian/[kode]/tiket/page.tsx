@@ -9,6 +9,7 @@ import type { Antrian } from '@/lib/types/database';
 import { PrintButton } from './PrintButton';
 import { AutoPrint } from './AutoPrint';
 import { Suspense } from 'react';
+import { SkdBanner } from '@/components/SkdBanner';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,7 +41,7 @@ export default async function TiketPage({ params }: { params: Promise<{ kode: st
     const sudahDinilai = antrian.penilaian && antrian.penilaian.length > 0;
 
     return (
-        <div className="min-h-screen bg-navy-950 flex flex-col items-center justify-center p-4 -mx-5 -my-8 print:bg-white print:block print:min-h-0 print:p-0 print:-mx-0 print:-my-0">
+        <div className="min-h-screen bg-navy-950 flex flex-col items-center justify-center p-4 pb-28 -mx-5 -my-8 print:bg-white print:block print:min-h-0 print:p-0 print:-mx-0 print:-my-0">
             <Suspense fallback={null}>
                 <AutoPrint />
             </Suspense>
@@ -75,6 +76,10 @@ export default async function TiketPage({ params }: { params: Promise<{ kode: st
                     )}
                     <p className="text-xs text-navy-950/40 text-center print:hidden">Harap menunggu hingga nomor Anda dipanggil</p>
                 </div>
+            </div>
+
+            <div className="w-full max-w-xs mt-4 print:hidden">
+                <SkdBanner ringkas />
             </div>
 
             <div className="fixed bottom-6 left-0 right-0 flex justify-center gap-2.5 px-4 flex-wrap print:hidden">
