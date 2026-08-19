@@ -13,7 +13,7 @@ const MENU: { group: string | null; href: string; label: string; icon: React.Ele
     { group: 'Petugas', href: '/admin/petugas', label: 'Data Petugas', icon: Users },
     { group: 'Petugas', href: '/admin/shift', label: 'Pengaturan Shift', icon: Clock },
     { group: 'Petugas', href: '/admin/jadwal', label: 'Jadwal Piket', icon: CalendarDays },
-    { group: 'Petugas', href: '/jadwal-petugas', label: 'Jadwal Semua Petugas', icon: CalendarClock },
+    { group: 'Petugas', href: '/admin/jadwal-petugas', label: 'Jadwal Semua Petugas', icon: CalendarClock },
     { group: 'Petugas', href: '/admin/pengaturan-akses', label: 'Pengaturan Akses', icon: ShieldCheck },
     { group: 'Layanan', href: '/admin/jenis-layanan', label: 'Jenis Layanan', icon: Tag },
     { group: 'Layanan', href: '/admin/permintaan-data', label: 'Permintaan Data', icon: FileSearch },

@@ -78,26 +78,34 @@ export default function LandingPage() {
 
             {/* ── Hero ── */}
             <section className="relative overflow-hidden">
-                <div className="absolute inset-0 bg-grid-dot opacity-40 [mask-image:radial-gradient(ellipse_60%_60%_at_50%_0%,black,transparent)]" />
+                {/* Foto kantor BPS Kota Jambi sebagai latar, dengan overlay
+                    gradasi gelap supaya teks putih di atasnya tetap terbaca
+                    jelas terlepas dari bagian foto yang tumpang tindih. */}
+                <div className="absolute inset-0">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/images/kantor-bps.jpg" alt="" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-b from-navy-950/85 via-navy-950/90 to-navy-950" />
+                </div>
+                <div className="absolute inset-0 bg-grid-dot opacity-10 [mask-image:radial-gradient(ellipse_60%_60%_at_50%_0%,black,transparent)]" />
                 <div className="relative max-w-4xl mx-auto px-5 sm:px-8 pt-16 sm:pt-24 pb-16 text-center">
-                    <div className="animate-fade-in-up inline-flex items-center gap-1.5 bg-white border border-paper-200 rounded-full px-3.5 py-1.5 text-xs font-medium text-navy-950/60 shadow-soft mb-6">
-                        <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                    <div className="animate-fade-in-up inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-3.5 py-1.5 text-xs font-medium text-white/90 mb-6">
+                        <Sparkles className="w-3.5 h-3.5 text-amber-400" />
                         Layanan Digital BPS Kota Jambi
                     </div>
-                    <h1 className="animate-fade-in-up text-4xl sm:text-6xl font-bold text-navy-950 tracking-tight leading-[1.1]" style={{ animationDelay: '0.1s' }}>
+                    <h1 className="animate-fade-in-up text-4xl sm:text-6xl font-bold text-white tracking-tight leading-[1.1]" style={{ animationDelay: '0.1s' }}>
                         Simpatik
                     </h1>
-                    <p className="animate-fade-in-up text-lg sm:text-xl text-navy-950/60 mt-3 font-medium" style={{ animationDelay: '0.15s' }}>
+                    <p className="animate-fade-in-up text-lg sm:text-xl text-white/80 mt-3 font-medium" style={{ animationDelay: '0.15s' }}>
                         Sistem Informasi Pelayanan Statistik Terpadu
                     </p>
-                    <p className="animate-fade-in-up text-sm sm:text-base text-navy-950/50 mt-4 max-w-xl mx-auto leading-relaxed" style={{ animationDelay: '0.2s' }}>
+                    <p className="animate-fade-in-up text-sm sm:text-base text-white/60 mt-4 max-w-xl mx-auto leading-relaxed" style={{ animationDelay: '0.2s' }}>
                         Mempermudah masyarakat mengakses layanan statistik BPS Kota Jambi — dari
                         permintaan data, konsultasi, hingga pengaduan — semua dalam satu tempat.
                     </p>
                     <div className="animate-fade-in-up flex flex-col sm:flex-row items-center justify-center gap-3 mt-8" style={{ animationDelay: '0.3s' }}>
                         <Link
                             href="/permintaan-data"
-                            className="group inline-flex items-center gap-2 bg-navy-700 text-white px-6 py-3.5 rounded-xl font-semibold text-sm hover:bg-navy-800 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-card w-full sm:w-auto justify-center"
+                            className="group inline-flex items-center gap-2 bg-white text-navy-950 px-6 py-3.5 rounded-xl font-semibold text-sm hover:bg-paper-100 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-card w-full sm:w-auto justify-center"
                         >
                             <FileSearch className="w-4 h-4" />
                             Buat Konsultasi/Permintaan Data
@@ -105,7 +113,7 @@ export default function LandingPage() {
                         </Link>
                         <Link
                             href="/pesta-koja"
-                            className="inline-flex items-center gap-2 bg-white text-navy-950 border border-paper-200 px-6 py-3.5 rounded-xl font-semibold text-sm hover:bg-paper-100 transition-all hover:scale-[1.02] active:scale-[0.98] w-full sm:w-auto justify-center"
+                            className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm text-white border border-white/30 px-6 py-3.5 rounded-xl font-semibold text-sm hover:bg-white/20 transition-all hover:scale-[1.02] active:scale-[0.98] w-full sm:w-auto justify-center"
                         >
                             <Link2 className="w-4 h-4" />
                             Lihat Pesta Koja

@@ -8,7 +8,7 @@ import { LayoutDashboard, CalendarDays, Clock, LogOut, X, FileSearch, Users } fr
 const MENU = [
     { href: '/petugas/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/petugas/jadwal', label: 'Jadwal Saya', icon: CalendarDays },
-    { href: '/jadwal-petugas', label: 'Jadwal Semua Petugas', icon: Users },
+    { href: '/petugas/jadwal-petugas', label: 'Jadwal Semua Petugas', icon: Users },
     { href: '/petugas/presensi', label: 'Presensi', icon: Clock },
     { href: '/petugas/permintaan-data', label: 'Permintaan Data', icon: FileSearch },
 ];
