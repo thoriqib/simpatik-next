@@ -129,7 +129,7 @@ Buka `http://localhost:3000`.
 - [ ] Buka `/display-antrian` di 2 tab; panggil antrian dari dashboard petugas di tab lain → tab display **update otomatis tanpa refresh** (Realtime)
 - [ ] Selesaikan 1 antrian sebagai petugas → tombol "Beri Penilaian" muncul di halaman tiket
 - [ ] Kirim pengaduan dengan lampiran → file bisa dibuka dari halaman detail admin
-- [ ] Import CSV jadwal (format: `email_petugas,shift,tanggal`) di `/admin/jadwal`
+- [ ] Import Excel jadwal (format: `email_petugas, shift, tanggal`) di `/admin/jadwal`
 - [ ] Kirim form di `/permintaan-data` → dapat link `/permintaan-data/lacak/{token}` di layar
 - [ ] Petugas klik "Tindak Lanjuti" di permintaan tsb → buka link lacak dari tab lain → kirim pesan dari sisi petugas → muat ulang halaman lacak → pesan muncul di sisi pengunjung
 - [ ] Petugas klik "Tandai Selesai" → buka lagi link lacak → kotak kirim pesan sudah hilang (percakapan ditutup)
@@ -189,17 +189,19 @@ tampil di layar sebagai jalur utama, email cuma pelengkap.
 
 ---
 
-## 📄 Import CSV — Jadwal Piket
+## 📊 Import Excel — Jadwal Piket
 
-Tombol **Download Template** tersedia langsung di halaman `/admin/jadwal`
-(mengunduh `public/templates/jadwal-template.csv`).
+Tombol **Download Template Excel** tersedia langsung di halaman `/admin/jadwal`
+(mengunduh `public/templates/jadwal-template.xlsx`, lengkap dengan komentar
+penjelas per kolom dan sheet "Petunjuk" terpisah).
 
-```csv
-email_petugas,shift,tanggal
-wulanagusp@bps.go.id,Pagi,28/04/2026
-ari.hidayat@bps.go.id,Siang,28/04/2026
-mahardika.usman@bps.go.id,Pagi,29/04/2026
-```
+Format kolom (sheet pertama, baris pertama = header):
+
+| email_petugas | shift | tanggal |
+|---|---|---|
+| wulanagusp@bps.go.id | Pagi | 28/04/2026 |
+| ari.hidayat@bps.go.id | Siang | 28/04/2026 |
+| mahardika.usman@bps.go.id | Pagi | 29/04/2026 |
 
 - Baris pertama (header) diabaikan otomatis
 - **Dicocokkan lewat email**, bukan nama — email selalu unik dan tidak
@@ -207,6 +209,9 @@ mahardika.usman@bps.go.id,Pagi,29/04/2026
 - Tanggal format `DD/MM/YYYY`
 - Hari Sabtu/Minggu otomatis dilewati
 - Duplikat (petugas + shift + tanggal sama) otomatis dilewati
+- Parsing file `.xlsx` dilakukan sepenuhnya di browser (library `xlsx`/SheetJS),
+  tidak pernah diunggah sebagai file mentah ke server — hanya data yang
+  sudah diparse yang dikirim ke Server Action
 
 ---
 

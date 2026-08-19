@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { kirimEmailLinkPermintaanData } from '@/lib/email';
+import { cekDalamJamPelayanan } from '@/lib/jam-pelayanan';
 import type { ActionState } from './auth';
 import type { PermintaanDataPublikResult } from '@/lib/types/database';
 
@@ -26,6 +27,16 @@ const MAX_LEN = {
 };
 
 export async function kirimPermintaanData(prevState: ActionState, formData: FormData): Promise<ActionState> {
+    // [FITUR BARU] Form hanya boleh diisi pada jam pelayanan — validasi
+    // di SERVER (bukan cuma disembunyikan di UI), supaya tidak bisa
+    // dilewati lewat request manual. UI juga menyembunyikan form di luar
+    // jam ini (lihat app/(publik)/permintaan-data/page.tsx), ini lapis
+    // pertahanan keduanya.
+    const { dalamJam, jamMulai, jamSelesai } = await cekDalamJamPelayanan();
+    if (!dalamJam) {
+        return { error: `Formulir permintaan data hanya bisa diisi pada jam pelayanan (${jamMulai}–${jamSelesai} WIB). Silakan coba lagi pada jam tersebut.` };
+    }
+
     // ── Honeypot anti-bot ──────────────────────────────────────
     // Field tersembunyi (tidak terlihat manusia, cuma bot pengisi form
     // otomatis yang biasanya isi SEMUA field). Kalau field ini terisi,
@@ -93,10 +104,18 @@ export async function kirimPermintaanData(prevState: ActionState, formData: Form
 
     // Kirim email berisi link (best-effort — kalau gagal/API key belum
     // diisi, TIDAK menggagalkan alur utama, link tetap tampil di layar).
-    await kirimEmailLinkPermintaanData({ to: email, namaLengkap, token: inserted.token });
+    const hasilEmail = await kirimEmailLinkPermintaanData({ to: email, namaLengkap, token: inserted.token });
 
     revalidatePath('/admin/permintaan-data');
-    redirect(`/permintaan-data?token=${inserted.token}`);
+
+    // [FITUR BARU] Bedakan dua kondisi: `skipped` (API key memang belum
+    // dikonfigurasi admin — bukan kegagalan, jangan tampilkan peringatan
+    // yang bikin bingung) vs kegagalan sungguhan saat email SUDAH
+    // dikonfigurasi tapi gagal terkirim (baru di sini tampilkan
+    // pemberitahuan ke pengunjung).
+    const emailGagalSungguhan = !hasilEmail.sent && !hasilEmail.skipped;
+    const query = emailGagalSungguhan ? `?token=${inserted.token}&emailGagal=1` : `?token=${inserted.token}`;
+    redirect(`/permintaan-data${query}`);
 }
 
 /**
@@ -168,6 +187,14 @@ export async function kirimPesanPetugas(permintaanId: number, pesan: string) {
     const teks = pesan.trim();
     if (!teks) return { error: 'Pesan tidak boleh kosong.' };
     if (teks.length > 2000) return { error: 'Pesan maksimal 2000 karakter.' };
+
+    // [FITUR BARU] Chat cuma bisa dipakai pada jam pelayanan — berlaku
+    // untuk kedua sisi (staf maupun pengunjung), supaya tidak ada
+    // ekspektasi percakapan aktif di luar jam kerja.
+    const { dalamJam, jamMulai, jamSelesai } = await cekDalamJamPelayanan();
+    if (!dalamJam) {
+        return { error: `Percakapan hanya bisa diakses pada jam pelayanan (${jamMulai}–${jamSelesai} WIB).` };
+    }
 
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();

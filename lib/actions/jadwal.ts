@@ -66,7 +66,13 @@ export async function ubahStatusJadwal(jadwalPiketId: number, status: string, ke
  * pernah mengandung koma/gelar yang bisa memecah kolom CSV, jauh lebih aman
  * dibanding mencocokkan lewat nama lengkap.
  */
-export async function importJadwalCSV(rows: { email: string; shift: string; tanggal: string }[]) {
+/**
+ * Import jadwal massal — dipanggil dari client setelah file Excel/CSV
+ * di-parse jadi array baris. Fungsi ini sendiri format-agnostic (cuma
+ * terima data yang sudah diparse), jadi bisa dipakai lagi kalau nanti
+ * sumber datanya berubah format lagi.
+ */
+export async function importJadwal(rows: { email: string; shift: string; tanggal: string }[]) {
     const supabase = await createClient();
 
     const { data: petugasList } = await supabase.from('profiles').select('id, email').eq('role', 'petugas');

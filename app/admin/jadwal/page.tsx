@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { JadwalForm } from './JadwalForm';
-import { CsvImport } from './CsvImport';
+import { ExcelImport } from './ExcelImport';
 import { HariLiburManager } from './HariLiburManager';
 import { BatalkanPresensiButton } from './BatalkanPresensiButton';
 import { EditPresensiButton } from './EditPresensiModal';
@@ -90,7 +90,7 @@ export default async function JadwalPage({ searchParams }: { searchParams: Promi
         <>
             <h1 className="text-lg font-semibold text-navy-950 mb-5">Jadwal Piket</h1>
 
-            <CsvImport />
+            <ExcelImport />
 
             {/* Navigasi minggu */}
             <Card className="mb-5 !p-3">

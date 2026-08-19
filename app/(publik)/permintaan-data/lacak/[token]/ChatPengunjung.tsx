@@ -3,7 +3,8 @@
 import { useState, useTransition, useRef, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { kirimPesanPengunjungPublik } from '@/lib/actions/permintaan-data';
-import { Send, RefreshCw, Circle } from 'lucide-react';
+import { cekDalamJamPelayananClient } from '@/lib/jam-pelayanan-client';
+import { Send, RefreshCw, Circle, Clock } from 'lucide-react';
 import type { PermintaanDataPesan } from '@/lib/types/database';
 
 /**
@@ -17,26 +18,45 @@ import type { PermintaanDataPesan } from '@/lib/types/database';
  * (mis. "permintaan-data:{token}") — token yang tidak bisa ditebak itu
  * jadi "kunci" untuk bisa mendengarkan siaran ini, prinsipnya sama
  * seperti akses lewat link unik yang sudah ada.
+ *
+ * [FITUR BARU] Chat cuma bisa dipakai pada jam pelayanan — dicek ulang
+ * tiap 30 detik di client untuk UX (kotak kirim otomatis nonaktif begitu
+ * jam pelayanan berakhir), DAN divalidasi lagi di server (function
+ * `kirim_pesan_pengunjung` menolak kalau di luar jam — itu pertahanan
+ * sesungguhnya, bukan pengecekan client ini).
  */
 export function ChatPengunjung({
     token,
     pesanAwal,
     aktif,
+    jamMulai,
+    jamSelesai,
 }: {
     token: string;
     pesanAwal: PermintaanDataPesan[];
     aktif: boolean;
+    jamMulai: string;
+    jamSelesai: string;
 }) {
     const [isPending, startTransition] = useTransition();
     const [pesanList, setPesanList] = useState<PermintaanDataPesan[]>(pesanAwal);
     const [teks, setTeks] = useState('');
     const [error, setError] = useState('');
     const [live, setLive] = useState(false);
+    const [dalamJamPelayanan, setDalamJamPelayanan] = useState(true);
     const bawahRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         bawahRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [pesanList.length]);
+
+    // ── Cek jam pelayanan, diperbarui tiap 30 detik ──
+    useEffect(() => {
+        const cek = () => setDalamJamPelayanan(cekDalamJamPelayananClient(jamMulai, jamSelesai));
+        cek();
+        const interval = setInterval(cek, 30_000);
+        return () => clearInterval(interval);
+    }, [jamMulai, jamSelesai]);
 
     // ── Langganan Broadcast — pesan baru dari petugas muncul otomatis ──
     useEffect(() => {
@@ -75,6 +95,8 @@ export function ChatPengunjung({
         });
     }
 
+    const kirimAktif = aktif && dalamJamPelayanan;
+
     return (
         <div>
             {error && <div className="bg-rose-50 border border-rose-200 text-rose-700 px-3 py-2 rounded-lg text-sm mb-3">{error}</div>}
@@ -83,6 +105,13 @@ export function ChatPengunjung({
                 <div className="flex items-center gap-1.5 mb-2 text-xs">
                     <Circle className={`w-2 h-2 ${live ? 'fill-emerald-500 text-emerald-500' : 'fill-navy-950/20 text-navy-950/20'}`} />
                     <span className={live ? 'text-emerald-600 font-medium' : 'text-navy-950/40'}>{live ? 'Live — balasan petugas muncul otomatis' : 'Menghubungkan...'}</span>
+                </div>
+            )}
+
+            {aktif && !dalamJamPelayanan && (
+                <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-700 rounded-xl px-3.5 py-2.5 text-xs mb-3">
+                    <Clock className="w-3.5 h-3.5 shrink-0" />
+                    Percakapan hanya aktif pada jam pelayanan ({jamMulai}–{jamSelesai} WIB). Anda tetap bisa membaca riwayat, silakan kirim pesan kembali saat jam pelayanan berlangsung.
                 </div>
             )}
 
@@ -114,11 +143,11 @@ export function ChatPengunjung({
                             value={teks}
                             onChange={(e) => setTeks(e.target.value)}
                             maxLength={2000}
-                            placeholder="Tulis pesan..."
-                            disabled={isPending}
-                            className="flex-1 border border-paper-200 rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-azure-500/40 focus:border-azure-500"
+                            placeholder={kirimAktif ? 'Tulis pesan...' : `Chat ditutup di luar jam pelayanan (${jamMulai}–${jamSelesai} WIB)`}
+                            disabled={isPending || !kirimAktif}
+                            className="flex-1 border border-paper-200 rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-azure-500/40 focus:border-azure-500 disabled:bg-paper-100 disabled:text-navy-950/30"
                         />
-                        <button type="submit" disabled={isPending || !teks.trim()}
+                        <button type="submit" disabled={isPending || !teks.trim() || !kirimAktif}
                             className="inline-flex items-center gap-1.5 bg-azure-500 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-azure-500/90 transition-colors disabled:opacity-50">
                             <Send className="w-4 h-4" />
                         </button>

@@ -462,6 +462,37 @@ create policy "pesan: admin & petugas kirim" on public.permintaan_data_pesan
 -- saja, lengkap dengan info penilaian, di bagian bawah file ini setelah
 -- tabel penilaian.permintaan_data_id selesai dideklarasikan.)
 
+-- ═══════════════════════════════════════════════════════════════
+-- FUNCTION: cek apakah waktu sekarang dalam jam pelayanan (diturunkan
+-- dari shift_piket yang aktif). Dipakai kirim_pesan_pengunjung di bawah,
+-- dan dipanggil juga dari Server Action (form permintaan data, chat staf).
+-- ═══════════════════════════════════════════════════════════════
+create or replace function public.dalam_jam_pelayanan()
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+    v_jam_sekarang time;
+    v_mulai time;
+    v_selesai time;
+begin
+    v_jam_sekarang := (now() at time zone 'Asia/Jakarta')::time;
+
+    select min(jam_mulai), max(jam_selesai) into v_mulai, v_selesai
+    from public.shift_piket where is_aktif = true;
+
+    if v_mulai is null or v_selesai is null then
+        return true;
+    end if;
+
+    return v_jam_sekarang >= v_mulai and v_jam_sekarang < v_selesai;
+end;
+$$;
+
+grant execute on function public.dalam_jam_pelayanan() to anon, authenticated;
+
 create or replace function public.kirim_pesan_pengunjung(p_token uuid, p_pesan text)
 returns jsonb
 language plpgsql
@@ -480,6 +511,9 @@ begin
     end if;
     if v_status <> 'diproses' then
         return jsonb_build_object('error', 'Percakapan belum aktif atau sudah ditutup.');
+    end if;
+    if not public.dalam_jam_pelayanan() then
+        return jsonb_build_object('error', 'Percakapan hanya bisa diakses pada jam pelayanan. Silakan kirim pesan kembali saat jam pelayanan berlangsung.');
     end if;
 
     v_pesan_bersih := trim(p_pesan);

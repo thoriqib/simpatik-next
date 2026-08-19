@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/Badge';
 import { ChatPengunjung } from './ChatPengunjung';
 import { PenilaianPermintaanData } from './PenilaianPermintaanData';
 import { SkdBanner } from '@/components/SkdBanner';
+import { ambilJamPelayanan } from '@/lib/jam-pelayanan';
 import { Clock, CheckCircle2, MessageCircleOff, Star } from 'lucide-react';
 import { unstable_noStore as noStore } from 'next/cache';
 
@@ -25,6 +26,8 @@ export default async function LacakPermintaanDataPage({ params }: { params: Prom
     const data = await ambilPermintaanDataPublik(token);
 
     if (!data) notFound();
+
+    const { jamMulai, jamSelesai } = await ambilJamPelayanan();
 
     const statusInfo = {
         baru: { icon: Clock, text: 'Menunggu petugas menindaklanjuti permintaan Anda. Silakan cek kembali beberapa saat lagi.', color: 'text-amber-600 bg-amber-500/10' },
@@ -65,7 +68,7 @@ export default async function LacakPermintaanDataPage({ params }: { params: Prom
 
             <div className="bg-white rounded-2xl shadow-soft border border-paper-200 p-6">
                 <h2 className="text-base font-semibold text-navy-950 mb-4">Percakapan</h2>
-                <ChatPengunjung token={token} pesanAwal={data.pesan} aktif={data.status === 'diproses'} />
+                <ChatPengunjung token={token} pesanAwal={data.pesan} aktif={data.status === 'diproses'} jamMulai={jamMulai} jamSelesai={jamSelesai} />
             </div>
 
             {data.status === 'selesai' && (

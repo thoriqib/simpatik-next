@@ -3,8 +3,9 @@
 import { useState, useTransition, useRef, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { kirimPesanPetugas, selesaikanPermintaan } from '@/lib/actions/permintaan-data';
+import { cekDalamJamPelayananClient } from '@/lib/jam-pelayanan-client';
 import { ConfirmModal } from '@/components/ui/Modal';
-import { Send, CheckCheck, RefreshCw, Circle } from 'lucide-react';
+import { Send, CheckCheck, RefreshCw, Circle, Clock } from 'lucide-react';
 import type { PermintaanDataPesan } from '@/lib/types/database';
 
 /**
@@ -12,17 +13,15 @@ import type { PermintaanDataPesan } from '@/lib/types/database';
  * admin & petugas — perbedaan hak akses (siapa boleh kirim/selesaikan)
  * sudah divalidasi di server action, komponen ini cuma render + kirim.
  *
- * [REALTIME] Sekarang berlangganan Postgres Changes langsung dari
- * browser ke Supabase — pesan baru (dari siapa pun: petugas lain yang
- * mengetik di layar berbeda, ATAU pengunjung) muncul otomatis TANPA
- * perlu refresh sama sekali. Ini legal karena admin/petugas memang
- * sudah punya akses SELECT lewat RLS biasa ke tabel ini.
+ * [REALTIME] Berlangganan Postgres Changes langsung dari browser ke
+ * Supabase — pesan baru (dari siapa pun) muncul otomatis TANPA perlu
+ * refresh sama sekali.
  *
- * Pesan yang KITA KIRIM SENDIRI juga muncul lewat jalur realtime yang
- * sama (bukan optimistic append terpisah) — menghindari potensi bug
- * duplikasi/id-mismatch antara pesan "sementara" dan pesan asli dari
- * server. Tombol "Muat ulang" tetap ada sebagai jaring pengaman kalau
- * koneksi realtime sempat putus.
+ * [FITUR BARU] Chat cuma bisa dipakai pada jam pelayanan — dicek ulang
+ * tiap 30 detik di client (untuk UX: kotak kirim otomatis nonaktif
+ * begitu jam pelayanan berakhir, tanpa perlu reload), DAN divalidasi
+ * lagi di server action `kirimPesanPetugas` (pertahanan sesungguhnya —
+ * client-side check di sini murni kenyamanan tampilan, bukan keamanan).
  */
 export function ChatThread({
     permintaanId,
@@ -30,12 +29,16 @@ export function ChatThread({
     namaPengunjung,
     bisaKirim,
     bisaSelesaikan,
+    jamMulai,
+    jamSelesai,
 }: {
     permintaanId: number;
     pesanAwal: PermintaanDataPesan[];
     namaPengunjung: string;
     bisaKirim: boolean;
     bisaSelesaikan: boolean;
+    jamMulai: string;
+    jamSelesai: string;
 }) {
     const [isPending, startTransition] = useTransition();
     const [pesanList, setPesanList] = useState<PermintaanDataPesan[]>(pesanAwal);
@@ -43,11 +46,20 @@ export function ChatThread({
     const [error, setError] = useState('');
     const [confirmSelesai, setConfirmSelesai] = useState(false);
     const [live, setLive] = useState(false);
+    const [dalamJamPelayanan, setDalamJamPelayanan] = useState(true);
     const bawahRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         bawahRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [pesanList.length]);
+
+    // ── Cek jam pelayanan, diperbarui tiap 30 detik ──
+    useEffect(() => {
+        const cek = () => setDalamJamPelayanan(cekDalamJamPelayananClient(jamMulai, jamSelesai));
+        cek();
+        const interval = setInterval(cek, 30_000);
+        return () => clearInterval(interval);
+    }, [jamMulai, jamSelesai]);
 
     // ── Langganan Postgres Changes — pesan baru muncul otomatis ──
     // [FIX] Koneksi realtime TIDAK otomatis memakai token sesi login —
@@ -56,8 +68,7 @@ export function ChatThread({
     // "anon" untuk keperluan RLS, jadi kebijakan RLS yang mewajibkan
     // role admin/petugas (app_role()) menyaring habis semua event —
     // status koneksi tetap terlihat "SUBSCRIBED" (berhasil terhubung),
-    // tapi tidak ada satu pun pesan yang benar-benar sampai. Ini akar
-    // masalah kenapa chat sisi staf belum terasa live sebelumnya.
+    // tapi tidak ada satu pun pesan yang benar-benar sampai.
     useEffect(() => {
         const supabase = createClient();
         let channel: ReturnType<typeof supabase.channel> | null = null;
@@ -81,9 +92,6 @@ export function ChatThread({
                 .subscribe((status) => setLive(status === 'SUBSCRIBED'));
         })();
 
-        // Token sesi bisa diperbarui (refresh) selama komponen ini hidup
-        // (misal presensi/percakapan dibuka lama) — pastikan koneksi
-        // realtime ikut memakai token terbaru, bukan yang sudah kedaluwarsa.
         const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
             if (session?.access_token) supabase.realtime.setAuth(session.access_token);
         });
@@ -106,9 +114,6 @@ export function ChatThread({
                 setError(res.error);
                 return;
             }
-            // Tidak perlu optimistic append lagi — pesan akan muncul
-            // otomatis lewat langganan realtime di atas (termasuk pesan
-            // kita sendiri, karena insert-nya juga tersiar ke channel ini).
             setTeks('');
         });
     }
@@ -125,6 +130,8 @@ export function ChatThread({
         });
     }
 
+    const kirimAktif = bisaKirim && dalamJamPelayanan;
+
     return (
         <div>
             {error && <div className="bg-rose-50 border border-rose-200 text-rose-700 px-3 py-2 rounded-lg text-sm mb-3">{error}</div>}
@@ -133,6 +140,13 @@ export function ChatThread({
                 <Circle className={`w-2 h-2 ${live ? 'fill-emerald-500 text-emerald-500' : 'fill-navy-950/20 text-navy-950/20'}`} />
                 <span className={live ? 'text-emerald-600 font-medium' : 'text-navy-950/40'}>{live ? 'Live — pesan baru muncul otomatis' : 'Menghubungkan...'}</span>
             </div>
+
+            {bisaKirim && !dalamJamPelayanan && (
+                <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-700 rounded-xl px-3.5 py-2.5 text-xs mb-3">
+                    <Clock className="w-3.5 h-3.5 shrink-0" />
+                    Percakapan hanya aktif pada jam pelayanan ({jamMulai}–{jamSelesai} WIB). Riwayat tetap bisa dibaca, tapi belum bisa kirim pesan baru sampai jam pelayanan berikutnya.
+                </div>
+            )}
 
             <div className="border border-paper-200 rounded-xl overflow-hidden">
                 <div className="max-h-96 overflow-y-auto p-4 space-y-3 bg-paper-50">
@@ -162,11 +176,11 @@ export function ChatThread({
                             value={teks}
                             onChange={(e) => setTeks(e.target.value)}
                             maxLength={2000}
-                            placeholder="Tulis balasan..."
-                            disabled={isPending}
-                            className="flex-1 border border-paper-200 rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-azure-500/40 focus:border-azure-500"
+                            placeholder={kirimAktif ? 'Tulis balasan...' : `Chat ditutup di luar jam pelayanan (${jamMulai}–${jamSelesai} WIB)`}
+                            disabled={isPending || !kirimAktif}
+                            className="flex-1 border border-paper-200 rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-azure-500/40 focus:border-azure-500 disabled:bg-paper-100 disabled:text-navy-950/30"
                         />
-                        <button type="submit" disabled={isPending || !teks.trim()}
+                        <button type="submit" disabled={isPending || !teks.trim() || !kirimAktif}
                             className="inline-flex items-center gap-1.5 bg-navy-700 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-navy-800 transition-colors disabled:opacity-50">
                             <Send className="w-4 h-4" />
                         </button>
