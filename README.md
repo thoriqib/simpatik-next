@@ -171,6 +171,33 @@ realtime sempat terputus.
 
 ---
 
+## 💬 Chat/Lacak Pengaduan — Cara Kerja & Keamanan
+
+Pola yang **identik** dengan chat permintaan data di atas, dengan satu
+perbedaan penting: **pengaduan tetap sepenuhnya anonim**. Token akses
+ditampilkan HANYA di layar setelah kirim (`/pengaduan/lacak/{token}`) —
+**TIDAK PERNAH dikirim ke email**, karena pengaduan memang tidak meminta
+email/kontak apa pun. Pengadu wajib menyimpan link itu sendiri.
+
+Function `SECURITY DEFINER` yang dipakai: `get_pengaduan_publik`,
+`kirim_pesan_pengadu` (lihat migration `0017_pengaduan_chat.sql`) — pola
+keamanan token-only yang sama dengan permintaan data, tabel terpisah
+(`pengaduan_pesan`), realtime lewat mekanisme yang sama (Postgres Changes
+untuk admin, Broadcast from Database untuk publik via topik
+`pengaduan:{token}`).
+
+**Alur status:**
+- `baru` → admin kirim balasan pertama (otomatis klaim, buka chat)
+- `diproses` → chat aktif, pengadu & admin bisa saling kirim pesan
+- `selesai` → chat ditutup, pengadu tidak bisa kirim pesan lagi (riwayat tetap bisa dibaca)
+
+Pengiriman pengaduan awal (form) **tidak dibatasi** jam pelayanan —
+masyarakat boleh mengadu kapan saja. Yang dibatasi jam pelayanan hanya
+percakapan chat-nya, sama seperti permintaan data (lihat
+`dalam_jam_pelayanan()` di migration `0016_jam_pelayanan_chat_form.sql`).
+
+---
+
 ## 📧 Setup Email (Resend) — Opsional tapi Direkomendasikan
 
 Link lacak permintaan data otomatis dikirim ke email pengunjung **kalau**

@@ -178,8 +178,25 @@ create table public.pengaduan (
     tanggapan         text,
     ditangani_oleh    uuid references public.profiles(id),
     ditanggapi_pada   timestamptz,
+    token             uuid not null default gen_random_uuid() unique,
     created_at        timestamptz not null default now()
 );
+
+-- ═══════════════════════════════════════════════════════════════
+-- TABEL: pengaduan_pesan — live chat pengaduan, tetap anonim (tanpa
+-- email). Token acak jadi "kunci" akses, sama prinsipnya dengan
+-- permintaan_data_pesan.
+-- ═══════════════════════════════════════════════════════════════
+create table public.pengaduan_pesan (
+    id              bigint generated always as identity primary key,
+    pengaduan_id    bigint not null references public.pengaduan(id) on delete cascade,
+    pengirim        text not null check (pengirim in ('pengadu', 'petugas')),
+    petugas_id      uuid references public.profiles(id),
+    pesan           text not null,
+    created_at      timestamptz not null default now()
+);
+
+create index idx_pengaduan_pesan_pengaduan_id on public.pengaduan_pesan(pengaduan_id);
 
 -- ═══════════════════════════════════════════════════════════════
 -- FUNCTION: generate kode antrian otomatis (server-side, atomic)
@@ -298,6 +315,7 @@ alter table public.presensi enable row level security;
 alter table public.antrian enable row level security;
 alter table public.penilaian enable row level security;
 alter table public.pengaduan enable row level security;
+alter table public.pengaduan_pesan enable row level security;
 
 -- ── profiles ──────────────────────────────────────────────────
 create policy "profiles: user lihat profil sendiri" on public.profiles
@@ -356,6 +374,14 @@ create policy "penilaian: admin hapus" on public.penilaian
 create policy "pengaduan: publik insert (anonim)" on public.pengaduan
     for insert with check (true);
 create policy "pengaduan: admin kelola penuh" on public.pengaduan
+    for all using (app_role() = 'admin');
+
+-- ── pengaduan_pesan ───────────────────────────────────────────
+-- Admin-only untuk kelola langsung (konsisten dengan akses pengaduan
+-- yang belum dibuka ke petugas). TIDAK ADA policy anon — akses publik
+-- HANYA lewat 2 function SECURITY DEFINER (get_pengaduan_publik &
+-- kirim_pesan_pengadu), yang mewajibkan token persis sebagai parameter.
+create policy "pengaduan_pesan: admin kelola" on public.pengaduan_pesan
     for all using (app_role() = 'admin');
 
 -- ═══════════════════════════════════════════════════════════════
@@ -739,3 +765,165 @@ insert into public.pesta_koja_link (judul, deskripsi, url, ikon, urutan) values
     ('Pengajuan Informasi Publik', 'Ajukan informasi publik melalui website PPID.', 'https://ppid.bps.go.id/app/pengajuan_informasi', 'file-text', 7),
     ('Pengaduan & Whistleblowing System', 'Sampaikan keluhan mengenai pelayanan kami.', 'https://simpatik-zeta.vercel.app/pengaduan', 'alert-triangle', 8)
 on conflict (judul) do nothing;
+
+-- ═══════════════════════════════════════════════════════════════
+-- FITUR: Live Chat Pengaduan (tetap anonim, tanpa email) — pola akses
+-- sama dengan permintaan data online: token acak jadi "kunci" akses,
+-- ditampilkan HANYA di layar setelah kirim (tidak dikirim ke email).
+-- ═══════════════════════════════════════════════════════════════
+create or replace function public.get_pengaduan_publik(p_token uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+    v_pengaduan record;
+    v_pesan jsonb;
+begin
+    select id, subjek, isi_pengaduan, status, created_at, ditanggapi_pada
+    into v_pengaduan
+    from public.pengaduan
+    where token = p_token;
+
+    if v_pengaduan.id is null then
+        return jsonb_build_object('error', 'not_found');
+    end if;
+
+    select coalesce(jsonb_agg(
+        jsonb_build_object(
+            'id', pp.id,
+            'pengirim', pp.pengirim,
+            'pesan', pp.pesan,
+            'created_at', pp.created_at
+        ) order by pp.created_at
+    ), '[]'::jsonb)
+    into v_pesan
+    from public.pengaduan_pesan pp
+    where pp.pengaduan_id = v_pengaduan.id;
+
+    return jsonb_build_object(
+        'id', v_pengaduan.id,
+        'subjek', v_pengaduan.subjek,
+        'isi_pengaduan', v_pengaduan.isi_pengaduan,
+        'status', v_pengaduan.status,
+        'created_at', v_pengaduan.created_at,
+        'ditanggapi_pada', v_pengaduan.ditanggapi_pada,
+        'pesan', v_pesan
+    );
+end;
+$$;
+
+grant execute on function public.get_pengaduan_publik(uuid) to anon, authenticated;
+
+create or replace function public.kirim_pesan_pengadu(p_token uuid, p_pesan text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+    v_id bigint;
+    v_status text;
+    v_pesan_bersih text;
+begin
+    select id, status into v_id, v_status from public.pengaduan where token = p_token;
+
+    if v_id is null then
+        return jsonb_build_object('error', 'Pengaduan tidak ditemukan.');
+    end if;
+    if v_status <> 'diproses' then
+        return jsonb_build_object('error', 'Percakapan belum aktif atau sudah ditutup.');
+    end if;
+    if not public.dalam_jam_pelayanan() then
+        return jsonb_build_object('error', 'Percakapan hanya bisa diakses pada jam pelayanan. Silakan kirim pesan kembali saat jam pelayanan berlangsung.');
+    end if;
+
+    v_pesan_bersih := trim(p_pesan);
+    if v_pesan_bersih is null or length(v_pesan_bersih) = 0 then
+        return jsonb_build_object('error', 'Pesan tidak boleh kosong.');
+    end if;
+    if length(v_pesan_bersih) > 2000 then
+        return jsonb_build_object('error', 'Pesan maksimal 2000 karakter.');
+    end if;
+
+    insert into public.pengaduan_pesan (pengaduan_id, pengirim, pesan)
+    values (v_id, 'pengadu', v_pesan_bersih);
+
+    return jsonb_build_object('success', true);
+end;
+$$;
+
+grant execute on function public.kirim_pesan_pengadu(uuid, text) to anon, authenticated;
+
+alter publication supabase_realtime add table public.pengaduan_pesan;
+
+create or replace function public.broadcast_pesan_pengaduan()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+    v_token uuid;
+begin
+    select token into v_token from public.pengaduan where id = new.pengaduan_id;
+
+    if v_token is not null then
+        perform realtime.broadcast_changes(
+            'pengaduan:' || v_token::text,
+            tg_op,
+            tg_op,
+            tg_table_name,
+            tg_table_schema,
+            new,
+            null
+        );
+    end if;
+
+    return new;
+end;
+$$;
+
+create trigger trg_broadcast_pesan_pengaduan
+    after insert on public.pengaduan_pesan
+    for each row execute function public.broadcast_pesan_pengaduan();
+
+create policy "pengaduan: dengar broadcast topik sendiri"
+    on "realtime"."messages"
+    for select
+    to anon, authenticated
+    using (topic like 'pengaduan:%');
+
+-- ═══════════════════════════════════════════════════════════════
+-- FITUR: Cari Ulang Link Lacak Permintaan Data (via email + tanggal,
+-- untuk pengguna yang lupa menyimpan link lacak-nya)
+-- ═══════════════════════════════════════════════════════════════
+create or replace function public.cari_permintaan_data_publik(p_email text, p_tanggal date)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+    v_hasil jsonb;
+begin
+    select coalesce(jsonb_agg(
+        jsonb_build_object(
+            'token', pd.token,
+            'kegunaan_data', pd.kegunaan_data,
+            'kebutuhan_data', left(pd.kebutuhan_data, 120),
+            'status', pd.status,
+            'created_at', pd.created_at
+        ) order by pd.created_at desc
+    ), '[]'::jsonb)
+    into v_hasil
+    from public.permintaan_data pd
+    where lower(pd.email) = lower(trim(p_email))
+      and (pd.created_at at time zone 'Asia/Jakarta')::date = p_tanggal;
+
+    return v_hasil;
+end;
+$$;
+
+grant execute on function public.cari_permintaan_data_publik(text, date) to anon, authenticated;

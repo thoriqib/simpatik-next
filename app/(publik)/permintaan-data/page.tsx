@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { CheckCircle2, Clock, MoonStar, AlertTriangle } from 'lucide-react';
 import { PermintaanDataForm } from './PermintaanDataForm';
 import { LinkSuksesCard } from './LinkSuksesCard';
@@ -81,6 +82,12 @@ export default async function PermintaanDataPage({
 
             <div className="bg-white rounded-2xl shadow-soft border border-paper-200 p-6 sm:p-7">
                 <PermintaanDataForm />
+            </div>
+
+            <div className="mt-4 text-center">
+                <Link href="/permintaan-data/cari" className="text-sm text-azure-500 hover:text-navy-700 font-medium transition-colors">
+                    Sudah pernah mengajukan? Lupa link lacak Anda? Cari di sini →
+                </Link>
             </div>
         </>
     );

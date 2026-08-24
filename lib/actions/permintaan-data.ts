@@ -6,7 +6,7 @@ import { revalidatePath } from 'next/cache';
 import { kirimEmailLinkPermintaanData } from '@/lib/email';
 import { cekDalamJamPelayanan } from '@/lib/jam-pelayanan';
 import type { ActionState } from './auth';
-import type { PermintaanDataPublikResult } from '@/lib/types/database';
+import type { PermintaanDataPublikResult, PermintaanDataRingkasan } from '@/lib/types/database';
 
 // ═══════════════════════════════════════════════════════════════
 // Validasi input — form ini diisi PUBLIK tanpa login, jadi semua
@@ -276,6 +276,23 @@ export async function ambilPermintaanDataPublik(token: string): Promise<Perminta
 
     if (error || !data || data.error) return null;
     return data as PermintaanDataPublikResult;
+}
+
+/**
+ * Publik: cari ulang link lacak lewat email + tanggal pengajuan — untuk
+ * pengguna yang lupa menyimpan link lacaknya. Hasil sengaja minimal
+ * (token + ringkasan), bukan seluruh isi — cukup untuk mengenali &
+ * mengarahkan ke halaman lacak yang sebenarnya.
+ */
+export async function cariPermintaanDataPublik(email: string, tanggal: string): Promise<PermintaanDataRingkasan[]> {
+    const emailBersih = email.trim();
+    if (!emailBersih || !tanggal) return [];
+
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc('cari_permintaan_data_publik', { p_email: emailBersih, p_tanggal: tanggal });
+
+    if (error || !data) return [];
+    return data as PermintaanDataRingkasan[];
 }
 
 /** Publik: kirim pesan lewat token (dipanggil dari halaman lacak, tanpa login). */

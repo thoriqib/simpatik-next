@@ -98,8 +98,31 @@ export interface Pengaduan {
     tanggapan: string | null;
     ditangani_oleh: string | null;
     ditanggapi_pada: string | null;
+    token: string;
     created_at: string;
     profiles?: Profile | null;
+}
+
+export interface PengaduanPesan {
+    id: number;
+    pengaduan_id: number;
+    pengirim: 'pengadu' | 'petugas';
+    petugas_id: string | null;
+    pesan: string;
+    created_at: string;
+}
+
+/** Bentuk hasil RPC get_pengaduan_publik (dipetakan dari JSON Postgres).
+ *  CATATAN: identitas petugas SENGAJA tidak disertakan — sama prinsip
+ *  privasi seperti permintaan data. */
+export interface PengaduanPublikResult {
+    id: number;
+    subjek: string;
+    isi_pengaduan: string;
+    status: StatusPengaduan;
+    created_at: string;
+    ditanggapi_pada: string | null;
+    pesan: PengaduanPesan[];
 }
 
 export interface JadwalPublik {
@@ -167,6 +190,17 @@ export interface PermintaanDataPublikResult {
     sudah_dinilai: boolean;
     nilai_diberikan: number | null;
     komentar_diberikan: string | null;
+}
+
+/** Bentuk satu item hasil RPC cari_permintaan_data_publik — ringkasan
+ *  minimal, bukan seluruh isi (lihat catatan lengkap di migration
+ *  0018_cari_permintaan_data.sql). */
+export interface PermintaanDataRingkasan {
+    token: string;
+    kegunaan_data: KegunaanData;
+    kebutuhan_data: string;
+    status: StatusPermintaanData;
+    created_at: string;
 }
 
 export interface PestaKojaLink {

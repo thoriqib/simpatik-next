@@ -2,11 +2,15 @@ import { createClient } from '@/lib/supabase/server';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import Link from 'next/link';
+import { MessageCircle } from 'lucide-react';
+import { unstable_noStore as noStore } from 'next/cache';
 import type { Pengaduan } from '@/lib/types/database';
 
 export const dynamic = 'force-dynamic';
 
 export default async function PengaduanListPage({ searchParams }: { searchParams: Promise<{ status?: string }> }) {
+    noStore();
+
     const { status } = await searchParams;
     const supabase = await createClient();
 
@@ -17,6 +21,19 @@ export default async function PengaduanListPage({ searchParams }: { searchParams
     // tanpa generated types, padahal runtime-nya objek tunggal.
     const { data: pengaduanRaw } = await query;
     const pengaduan = pengaduanRaw as unknown as Pengaduan[] | null;
+
+    // [FITUR BARU] Jumlah pesan per pengaduan — dua query terpisah lalu
+    // digabung manual (bukan embed), konsisten dengan pola yang terbukti
+    // andal di halaman lain (lihat catatan lengkap di app/petugas/dashboard/page.tsx).
+    const pengaduanIds = (pengaduan ?? []).map((p) => p.id);
+    const { data: semuaPesan } = await supabase
+        .from('pengaduan_pesan')
+        .select('pengaduan_id')
+        .in('pengaduan_id', pengaduanIds.length > 0 ? pengaduanIds : [-1]);
+    const jumlahPesanByPengaduanId = new Map<number, number>();
+    (semuaPesan ?? []).forEach((p) => {
+        jumlahPesanByPengaduanId.set(p.pengaduan_id, (jumlahPesanByPengaduanId.get(p.pengaduan_id) ?? 0) + 1);
+    });
 
     const { count: jumlahBaru } = await supabase.from('pengaduan').select('*', { count: 'exact', head: true }).eq('status', 'baru');
     const { count: jumlahDiproses } = await supabase.from('pengaduan').select('*', { count: 'exact', head: true }).eq('status', 'diproses');
@@ -46,7 +63,8 @@ export default async function PengaduanListPage({ searchParams }: { searchParams
                     <thead>
                         <tr className="border-b text-navy-950/50 text-left">
                             <th className="pb-3 font-medium">Tgl Masuk</th><th className="pb-3 font-medium">Subjek</th>
-                            <th className="pb-3 font-medium">Status</th><th className="pb-3 font-medium">Ditangani</th><th className="pb-3 font-medium">Aksi</th>
+                            <th className="pb-3 font-medium">Status</th><th className="pb-3 font-medium">Percakapan</th>
+                            <th className="pb-3 font-medium">Ditangani</th><th className="pb-3 font-medium">Aksi</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -58,12 +76,22 @@ export default async function PengaduanListPage({ searchParams }: { searchParams
                                     <div className="text-xs text-navy-950/30 mt-0.5">{p.isi_pengaduan.slice(0, 60)}</div>
                                 </td>
                                 <td className="py-3"><Badge status={p.status} /></td>
+                                <td className="py-3">
+                                    {jumlahPesanByPengaduanId.has(p.id) ? (
+                                        <span className="inline-flex items-center gap-1 text-xs text-navy-950/50">
+                                            <MessageCircle className="w-3.5 h-3.5" />
+                                            {jumlahPesanByPengaduanId.get(p.id)} pesan
+                                        </span>
+                                    ) : (
+                                        <span className="text-xs text-navy-950/20">—</span>
+                                    )}
+                                </td>
                                 <td className="py-3 text-navy-950/50 text-sm">{p.profiles?.name ?? '—'}</td>
                                 <td className="py-3">
                                     <Link href={`/admin/pengaduan/${p.id}`} className="text-xs font-medium bg-azure-500/10 text-navy-700 px-3 py-1.5 rounded-xl hover:bg-blue-100 transition">Detail →</Link>
                                 </td>
                             </tr>
-                        )) : <tr><td colSpan={5} className="py-10 text-center text-navy-950/30">Tidak ada pengaduan</td></tr>}
+                        )) : <tr><td colSpan={6} className="py-10 text-center text-navy-950/30">Tidak ada pengaduan</td></tr>}
                     </tbody>
                 </table>
             </Card>

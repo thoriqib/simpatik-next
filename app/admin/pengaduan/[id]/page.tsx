@@ -3,19 +3,22 @@ import { notFound } from 'next/navigation';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import Link from 'next/link';
-import { TanggapiForm } from './TanggapiForm';
-import type { Pengaduan } from '@/lib/types/database';
+import { ChatThreadPengaduan } from '@/components/pengaduan/ChatThreadPengaduan';
+import { LinkLacakPengaduanCard } from './LinkLacakPengaduanCard';
+import { ambilJamPelayanan } from '@/lib/jam-pelayanan';
+import { unstable_noStore as noStore } from 'next/cache';
+import type { Pengaduan, PengaduanPesan } from '@/lib/types/database';
 
 export const dynamic = 'force-dynamic';
 
 export default async function DetailPengaduanPage({ params }: { params: Promise<{ id: string }> }) {
+    noStore();
+
     const { id } = await params;
     const supabase = await createClient();
 
-    // [FIX] Cast eksplisit — tanpa generated types, Supabase menebak
-    // relasi to-one `profiles` sebagai array, padahal runtime-nya objek.
-    const { data: pengaduanRaw } = await supabase.from('pengaduan').select('*, profiles(name)').eq('id', id).single();
-    const pengaduan = pengaduanRaw as unknown as Pengaduan | null;
+    const { data: pengaduanRaw } = await supabase.from('pengaduan').select('*').eq('id', id).single();
+    const pengaduan = pengaduanRaw as Pengaduan | null;
     if (!pengaduan) notFound();
 
     let lampiranUrl: string | null = null;
@@ -23,6 +26,15 @@ export default async function DetailPengaduanPage({ params }: { params: Promise<
         const { data } = supabase.storage.from('pengaduan').getPublicUrl(pengaduan.lampiran_path);
         lampiranUrl = data.publicUrl;
     }
+
+    const { data: pesanRaw } = await supabase
+        .from('pengaduan_pesan')
+        .select('*')
+        .eq('pengaduan_id', pengaduan.id)
+        .order('created_at');
+    const pesan = (pesanRaw ?? []) as PengaduanPesan[];
+
+    const { jamMulai, jamSelesai } = await ambilJamPelayanan();
 
     return (
         <>
@@ -44,20 +56,18 @@ export default async function DetailPengaduanPage({ params }: { params: Promise<
                         )}
                     </Card>
 
-                    {pengaduan.status === 'selesai' ? (
-                        <Card title="Tanggapan Admin">
-                            <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-                                <p className="text-sm text-navy-950/80 leading-relaxed">{pengaduan.tanggapan}</p>
-                            </div>
-                            <p className="text-xs text-navy-950/30 mt-3">
-                                Ditanggapi oleh <strong>{pengaduan.profiles?.name}</strong> pada {pengaduan.ditanggapi_pada && new Date(pengaduan.ditanggapi_pada).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
-                            </p>
-                        </Card>
-                    ) : (
-                        <Card title="Berikan Tanggapan">
-                            <TanggapiForm id={pengaduan.id} currentStatus={pengaduan.status} />
-                        </Card>
-                    )}
+                    <Card title="Percakapan" description="Bersifat anonim — pengadu tidak pernah tercatat identitasnya. Balasan pertama Anda otomatis membuka percakapan.">
+                        <div className="mb-4 pb-4 border-b border-paper-200">
+                            <LinkLacakPengaduanCard token={pengaduan.token} />
+                        </div>
+                        <ChatThreadPengaduan
+                            pengaduanId={pengaduan.id}
+                            pesanAwal={pesan}
+                            status={pengaduan.status}
+                            jamMulai={jamMulai}
+                            jamSelesai={jamSelesai}
+                        />
+                    </Card>
                 </div>
 
                 <div className="space-y-5">
