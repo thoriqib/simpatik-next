@@ -43,7 +43,7 @@ export default async function PengaduanPage({
                     <KeyRound className="w-5 h-5" />
                 </div>
                 <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-navy-950 text-sm">Sudah pernah mengadu sebelumnya?</div>
+                    <div className="font-semibold text-navy-950 text-sm">Sudah melakukan pengaduan sebelumnya?</div>
                     <div className="text-xs text-navy-950/60 mt-0.5">Kehilangan link lacak? Masukkan link/token yang diberikan di sini</div>
                 </div>
                 <ArrowRight className="w-4 h-4 text-azure-500 group-hover:translate-x-1 transition-transform shrink-0" />

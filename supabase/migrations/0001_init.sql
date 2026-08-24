@@ -358,7 +358,9 @@ create policy "presensi: admin hapus (batalkan)" on public.presensi
 create policy "antrian: publik bisa lihat" on public.antrian
     for select using (true);
 create policy "antrian: publik bisa insert" on public.antrian
-    for insert with check (true);
+    for insert
+    to anon, authenticated
+    with check (true);
 create policy "antrian: petugas & admin update" on public.antrian
     for update using (app_role() in ('admin','petugas'));
 
@@ -366,13 +368,17 @@ create policy "antrian: petugas & admin update" on public.antrian
 create policy "penilaian: publik bisa lihat & insert" on public.penilaian
     for select using (true);
 create policy "penilaian: publik insert" on public.penilaian
-    for insert with check (true);
+    for insert
+    to anon, authenticated
+    with check (true);
 create policy "penilaian: admin hapus" on public.penilaian
     for delete using (app_role() = 'admin');
 
 -- ── pengaduan ─────────────────────────────────────────────────
 create policy "pengaduan: publik insert (anonim)" on public.pengaduan
-    for insert with check (true);
+    for insert
+    to anon, authenticated
+    with check (true);
 create policy "pengaduan: admin kelola penuh" on public.pengaduan
     for all using (app_role() = 'admin');
 
@@ -447,7 +453,9 @@ alter table public.permintaan_data enable row level security;
 -- Publik HANYA boleh INSERT — tidak boleh SELECT/UPDATE/DELETE, supaya
 -- data pengunjung lain tidak bisa dibaca siapa pun lewat anon key.
 create policy "permintaan_data: publik insert" on public.permintaan_data
-    for insert with check (true);
+    for insert
+    to anon, authenticated
+    with check (true);
 
 create policy "permintaan_data: admin & petugas lihat" on public.permintaan_data
     for select using (app_role() in ('admin', 'petugas'));

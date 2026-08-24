@@ -99,6 +99,11 @@ export async function kirimPermintaanData(prevState: ActionState, formData: Form
         .single();
 
     if (error || !inserted) {
+        // [DEBUG] Log detail error ke server (terlihat di log Vercel/runtime),
+        // supaya penyebab sebenarnya (misal RLS policy, kolom belum ada
+        // karena migration belum dijalankan) tidak "hilang" jadi pesan
+        // generik ke pengguna.
+        console.error('[kirimPermintaanData] Gagal insert:', error);
         return { error: 'Gagal mengirim permintaan. Silakan coba lagi beberapa saat lagi.' };
     }
 

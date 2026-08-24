@@ -24,6 +24,9 @@ export async function kirimPenilaian(prevState: ActionState, formData: FormData)
     });
 
     if (error) {
+        // [DEBUG] Log detail error ke server — konsisten dengan logging
+        // yang ditambahkan di kirimPengaduan & kirimPermintaanData.
+        console.error('[kirimPenilaian] Gagal insert:', error);
         return { error: error.code === '23505' ? 'Antrian ini sudah dinilai.' : error.message };
     }
 
