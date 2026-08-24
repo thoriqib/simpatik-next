@@ -34,7 +34,13 @@ export async function kirimPengaduan(prevState: ActionState, formData: FormData)
         .select('token')
         .single();
 
-    if (error || !inserted) return { error: 'Gagal mengirim pengaduan. Silakan coba lagi.' };
+    if (error || !inserted) {
+        // [DEBUG] Log detail error ke server (terlihat di log Vercel/runtime),
+        // supaya penyebab sebenarnya (misal kolom belum ada karena migration
+        // belum dijalankan) tidak "hilang" jadi pesan generik ke pengguna.
+        console.error('[kirimPengaduan] Gagal insert:', error);
+        return { error: 'Gagal mengirim pengaduan. Silakan coba lagi. Jika masalah berlanjut, hubungi admin.' };
+    }
 
     revalidatePath('/admin/pengaduan');
     redirect(`/pengaduan?token=${inserted.token}`);

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { CheckCircle2, Clock, MoonStar, AlertTriangle } from 'lucide-react';
+import { CheckCircle2, Clock, MoonStar, AlertTriangle, Search, ArrowRight } from 'lucide-react';
 import { PermintaanDataForm } from './PermintaanDataForm';
 import { LinkSuksesCard } from './LinkSuksesCard';
 import { ambilJamPelayanan, dalamJamPelayananSekarang } from '@/lib/jam-pelayanan';
@@ -80,14 +80,22 @@ export default async function PermintaanDataPage({
                 </p>
             </div>
 
+            <Link
+                href="/permintaan-data/cari"
+                className="group flex items-center gap-3.5 bg-azure-500/10 border border-azure-500/25 rounded-2xl px-4 py-4 mb-5 hover:bg-azure-500/15 hover:border-azure-500/40 transition-colors"
+            >
+                <div className="w-11 h-11 rounded-xl bg-azure-500 text-white flex items-center justify-center shrink-0 shadow-sm">
+                    <Search className="w-5 h-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-navy-950 text-sm">Sudah pernah mengajukan sebelumnya?</div>
+                    <div className="text-xs text-navy-950/60 mt-0.5">Lupa link lacak? Cari lewat email & tanggal pengajuan Anda di sini</div>
+                </div>
+                <ArrowRight className="w-4 h-4 text-azure-500 group-hover:translate-x-1 transition-transform shrink-0" />
+            </Link>
+
             <div className="bg-white rounded-2xl shadow-soft border border-paper-200 p-6 sm:p-7">
                 <PermintaanDataForm />
-            </div>
-
-            <div className="mt-4 text-center">
-                <Link href="/permintaan-data/cari" className="text-sm text-azure-500 hover:text-navy-700 font-medium transition-colors">
-                    Sudah pernah mengajukan? Lupa link lacak Anda? Cari di sini →
-                </Link>
             </div>
         </>
     );
