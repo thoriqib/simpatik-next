@@ -15,19 +15,18 @@ const KEGUNAAN_LABEL: Record<string, string> = {
 export function CariForm() {
     const [isPending, startTransition] = useTransition();
     const [email, setEmail] = useState('');
-    const [tanggal, setTanggal] = useState('');
     const [hasil, setHasil] = useState<PermintaanDataRingkasan[] | null>(null);
     const [error, setError] = useState('');
 
     function handleCari(e: React.FormEvent) {
         e.preventDefault();
         setError('');
-        if (!email.trim() || !tanggal) {
-            setError('Email dan tanggal wajib diisi.');
+        if (!email.trim()) {
+            setError('Email wajib diisi.');
             return;
         }
         startTransition(async () => {
-            const res = await cariPermintaanDataPublik(email, tanggal);
+            const res = await cariPermintaanDataPublik(email);
             setHasil(res);
         });
     }
@@ -51,19 +50,6 @@ export function CariForm() {
                     />
                 </div>
 
-                <div>
-                    <label className="block text-sm font-medium text-navy-950/80 mb-1">
-                        Tanggal pengajuan
-                    </label>
-                    <input
-                        type="date"
-                        value={tanggal}
-                        onChange={(e) => setTanggal(e.target.value)}
-                        required
-                        className="w-full border border-paper-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-azure-500/40 focus:border-azure-500"
-                    />
-                </div>
-
                 <button
                     type="submit"
                     disabled={isPending}
@@ -80,8 +66,8 @@ export function CariForm() {
                         <div className="bg-white rounded-2xl border border-paper-200 p-8 text-center">
                             <SearchX className="w-8 h-8 text-navy-950/20 mx-auto mb-3" />
                             <p className="text-sm text-navy-950/50">
-                                Tidak ditemukan permintaan data dengan email & tanggal tersebut.
-                                Pastikan email dan tanggal yang dimasukkan sudah tepat.
+                                Tidak ditemukan permintaan data dengan email tersebut.
+                                Pastikan email yang dimasukkan sudah tepat.
                             </p>
                         </div>
                     ) : (
@@ -102,7 +88,7 @@ export function CariForm() {
                                         </div>
                                         <p className="text-sm text-navy-950 truncate">{item.kebutuhan_data}</p>
                                         <p className="text-xs text-navy-950/40 mt-0.5">
-                                            {new Date(item.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' })} WIB
+                                            {new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' })} WIB
                                         </p>
                                     </div>
                                     <ArrowRight className="w-4 h-4 text-navy-950/20 group-hover:text-azure-500 transition-colors shrink-0" />

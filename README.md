@@ -204,14 +204,32 @@ Link lacak permintaan data otomatis dikirim ke email pengunjung **kalau**
 `RESEND_API_KEY` sudah diisi. Kalau belum, tidak error — link tetap
 tampil di layar sebagai jalur utama, email cuma pelengkap.
 
+> ⚠️ **WAJIB DIBACA**: akun Resend baru **selalu** dalam mode testing —
+> di mode ini, email **hanya bisa terkirim ke alamat email pendaftar akun
+> Resend itu sendiri**, ke alamat lain manapun akan gagal dengan error
+> `403 validation_error` ("You can only send testing emails to your own
+> email address..."). Ini **bukan bug aplikasi** — supaya bisa kirim ke
+> email pengunjung mana pun (kebutuhan produksi), domain **wajib**
+> diverifikasi lebih dulu (langkah 2 di bawah), tidak bisa dilewati.
+
 1. Daftar gratis di [resend.com](https://resend.com) (3.000 email/bulan gratis)
-2. Verifikasi domain pengirim (atau pakai `onboarding@resend.dev` dulu untuk testing — cuma bisa kirim ke email pemilik akun Resend, tidak cocok untuk produksi)
+2. **Verifikasi domain pengirim** (wajib untuk produksi):
+   - Buka [resend.com/domains](https://resend.com/domains) → **Add Domain**
+   - Masukkan domain yang Anda kuasai (mis. `bps-jambi.go.id` atau subdomain apa pun miliknya)
+   - Resend akan minta 2-3 DNS record (biasanya TXT + MX/DKIM) — tambahkan
+     itu di pengelola DNS domain Anda (Cloudflare, cPanel, dsb — atau minta
+     bantuan admin domain instansi kalau bukan Anda pemegang aksesnya)
+   - Tunggu status berubah jadi **Verified** di dashboard Resend (biasanya
+     beberapa menit sampai beberapa jam, tergantung propagasi DNS)
 3. Buat API Key di dashboard Resend
 4. Isi di Vercel → Project Settings → Environment Variables:
    ```
    RESEND_API_KEY=re_xxxxxxxxxxxx
-   RESEND_FROM_EMAIL="Simpatik BPS Kota Jambi <noreply@domain-anda.id>"
+   RESEND_FROM_EMAIL="Simpatik BPS Kota Jambi <noreply@domain-anda-yang-terverifikasi.id>"
    ```
+   `RESEND_FROM_EMAIL` **harus** pakai domain yang sudah **Verified** di
+   langkah 2 — bukan `onboarding@resend.dev` (itu cuma untuk testing awal,
+   tunduk pada batasan "hanya ke email sendiri" di atas).
 5. Redeploy agar env var baru terbaca
 
 ---

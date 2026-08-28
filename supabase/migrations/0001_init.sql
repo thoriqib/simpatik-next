@@ -904,10 +904,11 @@ create policy "pengaduan: dengar broadcast topik sendiri"
     using (topic like 'pengaduan:%');
 
 -- ═══════════════════════════════════════════════════════════════
--- FITUR: Cari Ulang Link Lacak Permintaan Data (via email + tanggal,
--- untuk pengguna yang lupa menyimpan link lacak-nya)
+-- FITUR: Cari Ulang Link Lacak Permintaan Data (via email saja, untuk
+-- pengguna yang lupa menyimpan link lacaknya). Dibatasi 50 hasil
+-- terbaru sebagai jaga-jaga skala.
 -- ═══════════════════════════════════════════════════════════════
-create or replace function public.cari_permintaan_data_publik(p_email text, p_tanggal date)
+create or replace function public.cari_permintaan_data_publik(p_email text)
 returns jsonb
 language plpgsql
 security definer
@@ -926,12 +927,15 @@ begin
         ) order by pd.created_at desc
     ), '[]'::jsonb)
     into v_hasil
-    from public.permintaan_data pd
-    where lower(pd.email) = lower(trim(p_email))
-      and (pd.created_at at time zone 'Asia/Jakarta')::date = p_tanggal;
+    from (
+        select * from public.permintaan_data
+        where lower(email) = lower(trim(p_email))
+        order by created_at desc
+        limit 50
+    ) pd;
 
     return v_hasil;
 end;
 $$;
 
-grant execute on function public.cari_permintaan_data_publik(text, date) to anon, authenticated;
+grant execute on function public.cari_permintaan_data_publik(text) to anon, authenticated;

@@ -77,6 +77,22 @@ export async function kirimEmailLinkPermintaanData(params: {
 
         if (error) {
             console.error('[email] Gagal kirim via Resend:', error);
+
+            // [DEBUG] Deteksi khusus: akun Resend belum verifikasi domain
+            // (masih mode testing) — ini BUKAN bug kode, murni langkah
+            // konfigurasi yang belum selesai di dashboard Resend. Beri
+            // pesan yang jelas di log supaya admin langsung tahu harus
+            // ke resend.com/domains, bukan mengira ada yang rusak.
+            if (error.message?.toLowerCase().includes('own email address') || error.message?.toLowerCase().includes('verify a domain')) {
+                console.error(
+                    '[email] ⚠️  AKUN RESEND MASIH MODE TESTING — hanya bisa kirim ke email ' +
+                    'pendaftar akun sendiri. Ini BUKAN bug kode. Perbaikan: (1) buka resend.com/domains, ' +
+                    '(2) tambah & verifikasi domain milik Anda (perlu akses DNS), ' +
+                    '(3) ubah RESEND_FROM_EMAIL di Vercel ke alamat pada domain yang sudah terverifikasi ' +
+                    '(mis. noreply@domainanda.go.id), (4) redeploy.'
+                );
+            }
+
             return { sent: false, error: error.message };
         }
         return { sent: true };

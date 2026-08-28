@@ -289,12 +289,12 @@ export async function ambilPermintaanDataPublik(token: string): Promise<Perminta
  * (token + ringkasan), bukan seluruh isi — cukup untuk mengenali &
  * mengarahkan ke halaman lacak yang sebenarnya.
  */
-export async function cariPermintaanDataPublik(email: string, tanggal: string): Promise<PermintaanDataRingkasan[]> {
+export async function cariPermintaanDataPublik(email: string): Promise<PermintaanDataRingkasan[]> {
     const emailBersih = email.trim();
-    if (!emailBersih || !tanggal) return [];
+    if (!emailBersih) return [];
 
     const supabase = await createClient();
-    const { data, error } = await supabase.rpc('cari_permintaan_data_publik', { p_email: emailBersih, p_tanggal: tanggal });
+    const { data, error } = await supabase.rpc('cari_permintaan_data_publik', { p_email: emailBersih });
 
     if (error || !data) return [];
     return data as PermintaanDataRingkasan[];

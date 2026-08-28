@@ -89,7 +89,7 @@ export default async function PermintaanDataPage({
                 </div>
                 <div className="flex-1 min-w-0">
                     <div className="font-semibold text-navy-950 text-sm">Sudah pernah mengajukan sebelumnya?</div>
-                    <div className="text-xs text-navy-950/60 mt-0.5">Lupa link lacak? Cari lewat email & tanggal pengajuan Anda di sini</div>
+                    <div className="text-xs text-navy-950/60 mt-0.5">Lupa link lacak? Cari lewat email Anda di sini</div>
                 </div>
                 <ArrowRight className="w-4 h-4 text-azure-500 group-hover:translate-x-1 transition-transform shrink-0" />
             </Link>

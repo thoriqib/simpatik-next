@@ -7,8 +7,8 @@ export default function CariPermintaanDataPage() {
             <div className="text-center mb-6">
                 <h1 className="text-xl font-bold text-navy-950 tracking-tight">Cari Permintaan Data Saya</h1>
                 <p className="text-sm text-navy-950/50 mt-1 max-w-sm mx-auto">
-                    Lupa menyimpan link lacak? Masukkan email dan tanggal Anda mengajukan
-                    permintaan, kami bantu carikan.
+                    Lupa menyimpan link lacak? Masukkan email yang Anda gunakan saat
+                    mengajukan, kami bantu carikan.
                 </p>
             </div>
 
