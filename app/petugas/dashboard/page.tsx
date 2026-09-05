@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/Card';
 import { todayDateStringWIB } from '@/lib/utils';
 import { PresensiPanel } from './PresensiPanel';
 import { AntrianPanel } from './AntrianPanel';
+import { Ticket, Globe, Star, Clock3 } from 'lucide-react';
 import { unstable_noStore as noStore } from 'next/cache';
 import type { Antrian } from '@/lib/types/database';
 
@@ -45,6 +46,63 @@ export default async function PetugasDashboard() {
     const menunggu = antrianAktif?.filter((a) => a.status === 'menunggu').length ?? 0;
     const selesai = antrianAktif?.filter((a) => a.status === 'selesai').length ?? 0;
 
+    // ── Statistik personal triwulan berjalan — volume, rating, ketepatan
+    // presensi. Query terpisah lalu digabung di JS (bukan embed), pola
+    // yang sama seperti perhitungan Petugas Terbaik di sisi admin. ──────
+    const now = new Date();
+    const kuartal = Math.floor(now.getMonth() / 3);
+    const startTriwulan = new Date(now.getFullYear(), kuartal * 3, 1);
+    const endTriwulan = new Date(now.getFullYear(), kuartal * 3 + 3, 0);
+    const startStr = startTriwulan.toISOString().slice(0, 10);
+    const endStr = endTriwulan.toISOString().slice(0, 10);
+
+    const { count: offlineTriwulan } = await supabase
+        .from('antrian').select('*', { count: 'exact', head: true })
+        .eq('petugas_id', user!.id).eq('status', 'selesai')
+        .gte('tanggal', startStr).lte('tanggal', endStr);
+
+    const { count: onlineTriwulan } = await supabase
+        .from('permintaan_data').select('*', { count: 'exact', head: true })
+        .eq('ditangani_oleh', user!.id).eq('status', 'selesai')
+        .gte('created_at', startStr).lte('created_at', endStr);
+
+    const { data: jadwalTriwulan } = await supabase
+        .from('jadwal_piket').select('id')
+        .eq('user_id', user!.id).gte('tanggal', startStr).lte('tanggal', endStr);
+    const jadwalIdsTriwulan = (jadwalTriwulan ?? []).map((j) => j.id);
+
+    const { data: presensiTriwulan } = await supabase
+        .from('presensi').select('kekurangan_menit')
+        .in('jadwal_piket_id', jadwalIdsTriwulan.length > 0 ? jadwalIdsTriwulan : [-1])
+        .not('waktu_masuk', 'is', null).not('waktu_keluar', 'is', null);
+
+    const tepatWaktuPersen = presensiTriwulan && presensiTriwulan.length > 0
+        ? Math.round((presensiTriwulan.filter((p) => p.kekurangan_menit === 0).length / presensiTriwulan.length) * 100)
+        : null;
+
+    // [FIX] Hindari embedded select (`antrian!inner(tanggal)`) — pola ini
+    // terbukti tidak reliable di beberapa kasus sebelumnya (lihat catatan
+    // di app/petugas/dashboard/PresensiPanel.tsx). Ambil dulu antrian_id
+    // milik saya di triwulan ini, baru cari penilaian untuk id-id itu.
+    const { data: antrianSayaTriwulan } = await supabase
+        .from('antrian').select('id')
+        .eq('petugas_id', user!.id).eq('status', 'selesai')
+        .gte('tanggal', startStr).lte('tanggal', endStr);
+    const antrianIdsTriwulan = (antrianSayaTriwulan ?? []).map((a) => a.id);
+
+    const { data: penilaianOffline } = await supabase
+        .from('penilaian').select('nilai')
+        .in('antrian_id', antrianIdsTriwulan.length > 0 ? antrianIdsTriwulan : [-1]);
+    const { data: penilaianOnline } = await supabase
+        .from('penilaian').select('nilai')
+        .eq('petugas_id', user!.id).not('permintaan_data_id', 'is', null)
+        .gte('created_at', startStr).lte('created_at', endStr);
+
+    const semuaPenilaianSaya = [...(penilaianOffline ?? []), ...(penilaianOnline ?? [])];
+    const ratingSaya = semuaPenilaianSaya.length > 0
+        ? (semuaPenilaianSaya.reduce((s, p) => s + p.nilai, 0) / semuaPenilaianSaya.length).toFixed(1)
+        : null;
+
     return (
         <>
             <div className="mb-6">
@@ -70,6 +128,32 @@ export default async function PetugasDashboard() {
             </div>
 
             <AntrianPanel antrianAktif={antrianAktif ?? []} petugasId={user!.id} />
+
+            <Card title="Statistik Saya" description="Ringkasan performa Anda pada triwulan berjalan" className="mt-5">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div className="text-center">
+                        <div className="w-9 h-9 rounded-lg bg-navy-700/10 text-navy-700 flex items-center justify-center mx-auto mb-2"><Ticket className="w-4 h-4" /></div>
+                        <div className="font-mono text-xl font-semibold text-navy-950 tabular">{offlineTriwulan ?? 0}</div>
+                        <div className="text-xs text-navy-950/50 mt-0.5">Layanan Offline</div>
+                    </div>
+                    <div className="text-center">
+                        <div className="w-9 h-9 rounded-lg bg-emerald-600/10 text-emerald-600 flex items-center justify-center mx-auto mb-2"><Globe className="w-4 h-4" /></div>
+                        <div className="font-mono text-xl font-semibold text-navy-950 tabular">{onlineTriwulan ?? 0}</div>
+                        <div className="text-xs text-navy-950/50 mt-0.5">Layanan Online</div>
+                    </div>
+                    <div className="text-center">
+                        <div className="w-9 h-9 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center mx-auto mb-2"><Star className="w-4 h-4" /></div>
+                        <div className="font-mono text-xl font-semibold text-navy-950 tabular">{ratingSaya ?? '—'}</div>
+                        <div className="text-xs text-navy-950/50 mt-0.5">Rata-rata Penilaian</div>
+                    </div>
+                    <div className="text-center">
+                        <div className="w-9 h-9 rounded-lg bg-azure-500/10 text-azure-500 flex items-center justify-center mx-auto mb-2"><Clock3 className="w-4 h-4" /></div>
+                        <div className="font-mono text-xl font-semibold text-navy-950 tabular">{tepatWaktuPersen !== null ? `${tepatWaktuPersen}%` : '—'}</div>
+                        <div className="text-xs text-navy-950/50 mt-0.5">Presensi Tepat Waktu</div>
+                    </div>
+                </div>
+            </Card>
         </>
     );
 }
+

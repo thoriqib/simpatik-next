@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { logout } from '@/lib/actions/auth';
 import {
     LayoutDashboard, Users, Clock, CalendarDays, CalendarClock, Tag,
-    MessageSquareWarning, Star, ClipboardList, LogOut, X, Trophy, FileSearch, BarChart3, ShieldCheck, Link2,
+    MessageSquareWarning, Star, ClipboardList, LogOut, X, Trophy, FileSearch, BarChart3, ShieldCheck, Link2, HelpCircle,
 } from 'lucide-react';
 
 const MENU: { group: string | null; href: string; label: string; icon: React.ElementType }[] = [
@@ -25,6 +25,8 @@ const MENU: { group: string | null; href: string; label: string; icon: React.Ele
     { group: 'Laporan', href: '/admin/laporan/layanan', label: 'Rekap Layanan', icon: BarChart3 },
     { group: 'Laporan', href: '/admin/laporan/penilaian', label: 'Lap. Penilaian', icon: ClipboardList },
     { group: 'Laporan', href: '/admin/laporan/presensi', label: 'Lap. Presensi', icon: ClipboardList },
+    { group: 'Laporan', href: '/admin/statistik', label: 'Statistik', icon: BarChart3 },
+    { group: null, href: '/admin/bantuan', label: 'Bantuan', icon: HelpCircle },
 ];
 
 export function AdminSidebar({ name, mobileOpen, onClose }: { name: string; mobileOpen: boolean; onClose: () => void }) {

@@ -69,6 +69,9 @@ export default function LandingPage() {
                         <Link href="/pesta-koja" className="hidden sm:inline-block text-sm text-navy-950/60 hover:text-navy-950 px-3 py-2 rounded-lg hover:bg-paper-100 transition-colors">
                             Pesta Koja
                         </Link>
+                        <Link href="/faq" className="hidden sm:inline-block text-sm text-navy-950/60 hover:text-navy-950 px-3 py-2 rounded-lg hover:bg-paper-100 transition-colors">
+                            FAQ
+                        </Link>
                         <Link href="/login" className="text-sm bg-navy-700 text-white px-4 py-2 rounded-xl font-medium hover:bg-navy-800 transition-colors">
                             Masuk Sebagai Petugas
                         </Link>

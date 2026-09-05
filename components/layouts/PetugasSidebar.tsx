@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { logout } from '@/lib/actions/auth';
-import { LayoutDashboard, CalendarDays, Clock, LogOut, X, FileSearch, Users } from 'lucide-react';
+import { LayoutDashboard, CalendarDays, Clock, LogOut, X, FileSearch, Users, HelpCircle } from 'lucide-react';
 
 const MENU = [
     { href: '/petugas/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -11,6 +11,7 @@ const MENU = [
     { href: '/petugas/jadwal-petugas', label: 'Jadwal Semua Petugas', icon: Users },
     { href: '/petugas/presensi', label: 'Presensi', icon: Clock },
     { href: '/petugas/permintaan-data', label: 'Permintaan Data', icon: FileSearch },
+    { href: '/petugas/bantuan', label: 'Bantuan', icon: HelpCircle },
 ];
 
 export function PetugasSidebar({ name, mobileOpen, onClose }: { name: string; mobileOpen: boolean; onClose: () => void }) {

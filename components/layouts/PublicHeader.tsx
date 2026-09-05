@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, MessageSquareWarning, FileSearch, Link2 } from 'lucide-react';
+import { Home, MessageSquareWarning, FileSearch, Link2, HelpCircle } from 'lucide-react';
 
 // [UPDATE] Menu "Antrian" DAN "Jadwal Petugas" sengaja TIDAK ditampilkan
 // di navigasi publik. Antrian: halaman /antrian tetap ada & bisa diakses
@@ -15,6 +15,7 @@ const NAV = [
     { href: '/permintaan-data', label: 'Permintaan Data', icon: FileSearch },
     { href: '/pesta-koja', label: 'Pesta Koja', icon: Link2 },
     { href: '/pengaduan', label: 'Pengaduan', icon: MessageSquareWarning },
+    { href: '/faq', label: 'FAQ', icon: HelpCircle },
 ];
 
 export function PublicHeader() {
