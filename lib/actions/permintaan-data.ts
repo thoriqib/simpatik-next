@@ -187,13 +187,10 @@ export async function kirimPesanPetugas(permintaanId: number, pesan: string) {
     if (!teks) return { error: 'Pesan tidak boleh kosong.' };
     if (teks.length > 2000) return { error: 'Pesan maksimal 2000 karakter.' };
 
-    // [FITUR BARU] Chat cuma bisa dipakai pada jam pelayanan — berlaku
-    // untuk kedua sisi (staf maupun pengunjung), supaya tidak ada
-    // ekspektasi percakapan aktif di luar jam kerja.
-    const { dalamJam, jamMulai, jamSelesai } = await cekDalamJamPelayanan();
-    if (!dalamJam) {
-        return { error: `Percakapan hanya bisa diakses pada jam pelayanan (${jamMulai}–${jamSelesai} WIB).` };
-    }
+    // [UPDATE] Chat/lacak permintaan data sekarang TERBUKA 24 jam — beda
+    // dengan form pengajuan awal yang tetap dibatasi jam pelayanan.
+    // Alasannya: sekali percakapan berjalan, pengunjung tidak seharusnya
+    // "terkunci" menunggu jam kerja lagi cuma untuk baca/kirim balasan.
 
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();

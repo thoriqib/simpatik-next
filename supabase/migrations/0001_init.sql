@@ -546,9 +546,6 @@ begin
     if v_status <> 'diproses' then
         return jsonb_build_object('error', 'Percakapan belum aktif atau sudah ditutup.');
     end if;
-    if not public.dalam_jam_pelayanan() then
-        return jsonb_build_object('error', 'Percakapan hanya bisa diakses pada jam pelayanan. Silakan kirim pesan kembali saat jam pelayanan berlangsung.');
-    end if;
 
     v_pesan_bersih := trim(p_pesan);
     if v_pesan_bersih is null or length(v_pesan_bersih) = 0 then

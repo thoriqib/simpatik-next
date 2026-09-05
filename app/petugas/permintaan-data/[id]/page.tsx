@@ -7,7 +7,6 @@ import { ChatThread } from '@/components/permintaan-data/ChatThread';
 import { LinkLacakCard } from '@/components/permintaan-data/LinkLacakCard';
 import { KlaimAction } from './KlaimAction';
 import { unstable_noStore as noStore } from 'next/cache';
-import { ambilJamPelayanan } from '@/lib/jam-pelayanan';
 import type { PermintaanData, PermintaanDataPesan } from '@/lib/types/database';
 
 export const dynamic = 'force-dynamic';
@@ -41,7 +40,6 @@ export default async function DetailPermintaanDataPetugasPage({ params }: { para
         .eq('permintaan_data_id', permintaan.id)
         .order('created_at');
     const pesan = (pesanRaw ?? []) as PermintaanDataPesan[];
-    const { jamMulai, jamSelesai } = await ambilJamPelayanan();
 
     return (
         <>
@@ -116,8 +114,6 @@ export default async function DetailPermintaanDataPetugasPage({ params }: { para
                                 namaPengunjung={permintaan.nama_lengkap}
                                 bisaKirim={punyaKu && permintaan.status === 'diproses'}
                                 bisaSelesaikan={punyaKu && permintaan.status === 'diproses'}
-                                jamMulai={jamMulai}
-                                jamSelesai={jamSelesai}
                             />
                         </Card>
                     )}

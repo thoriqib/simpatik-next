@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { getPestaKojaIcon } from '@/lib/pesta-koja-icons';
+import { buatQrCodeDataUri } from '@/lib/qrcode';
 import { ExternalLink, Sparkles } from 'lucide-react';
 import { unstable_noStore as noStore } from 'next/cache';
 import type { PestaKojaLink } from '@/lib/types/database';
@@ -17,6 +18,12 @@ export default async function PestaKojaPage() {
         .order('urutan');
 
     const links = (linkList ?? []) as PestaKojaLink[];
+
+    // [FITUR BARU] QR code menuju halaman ini sendiri — untuk materi cetak
+    // (poster/banner di ruang pelayanan), supaya pengunjung bisa langsung
+    // buka Pesta Koja di ponsel mereka tanpa perlu ketik URL manual.
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const qrCode = await buatQrCodeDataUri(`${appUrl}/pesta-koja`);
 
     return (
         <>
@@ -56,6 +63,13 @@ export default async function PestaKojaPage() {
                 }) : (
                     <div className="text-center py-10 text-navy-950/30 text-sm">Belum ada link layanan yang tersedia.</div>
                 )}
+            </div>
+
+            <div className="mt-6 bg-white border border-paper-200 rounded-2xl p-5 flex flex-col items-center text-center">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={qrCode} alt="Kode QR Pesta Koja" className="w-32 h-32" />
+                <p className="text-xs font-medium text-navy-950 mt-3">Pindai untuk buka Pesta Koja</p>
+                <p className="text-[11px] text-navy-950/40 mt-0.5">Cocok dicetak untuk poster/banner di ruang pelayanan</p>
             </div>
 
             <p className="text-xs text-navy-950/30 text-center mt-8">

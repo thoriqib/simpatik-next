@@ -10,6 +10,7 @@ import { PrintButton } from './PrintButton';
 import { AutoPrint } from './AutoPrint';
 import { Suspense } from 'react';
 import { SkdBanner } from '@/components/SkdBanner';
+import { buatQrCodeDataUri } from '@/lib/qrcode';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,6 +40,12 @@ export default async function TiketPage({ params }: { params: Promise<{ kode: st
         .lt('nomor_urut', antrian.nomor_urut);
 
     const sudahDinilai = antrian.penilaian && antrian.penilaian.length > 0;
+
+    // [FITUR BARU] QR code — kalau tiket ini dicetak fisik, pengunjung bisa
+    // scan untuk buka status tiket yang sama langsung di ponsel mereka
+    // sendiri, tanpa perlu bolak-balik lihat layar display di ruang tunggu.
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const qrCode = await buatQrCodeDataUri(`${appUrl}/antrian/${kode}/tiket`);
 
     return (
         <div className="min-h-screen bg-navy-950 flex flex-col items-center justify-center p-4 pb-28 -mx-5 -my-8 print:bg-white print:block print:min-h-0 print:p-0 print:-mx-0 print:-my-0">
@@ -75,6 +82,12 @@ export default async function TiketPage({ params }: { params: Promise<{ kode: st
                         <div className="flex justify-center mb-3"><Badge status={antrian.status} /></div>
                     )}
                     <p className="text-xs text-navy-950/40 text-center print:hidden">Harap menunggu hingga nomor Anda dipanggil</p>
+                </div>
+
+                <div className="px-6 pb-6 flex flex-col items-center border-t border-dashed border-paper-200 pt-5">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={qrCode} alt="Kode QR tiket" className="w-28 h-28" />
+                    <p className="text-[10px] text-navy-950/40 mt-2 text-center">Scan untuk cek status di ponsel Anda</p>
                 </div>
             </div>
 

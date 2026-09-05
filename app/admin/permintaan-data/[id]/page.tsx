@@ -9,7 +9,6 @@ import { LinkLacakCard } from '@/components/permintaan-data/LinkLacakCard';
 import { DelegasiForm } from './DelegasiForm';
 import { AdminAksiLanjutan } from './AdminAksiLanjutan';
 import { unstable_noStore as noStore } from 'next/cache';
-import { ambilJamPelayanan } from '@/lib/jam-pelayanan';
 import type { PermintaanData, PermintaanDataPesan } from '@/lib/types/database';
 
 export const dynamic = 'force-dynamic';
@@ -42,7 +41,6 @@ export default async function DetailPermintaanDataPage({ params }: { params: Pro
         .eq('permintaan_data_id', permintaan.id)
         .order('created_at');
     const pesan = (pesanRaw ?? []) as PermintaanDataPesan[];
-    const { jamMulai, jamSelesai } = await ambilJamPelayanan();
 
     // Admin selalu boleh kirim pesan (kecuali sudah selesai) — mengirim
     // pesan pertama di permintaan 'baru' otomatis jadi klaim, lihat
@@ -107,8 +105,6 @@ export default async function DetailPermintaanDataPage({ params }: { params: Pro
                             namaPengunjung={permintaan.nama_lengkap}
                             bisaKirim={bisaKirim}
                             bisaSelesaikan={permintaan.status !== 'selesai'}
-                            jamMulai={jamMulai}
-                            jamSelesai={jamSelesai}
                         />
                     </Card>
 
