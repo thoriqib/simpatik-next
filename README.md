@@ -286,6 +286,27 @@ tabel tanpa RLS otomatis bisa diakses siapa saja lewat `anon key`.
 
 ---
 
+## ♿ Mode Aksesibilitas
+
+Widget mengambang (pojok kanan bawah, semua halaman — publik & area
+login) di `components/AccessibilityWidget.tsx`, dipasang sekali di
+`app/layout.tsx` sehingga otomatis tersedia di seluruh aplikasi.
+
+- **Ukuran Teks** (Normal/Besar/Sangat Besar): mengubah `font-size` akar
+  (`<html>`) lewat class `.ukuran-besar`/`.ukuran-sangat-besar` di
+  `globals.css` — karena Tailwind default pakai satuan `rem`, ini otomatis
+  menskalakan teks, spacing, DAN ukuran ikon di seluruh aplikasi secara
+  proporsional, tanpa perlu ubah komponen satu-per-satu.
+- **Kontras Tinggi**: filter CSS (`contrast` + `saturate`) broad-stroke
+  di `<html>` lewat class `.kontras-tinggi` — pendekatan pragmatis,
+  bukan perombakan warna di setiap komponen.
+
+Preferensi disimpan di `localStorage` (aman untuk aplikasi Next.js
+sungguhan seperti ini — beda dengan pembatasan localStorage yang berlaku
+khusus di lingkungan artifact/sandbox chat).
+
+---
+
 ## 🧩 Pola Kode yang Dipakai
 
 - **Server Component** untuk halaman yang hanya menampilkan data (fetch langsung dari Supabase di server, tanpa API route terpisah)

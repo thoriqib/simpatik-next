@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Plus_Jakarta_Sans, IBM_Plex_Mono } from 'next/font/google';
+import { AccessibilityWidget } from '@/components/AccessibilityWidget';
 import './globals.css';
 
 // Plus Jakarta Sans — display & UI: geometris, punya karakter, dan namanya
@@ -37,6 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             */}
             <body className="bg-paper-50 text-navy-950 font-sans antialiased" suppressHydrationWarning>
                 {children}
+                <AccessibilityWidget />
             </body>
         </html>
     );

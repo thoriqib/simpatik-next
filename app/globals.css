@@ -33,6 +33,31 @@
             transition-duration: 0.01ms !important;
         }
     }
+
+    /* ── Mode Aksesibilitas (lihat components/AccessibilityWidget.tsx) ──
+       Mengubah font-size AKAR — karena Tailwind default pakai satuan rem,
+       perubahan ini otomatis menskalakan SELURUH ukuran teks, spacing,
+       DAN ikon di seluruh aplikasi secara proporsional (bukan cuma teks
+       membesar sementara tombol/ikon tetap kecil), tanpa perlu sentuh
+       satu-per-satu komponen. */
+    html.ukuran-besar {
+        font-size: 112.5%; /* ~18px, dari basis 16px */
+    }
+    html.ukuran-sangat-besar {
+        font-size: 125%; /* ~20px, dari basis 16px */
+    }
+
+    /* Kontras tinggi: filter broad-stroke, bukan override warna satu-per-satu
+       komponen (yang mustahil dijaga konsisten di ratusan komponen). Cukup
+       efektif menaikkan keterbacaan bagi low-vision tanpa effort perombakan
+       desain besar-besaran. */
+    html.kontras-tinggi {
+        filter: contrast(1.25) saturate(0.9);
+    }
+    html.kontras-tinggi a {
+        text-decoration: underline;
+        text-underline-offset: 2px;
+    }
 }
 
 @layer utilities {
