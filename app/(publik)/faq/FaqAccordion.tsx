@@ -12,11 +12,11 @@ const FAQ_DATA: FaqKategori[] = [
         items: [
             {
                 q: 'Bagaimana cara mengambil nomor antrian?',
-                a: 'Nomor antrian diambil langsung di layar/tablet yang tersedia di ruang pelayanan kantor BPS Kota Jambi — bukan dari rumah. Ini untuk memastikan nomor antrian hanya diambil oleh pengunjung yang memang sudah berada di lokasi.',
+                a: 'Nomor antrian diambil langsung di layar/tablet yang tersedia di ruang pelayanan kantor BPS Kota Jambi.',
             },
             {
                 q: 'Kapan jam pelayanan BPS Kota Jambi?',
-                a: 'Jam pelayanan mengikuti jadwal shift petugas yang berlaku, ditampilkan otomatis secara real-time di halaman ambil antrian. Pengambilan nomor antrian ditutup total pada pukul 18.00–07.00 WIB.',
+                a: 'Senin–Kamis: 08.00–15.30 WIB. Jumat: 08.00–16.00 WIB. Sabtu–Minggu: tidak ada pelayanan.',
             },
             {
                 q: 'Saya sudah dilayani, bagaimana cara memberi penilaian?',

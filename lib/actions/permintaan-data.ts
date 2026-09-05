@@ -290,7 +290,14 @@ export async function cariPermintaanDataPublik(email: string): Promise<Permintaa
     const supabase = await createClient();
     const { data, error } = await supabase.rpc('cari_permintaan_data_publik', { p_email: emailBersih });
 
-    if (error || !data) return [];
+    if (error) {
+        // [DEBUG] Log detail error ke server — supaya penyebab sebenarnya
+        // (misal migration belum dijalankan, function masih signature lama)
+        // tidak "hilang" jadi list kosong tanpa penjelasan.
+        console.error('[cariPermintaanDataPublik] Gagal panggil RPC:', error);
+        return [];
+    }
+    if (!data) return [];
     return data as PermintaanDataRingkasan[];
 }
 
