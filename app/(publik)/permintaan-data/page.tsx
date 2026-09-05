@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { CheckCircle2, Clock, MoonStar, AlertTriangle, Search, ArrowRight } from 'lucide-react';
+import { CheckCircle2, Clock, MoonStar, Search, ArrowRight } from 'lucide-react';
 import { PermintaanDataForm } from './PermintaanDataForm';
 import { LinkSuksesCard } from './LinkSuksesCard';
 import { ambilJamPelayanan, dalamJamPelayananSekarang } from '@/lib/jam-pelayanan';
@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 export default async function PermintaanDataPage({
     searchParams,
 }: {
-    searchParams: Promise<{ token?: string; emailGagal?: string }>;
+    searchParams: Promise<{ token?: string }>;
 }) {
     noStore();
     const params = await searchParams;
@@ -24,20 +24,8 @@ export default async function PermintaanDataPage({
                 <h2 className="text-xl font-bold text-navy-950">Permintaan Terkirim</h2>
                 <p className="text-sm text-navy-950/50 mt-2 max-w-sm mx-auto">
                     Simpan link di bawah untuk memantau status & berkomunikasi langsung dengan
-                    petugas.{params.emailGagal !== '1' && ' Link ini juga sudah dikirim ke email Anda.'}
+                    petugas.
                 </p>
-
-                {/* [FITUR BARU] Kalau pengiriman email gagal, tetap tampilkan link
-                    (jalur utama), tapi beri tahu jujur bahwa email tidak terkirim
-                    supaya pengunjung tahu harus menyimpan link ini sendiri. */}
-                {params.emailGagal === '1' && (
-                    <div className="mt-4 max-w-sm mx-auto bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-left flex items-start gap-2.5">
-                        <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                        <p className="text-xs text-amber-700 leading-relaxed">
-                            Email berisi link ini <strong>gagal terkirim</strong>. Jangan khawatir — link Anda tetap aktif di bawah ini, tapi pastikan disimpan baik-baik karena tidak dikirim ke email.
-                        </p>
-                    </div>
-                )}
 
                 <LinkSuksesCard token={params.token} />
             </div>

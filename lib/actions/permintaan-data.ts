@@ -3,7 +3,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
-import { kirimEmailLinkPermintaanData } from '@/lib/email';
 import { cekDalamJamPelayanan } from '@/lib/jam-pelayanan';
 import type { ActionState } from './auth';
 import type { PermintaanDataPublikResult, PermintaanDataRingkasan } from '@/lib/types/database';
@@ -107,20 +106,15 @@ export async function kirimPermintaanData(prevState: ActionState, formData: Form
         return { error: 'Gagal mengirim permintaan. Silakan coba lagi beberapa saat lagi.' };
     }
 
-    // Kirim email berisi link (best-effort — kalau gagal/API key belum
-    // diisi, TIDAK menggagalkan alur utama, link tetap tampil di layar).
-    const hasilEmail = await kirimEmailLinkPermintaanData({ to: email, namaLengkap, token: inserted.token });
-
+    // [DIHAPUS] Pengiriman email link lewat Resend dihapus — sering gagal
+    // karena akun email pihak ketiga butuh verifikasi domain (langkah
+    // konfigurasi yang rentan luput/rumit), dan verifikasi domain adalah
+    // syarat standar di SEMUA provider email API sejenis (bukan cuma
+    // Resend), jadi ganti provider tidak akan menyelesaikan akar masalahnya.
+    // Link di layar sekarang jadi SATU-SATUNYA jalur (selalu berhasil,
+    // tidak bergantung pihak ketiga) — lihat LinkSuksesCard.tsx.
     revalidatePath('/admin/permintaan-data');
-
-    // [FITUR BARU] Bedakan dua kondisi: `skipped` (API key memang belum
-    // dikonfigurasi admin — bukan kegagalan, jangan tampilkan peringatan
-    // yang bikin bingung) vs kegagalan sungguhan saat email SUDAH
-    // dikonfigurasi tapi gagal terkirim (baru di sini tampilkan
-    // pemberitahuan ke pengunjung).
-    const emailGagalSungguhan = !hasilEmail.sent && !hasilEmail.skipped;
-    const query = emailGagalSungguhan ? `?token=${inserted.token}&emailGagal=1` : `?token=${inserted.token}`;
-    redirect(`/permintaan-data${query}`);
+    redirect(`/permintaan-data?token=${inserted.token}`);
 }
 
 /**

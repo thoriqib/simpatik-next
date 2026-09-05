@@ -116,7 +116,7 @@ export default function LandingPage() {
                             className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm text-white border border-white/30 px-6 py-3.5 rounded-xl font-semibold text-sm hover:bg-white/20 transition-all hover:scale-[1.02] active:scale-[0.98] w-full sm:w-auto justify-center"
                         >
                             <Link2 className="w-4 h-4" />
-                            Lihat Pesta Koja
+                            Lihat Pelayanan Tersedia
                         </Link>
                     </div>
                 </div>
@@ -221,7 +221,7 @@ export default function LandingPage() {
                         className="inline-flex items-center gap-2 bg-navy-700 text-white px-6 py-3.5 rounded-xl font-semibold text-sm hover:bg-navy-800 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-card w-full sm:w-auto justify-center"
                     >
                         <Link2 className="w-4 h-4" />
-                        Lihat Pesta Koja
+                        Lihat Pelayanan Tersedia
                     </Link>
                     <Link
                         href="/pengaduan"
