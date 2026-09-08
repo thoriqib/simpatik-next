@@ -11,7 +11,9 @@ export default async function LaporanPenilaianPage({ searchParams }: { searchPar
 
     const supabase = await createClient();
 
-    const { data: petugasList } = await supabase.from('profiles').select('id, name').eq('role', 'petugas');
+    // [UPDATE] Admin bisa merangkap petugas — penilaian yang mereka terima
+    // ikut terhitung di laporan ini, bukan cuma role petugas murni.
+    const { data: petugasList } = await supabase.from('profiles').select('id, name').in('role', ['petugas', 'admin']);
 
     // [FIX] Tanpa Database generated types, Supabase menebak relasi to-one
     // (profiles, antrian.jenis_layanan) sebagai array. Runtime-nya tetap

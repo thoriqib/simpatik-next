@@ -73,7 +73,9 @@ export default async function JadwalPage({ searchParams }: { searchParams: Promi
         presensi: presensiByJadwalId.get(j.id) ?? null,
     }));
 
-    const { data: petugas } = await supabase.from('profiles').select('id, name').eq('role', 'petugas').order('name');
+    // [UPDATE] Admin bisa merangkap petugas — ikut muncul sebagai opsi
+    // yang bisa dijadwalkan piket, bukan cuma role petugas murni.
+    const { data: petugas } = await supabase.from('profiles').select('id, name').in('role', ['petugas', 'admin']).order('name');
     const { data: shifts } = await supabase.from('shift_piket').select('*').eq('is_aktif', true);
 
     const { data: hariLiburRaw } = await supabase

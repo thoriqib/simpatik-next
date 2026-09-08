@@ -33,7 +33,9 @@ export default async function DetailPermintaanDataPage({ params }: { params: Pro
     const permintaan = permintaanRaw as unknown as PermintaanData | null;
     if (!permintaan) notFound();
 
-    const { data: petugasList } = await supabase.from('profiles').select('id, name').eq('role', 'petugas').order('name');
+    // [UPDATE] Admin bisa merangkap petugas — ikut muncul sebagai opsi
+    // delegasi, bukan cuma role petugas murni.
+    const { data: petugasList } = await supabase.from('profiles').select('id, name').in('role', ['petugas', 'admin']).order('name');
 
     const { data: pesanRaw } = await supabase
         .from('permintaan_data_pesan')

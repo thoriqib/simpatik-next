@@ -12,7 +12,9 @@ export default async function LaporanLayananPage({ searchParams }: { searchParam
 
     const supabase = await createClient();
 
-    const { data: petugasList } = await supabase.from('profiles').select('id, name').eq('role', 'petugas').order('name');
+    // [UPDATE] Admin bisa merangkap petugas — layanan yang mereka tangani
+    // ikut terhitung di laporan ini, bukan cuma role petugas murni.
+    const { data: petugasList } = await supabase.from('profiles').select('id, name').in('role', ['petugas', 'admin']).order('name');
 
     // ── Layanan offline (antrian tatap muka) ──────────────────────
     type AntrianRow = { petugas_id: string | null };

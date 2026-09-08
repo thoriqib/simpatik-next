@@ -75,7 +75,11 @@ export async function ubahStatusJadwal(jadwalPiketId: number, status: string, ke
 export async function importJadwal(rows: { email: string; shift: string; tanggal: string }[]) {
     const supabase = await createClient();
 
-    const { data: petugasList } = await supabase.from('profiles').select('id, email').eq('role', 'petugas');
+    // [UPDATE] Dulu cuma role='petugas' — sekarang admin juga bisa muncul
+    // di jadwal piket (admin merangkap petugas, lihat middleware.ts &
+    // catatan lengkap di sana), jadi pencocokan email harus mencakup
+    // keduanya, bukan cuma role petugas murni.
+    const { data: petugasList } = await supabase.from('profiles').select('id, email').in('role', ['petugas', 'admin']);
     const { data: shiftList } = await supabase.from('shift_piket').select('id, nama_shift').eq('is_aktif', true);
 
     const petugasMap = new Map((petugasList ?? []).map((p) => [p.email.toLowerCase().trim(), p.id]));
