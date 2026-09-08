@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { logout } from '@/lib/actions/auth';
-import { LayoutDashboard, CalendarDays, Clock, LogOut, X, FileSearch, Users, HelpCircle } from 'lucide-react';
+import { LayoutDashboard, CalendarDays, Clock, LogOut, X, FileSearch, Users, HelpCircle, ArrowLeftRight } from 'lucide-react';
 
 const MENU = [
     { href: '/petugas/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -14,7 +14,7 @@ const MENU = [
     { href: '/petugas/bantuan', label: 'Bantuan', icon: HelpCircle },
 ];
 
-export function PetugasSidebar({ name, mobileOpen, onClose }: { name: string; mobileOpen: boolean; onClose: () => void }) {
+export function PetugasSidebar({ name, isAdmin, mobileOpen, onClose }: { name: string; isAdmin?: boolean; mobileOpen: boolean; onClose: () => void }) {
     const pathname = usePathname();
 
     return (
@@ -59,6 +59,17 @@ export function PetugasSidebar({ name, mobileOpen, onClose }: { name: string; mo
                             </Link>
                         );
                     })}
+
+                    {isAdmin && (
+                        <Link
+                            href="/admin/dashboard"
+                            onClick={onClose}
+                            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors mt-2 border-t border-white/10 pt-4 text-amber-400 hover:bg-white/5 hover:text-amber-300"
+                        >
+                            <ArrowLeftRight className="w-4 h-4 shrink-0" strokeWidth={2} />
+                            Kembali ke Admin
+                        </Link>
+                    )}
                 </nav>
 
                 <div className="px-3 py-4 border-t border-white/10">
@@ -68,7 +79,7 @@ export function PetugasSidebar({ name, mobileOpen, onClose }: { name: string; mo
                         </div>
                         <div className="flex-1 min-w-0">
                             <div className="text-sm font-medium truncate">{name}</div>
-                            <div className="text-xs text-white/40">Petugas Pelayanan</div>
+                            <div className="text-xs text-white/40">{isAdmin ? 'Admin (mode Petugas)' : 'Petugas Pelayanan'}</div>
                         </div>
                     </div>
                     <form action={logout}>

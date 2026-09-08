@@ -70,9 +70,15 @@ export async function middleware(request: NextRequest) {
             return NextResponse.redirect(url);
         }
 
-        if (isPetugasRoute && role !== 'petugas') {
+        // [UPDATE] Admin boleh MERANGKAP sebagai petugas — bisa mengakses
+        // seluruh fitur petugas (presensi, layani antrian, tangani
+        // permintaan data) selain fitur admin-nya sendiri. RLS di tabel
+        // terkait (antrian, permintaan_data, presensi) memang sudah
+        // mengizinkan ini di level data — middleware ini yang sebelumnya
+        // jadi satu-satunya penghalang murni di level rute.
+        if (isPetugasRoute && role !== 'petugas' && role !== 'admin') {
             const url = request.nextUrl.clone();
-            url.pathname = role === 'admin' ? '/admin/dashboard' : '/login';
+            url.pathname = '/login';
             return NextResponse.redirect(url);
         }
     }

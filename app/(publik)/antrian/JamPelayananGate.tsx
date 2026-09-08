@@ -2,38 +2,22 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { ambilWaktuWIBSekarang, jadwalPelayananHariIniClient } from '@/lib/jam-pelayanan-client';
 import { Clock, AlertTriangle, MoonStar, X } from 'lucide-react';
 
-/** Ambil jam:menit:detik WIB langsung dari browser, terlepas dari zona waktu perangkat pengguna. */
-function ambilWaktuWIB(): { jam: number; menit: number; detik: number; label: string } {
-    const now = new Date();
-    const parts = new Intl.DateTimeFormat('en-US', {
-        timeZone: 'Asia/Jakarta',
-        hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
-    }).formatToParts(now);
-    const jam = Number(parts.find((p) => p.type === 'hour')?.value ?? 0);
-    const menit = Number(parts.find((p) => p.type === 'minute')?.value ?? 0);
-    const detik = Number(parts.find((p) => p.type === 'second')?.value ?? 0);
-    const label = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' });
-    return { jam, menit, detik, label };
-}
-
-export function JamPelayananGate({
-    jamMulai,
-    jamSelesai,
-    children,
-}: {
-    /** Jam pelayanan dalam format "HH:MM", diturunkan dari shift aktif */
-    jamMulai: string;
-    jamSelesai: string;
-    children: React.ReactNode;
-}) {
-    const [waktu, setWaktu] = useState<{ jam: number; menit: number; detik: number; label: string } | null>(null);
+/**
+ * [UPDATE] Sekarang pakai jadwal pelayanan resmi TETAP (lib/jam-pelayanan-client.ts)
+ * — Senin–Kamis 08.00–15.30, Jumat 08.00–16.00, Sabtu–Minggu tutup total —
+ * bukan lagi jam yang diturunkan dari shift_piket (props jamMulai/jamSelesai
+ * dihapus, komponen ini sekarang menghitung sendiri).
+ */
+export function JamPelayananGate({ children }: { children: React.ReactNode }) {
+    const [waktu, setWaktu] = useState<ReturnType<typeof ambilWaktuWIBSekarang> | null>(null);
     const [popupDitutup, setPopupDitutup] = useState(false);
 
     useEffect(() => {
-        setWaktu(ambilWaktuWIB());
-        const interval = setInterval(() => setWaktu(ambilWaktuWIB()), 1000);
+        setWaktu(ambilWaktuWIBSekarang());
+        const interval = setInterval(() => setWaktu(ambilWaktuWIBSekarang()), 1000);
         return () => clearInterval(interval);
     }, []);
 
@@ -42,18 +26,26 @@ export function JamPelayananGate({
     // menyesuaikan dalam hitungan milidetik.
     if (!waktu) return <>{children}</>;
 
+    const jadwal = jadwalPelayananHariIniClient();
     const totalMenit = waktu.jam * 60 + waktu.menit;
-    const [jamMulaiH, jamMulaiM] = jamMulai.split(':').map(Number);
-    const [jamSelesaiH, jamSelesaiM] = jamSelesai.split(':').map(Number);
-    const mulaiMenit = jamMulaiH * 60 + jamMulaiM;
-    const selesaiMenit = jamSelesaiH * 60 + jamSelesaiM;
 
-    // Blokir keras: 18:00–07:00 WIB (jam >= 18 ATAU jam < 7)
-    const diBlokirKeras = waktu.jam >= 18 || waktu.jam < 7;
-    // Di luar jam pelayanan resmi, TAPI belum masuk blokir keras
-    const diLuarJamPelayanan = !diBlokirKeras && (totalMenit < mulaiMenit || totalMenit >= selesaiMenit);
+    // Tutup total: akhir pekan (jadwal.buka === false), ATAU blokir keras
+    // 18:00–07:00 di hari kerja (di luar jam pelayanan resmi TERLALU jauh
+    // untuk sekadar peringatan — langsung tutup form-nya).
+    const diBlokirKeras = !jadwal.buka || waktu.jam >= 18 || waktu.jam < 7;
 
-    const jamStr = `${String(waktu.jam).padStart(2, '0')}:${String(waktu.menit).padStart(2, '0')}:${String(waktu.detik).padStart(2, '0')}`;
+    // Di luar jam pelayanan resmi hari ini, TAPI belum masuk blokir keras
+    // (mis. jam 07.15 di hari kerja — form tetap bisa dipakai + peringatan)
+    let diLuarJamPelayanan = false;
+    if (!diBlokirKeras && jadwal.buka) {
+        const [mulaiH, mulaiM] = jadwal.jamMulai.split(':').map(Number);
+        const [selesaiH, selesaiM] = jadwal.jamSelesai.split(':').map(Number);
+        const mulaiMenit = mulaiH * 60 + mulaiM;
+        const selesaiMenit = selesaiH * 60 + selesaiM;
+        diLuarJamPelayanan = totalMenit < mulaiMenit || totalMenit >= selesaiMenit;
+    }
+
+    const jamStr = `${String(waktu.jam).padStart(2, '0')}:${String(waktu.menit).padStart(2, '0')}`;
 
     return (
         <div>
@@ -73,8 +65,11 @@ export function JamPelayananGate({
                     </div>
                     <h2 className="text-lg font-bold text-navy-950 mb-2">Pengambilan Antrian Ditutup</h2>
                     <p className="text-sm text-navy-950/50 max-w-sm mx-auto leading-relaxed">
-                        Nomor antrian tidak bisa diambil pada pukul <strong>18.00–07.00 WIB</strong>.
-                        Silakan kembali besok pagi mulai pukul 07.00 WIB.
+                        {!jadwal.buka ? (
+                            <>Tidak ada pelayanan pada hari <strong>Sabtu & Minggu</strong>. Silakan kembali pada hari kerja mulai pukul 08.00 WIB.</>
+                        ) : (
+                            <>Nomor antrian tidak bisa diambil pada pukul <strong>18.00–07.00 WIB</strong>. Silakan kembali besok pagi mulai pukul 07.00 WIB.</>
+                        )}
                     </p>
                     <Link href="/" className="inline-block mt-6 text-sm text-azure-500 hover:text-navy-700 font-medium transition-colors">
                         ← Kembali ke Beranda
@@ -97,7 +92,7 @@ export function JamPelayananGate({
                                 </div>
                                 <h3 className="text-lg font-semibold text-navy-950 mb-1.5">Di Luar Jam Pelayanan</h3>
                                 <p className="text-sm text-navy-950/50 leading-relaxed mb-5">
-                                    Jam pelayanan resmi kami adalah <strong className="text-navy-950">{jamMulai}–{jamSelesai} WIB</strong>.
+                                    Jam pelayanan resmi kami adalah <strong className="text-navy-950">{jadwal.jamMulai}–{jadwal.jamSelesai} WIB</strong>.
                                     Anda tetap bisa mengambil nomor antrian sekarang, tapi kemungkinan
                                     petugas belum siap melayani sampai jam operasional dimulai.
                                 </p>

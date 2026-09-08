@@ -5,11 +5,12 @@ import { usePathname } from 'next/navigation';
 import { logout } from '@/lib/actions/auth';
 import {
     LayoutDashboard, Users, Clock, CalendarDays, CalendarClock, Tag,
-    MessageSquareWarning, Star, ClipboardList, LogOut, X, Trophy, FileSearch, BarChart3, ShieldCheck, Link2, HelpCircle,
+    MessageSquareWarning, Star, ClipboardList, LogOut, X, Trophy, FileSearch, BarChart3, ShieldCheck, Link2, HelpCircle, ArrowLeftRight,
 } from 'lucide-react';
 
 const MENU: { group: string | null; href: string; label: string; icon: React.ElementType }[] = [
     { group: null, href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { group: null, href: '/petugas/dashboard', label: 'Akses Sebagai Petugas', icon: ArrowLeftRight },
     { group: 'Petugas', href: '/admin/petugas', label: 'Data Petugas', icon: Users },
     { group: 'Petugas', href: '/admin/shift', label: 'Pengaturan Shift', icon: Clock },
     { group: 'Petugas', href: '/admin/jadwal', label: 'Jadwal Piket', icon: CalendarDays },

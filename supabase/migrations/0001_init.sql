@@ -497,9 +497,11 @@ create policy "pesan: admin & petugas kirim" on public.permintaan_data_pesan
 -- tabel penilaian.permintaan_data_id selesai dideklarasikan.)
 
 -- ═══════════════════════════════════════════════════════════════
--- FUNCTION: cek apakah waktu sekarang dalam jam pelayanan (diturunkan
--- dari shift_piket yang aktif). Dipakai kirim_pesan_pengunjung di bawah,
--- dan dipanggil juga dari Server Action (form permintaan data, chat staf).
+-- FUNCTION: cek apakah waktu sekarang dalam jam pelayanan resmi TETAP
+-- (Senin–Kamis 08.00–15.30, Jumat 08.00–16.00, Sabtu–Minggu tutup total).
+-- Dipakai kirim_pesan_pengadu (chat pengaduan) di bawah. Sinkron dengan
+-- versi TypeScript di lib/jam-pelayanan.ts & lib/jam-pelayanan-client.ts
+-- — kalau jadwal resmi berubah, ketiganya wajib diubah bersamaan.
 -- ═══════════════════════════════════════════════════════════════
 create or replace function public.dalam_jam_pelayanan()
 returns boolean
@@ -508,20 +510,25 @@ security definer
 set search_path = public
 as $$
 declare
-    v_jam_sekarang time;
+    v_waktu_wib timestamp;
+    v_hari integer; -- 0=Minggu, 1=Senin, ..., 6=Sabtu (extract(dow from ...))
+    v_jam_menit time;
     v_mulai time;
     v_selesai time;
 begin
-    v_jam_sekarang := (now() at time zone 'Asia/Jakarta')::time;
+    v_waktu_wib := now() at time zone 'Asia/Jakarta';
+    v_hari := extract(dow from v_waktu_wib);
+    v_jam_menit := v_waktu_wib::time;
 
-    select min(jam_mulai), max(jam_selesai) into v_mulai, v_selesai
-    from public.shift_piket where is_aktif = true;
-
-    if v_mulai is null or v_selesai is null then
-        return true;
+    if v_hari = 0 or v_hari = 6 then
+        return false;
+    elsif v_hari = 5 then
+        v_mulai := '08:00'; v_selesai := '16:00';
+    else
+        v_mulai := '08:00'; v_selesai := '15:30';
     end if;
 
-    return v_jam_sekarang >= v_mulai and v_jam_sekarang < v_selesai;
+    return v_jam_menit >= v_mulai and v_jam_menit < v_selesai;
 end;
 $$;
 

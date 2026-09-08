@@ -153,6 +153,60 @@ export default function LandingPage() {
                 </div>
             </section>
 
+            {/* ── Pesta Koja ── */}
+            <section className="bg-gradient-to-br from-emerald-600/5 via-azure-500/5 to-transparent">
+                <div className="max-w-5xl mx-auto px-5 sm:px-8 py-16 sm:py-20">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+                        <div>
+                            <div className="inline-flex items-center gap-1.5 bg-emerald-600/10 text-emerald-600 rounded-full px-3.5 py-1.5 text-xs font-semibold mb-5">
+                                <Link2 className="w-3.5 h-3.5" />
+                                Pusat Layanan Digital
+                            </div>
+                            <h2 className="text-2xl sm:text-3xl font-bold text-navy-950 tracking-tight mb-2">Pesta Koja</h2>
+                            <p className="text-sm font-medium text-navy-950/50 mb-4">Pelayanan Statistik Kota Jambi</p>
+                            <p className="text-navy-950/60 text-sm sm:text-base leading-relaxed mb-4">
+                                Pesta Koja adalah pusat akses cepat ke <strong className="text-navy-950">seluruh layanan
+                                digital</strong> BPS Kota Jambi — baik yang dikembangkan sendiri maupun layanan
+                                resmi BPS Pusat — dikumpulkan dalam satu tempat, supaya masyarakat tidak perlu
+                                mencari-cari atau menghafal banyak alamat website berbeda.
+                            </p>
+                            <p className="text-navy-950/60 text-sm sm:text-base leading-relaxed mb-6">
+                                Mulai dari konsultasi statistik lewat WhatsApp, akses perpustakaan digital,
+                                rekomendasi kegiatan statistik, pembelian data mikro, survei kebutuhan data,
+                                hingga akses informasi publik (PPID) — semua tautannya tersedia dan selalu
+                                diperbarui di satu halaman.
+                            </p>
+                            <Link
+                                href="/pesta-koja"
+                                className="inline-flex items-center gap-2 bg-navy-700 text-white px-6 py-3 rounded-xl font-semibold text-sm hover:bg-navy-800 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-card"
+                            >
+                                <Link2 className="w-4 h-4" />
+                                Lihat Pelayanan Tersedia
+                                <ArrowRight className="w-4 h-4" />
+                            </Link>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="bg-white rounded-2xl border border-paper-200 p-5 shadow-soft">
+                                <div className="font-semibold text-navy-950 text-sm mb-1">PANDAWA</div>
+                                <div className="text-navy-950/50 text-xs leading-relaxed">Konsultasi statistik langsung via WhatsApp.</div>
+                            </div>
+                            <div className="bg-white rounded-2xl border border-paper-200 p-5 shadow-soft">
+                                <div className="font-semibold text-navy-950 text-sm mb-1">Perpustakaan Digital</div>
+                                <div className="text-navy-950/50 text-xs leading-relaxed">Akses publikasi BPS secara daring.</div>
+                            </div>
+                            <div className="bg-white rounded-2xl border border-paper-200 p-5 shadow-soft">
+                                <div className="font-semibold text-navy-950 text-sm mb-1">Silastik</div>
+                                <div className="text-navy-950/50 text-xs leading-relaxed">Pembelian data mikro & peta wilayah kerja.</div>
+                            </div>
+                            <div className="bg-white rounded-2xl border border-paper-200 p-5 shadow-soft">
+                                <div className="font-semibold text-navy-950 text-sm mb-1">PPID</div>
+                                <div className="text-navy-950/50 text-xs leading-relaxed">Akses & pengajuan informasi publik.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             {/* ── Profil BPS Kota Jambi ── */}
             <section className="bg-navy-950 text-white">
                 <div className="max-w-5xl mx-auto px-5 sm:px-8 py-16 sm:py-20">

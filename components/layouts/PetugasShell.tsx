@@ -4,12 +4,12 @@ import { useState } from 'react';
 import { Menu } from 'lucide-react';
 import { PetugasSidebar } from './PetugasSidebar';
 
-export function PetugasShell({ name, children }: { name: string; children: React.ReactNode }) {
+export function PetugasShell({ name, isAdmin, children }: { name: string; isAdmin?: boolean; children: React.ReactNode }) {
     const [mobileOpen, setMobileOpen] = useState(false);
 
     return (
         <div className="min-h-screen bg-paper-50">
-            <PetugasSidebar name={name} mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
+            <PetugasSidebar name={name} isAdmin={isAdmin} mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
 
             <div className="lg:ml-64 min-h-screen flex flex-col">
                 <header className="bg-white/80 backdrop-blur-sm border-b border-paper-200 px-4 sm:px-8 py-4 flex items-center justify-between sticky top-0 z-20">
