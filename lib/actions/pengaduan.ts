@@ -28,13 +28,19 @@ export async function kirimPengaduan(prevState: ActionState, formData: FormData)
 
     const supabase = await createClient();
 
-    const { data: inserted, error } = await supabase
-        .from('pengaduan')
-        .insert({ subjek, isi_pengaduan: isi })
-        .select('token')
-        .single();
+    // [FIX AKAR MASALAH] Sebelumnya pakai .insert({...}).select('token')
+    // langsung — tapi itu butuh izin SELECT juga (untuk RETURNING),
+    // padahal publik SENGAJA tidak diberi SELECT ke tabel ini (demi
+    // anonimitas). Sekarang lewat function SECURITY DEFINER yang
+    // insert lalu kembalikan token saja — tidak buka akses SELECT
+    // publik ke seluruh tabel. Lihat catatan lengkap di migration
+    // 0025_fix_akar_masalah_rls_returning.sql.
+    const { data: token, error } = await supabase.rpc('kirim_pengaduan_publik', {
+        p_subjek: subjek,
+        p_isi_pengaduan: isi,
+    });
 
-    if (error || !inserted) {
+    if (error || !token) {
         // [DEBUG] Log detail error ke server (terlihat di log Vercel/runtime),
         // supaya penyebab sebenarnya (misal kolom belum ada karena migration
         // belum dijalankan) tidak "hilang" jadi pesan generik ke pengguna.
@@ -43,7 +49,7 @@ export async function kirimPengaduan(prevState: ActionState, formData: FormData)
     }
 
     revalidatePath('/admin/pengaduan');
-    redirect(`/pengaduan?token=${inserted.token}`);
+    redirect(`/pengaduan?token=${token}`);
 }
 
 /** Publik: ambil detail pengaduan + riwayat chat lewat token (tanpa login). */

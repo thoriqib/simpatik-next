@@ -77,27 +77,31 @@ export async function kirimPermintaanData(prevState: ActionState, formData: Form
 
     const supabase = await createClient();
 
-    // Hanya kirim field yang memang dimaksudkan untuk diisi publik —
-    // TIDAK PERNAH menyertakan `status`, `ditangani_oleh`, `tanggapan`
-    // dari input form (meski RLS sudah membatasi publik hanya bisa
-    // INSERT, defense-in-depth: jangan beri kesempatan field itu
-    // di-override lewat request yang dimanipulasi). `token` TIDAK
-    // dikirim di sini — biar Postgres yang generate (gen_random_uuid()
-    // default di kolom), supaya token selalu murni buatan server.
-    const { data: inserted, error } = await supabase
-        .from('permintaan_data')
-        .insert({
-            nama_lengkap: namaLengkap,
-            instansi,
-            kegunaan_data: kegunaanData,
-            email,
-            no_hp: noHp,
-            kebutuhan_data: kebutuhanData,
-        })
-        .select('token')
-        .single();
+    // [FIX AKAR MASALAH] Sebelumnya pakai .insert({...}).select('token')
+    // langsung — tapi itu butuh izin SELECT juga (untuk RETURNING),
+    // padahal publik SENGAJA tidak diberi SELECT ke tabel ini (cuma
+    // admin/petugas). Sekarang lewat function SECURITY DEFINER yang
+    // insert lalu kembalikan token saja — tidak buka akses SELECT
+    // publik ke seluruh tabel. Lihat catatan lengkap di migration
+    // 0025_fix_akar_masalah_rls_returning.sql.
+    //
+    // Field yang dikirim TETAP dibatasi ketat sama seperti sebelumnya —
+    // TIDAK PERNAH ada `status`, `ditangani_oleh`, `tanggapan` dari
+    // input form (defense-in-depth, jangan beri kesempatan field itu
+    // di-override lewat request yang dimanipulasi). `token` juga TIDAK
+    // dikirim — biar Postgres yang generate (gen_random_uuid() default
+    // di kolom, dihasilkan di dalam function), supaya token selalu
+    // murni buatan server.
+    const { data: token, error } = await supabase.rpc('kirim_permintaan_data_publik', {
+        p_nama_lengkap: namaLengkap,
+        p_instansi: instansi,
+        p_kegunaan_data: kegunaanData,
+        p_email: email,
+        p_no_hp: noHp,
+        p_kebutuhan_data: kebutuhanData,
+    });
 
-    if (error || !inserted) {
+    if (error || !token) {
         // [DEBUG] Log detail error ke server (terlihat di log Vercel/runtime),
         // supaya penyebab sebenarnya (misal RLS policy, kolom belum ada
         // karena migration belum dijalankan) tidak "hilang" jadi pesan
@@ -114,7 +118,7 @@ export async function kirimPermintaanData(prevState: ActionState, formData: Form
     // Link di layar sekarang jadi SATU-SATUNYA jalur (selalu berhasil,
     // tidak bergantung pihak ketiga) — lihat LinkSuksesCard.tsx.
     revalidatePath('/admin/permintaan-data');
-    redirect(`/permintaan-data?token=${inserted.token}`);
+    redirect(`/permintaan-data?token=${token}`);
 }
 
 /**

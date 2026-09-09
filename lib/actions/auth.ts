@@ -176,3 +176,49 @@ export async function importPetugasCSV(rows: { nama: string; email: string; pass
     revalidatePath('/admin/petugas');
     return { imported, skipped: rows.length - imported, errors, defaultPassword: DEFAULT_IMPORT_PASSWORD };
 }
+
+/**
+ * Reset password SEMUA akun staf (petugas + admin) jadi satu password
+ * seragam: pst1571. Jalan langsung di server produksi (Vercel) lewat
+ * Admin API — TIDAK perlu setup lokal/service role key manual, karena
+ * SUPABASE_SERVICE_ROLE_KEY memang sudah dikonfigurasi di env Vercel
+ * (dipakai juga oleh buatAkunPetugas & importPetugasCsv di atas).
+ *
+ * Setara dengan scripts/reset-password-petugas.ts, tapi lewat tombol UI
+ * — lebih praktis untuk yang tidak terbiasa jalankan skrip lokal.
+ */
+const PASSWORD_DEFAULT = 'pst1571';
+
+export async function resetPasswordMassal(): Promise<{ berhasil: number; gagal: number; error?: string }> {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { berhasil: 0, gagal: 0, error: 'Sesi tidak valid, silakan login ulang.' };
+
+    const { data: profil } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+    if (profil?.role !== 'admin') return { berhasil: 0, gagal: 0, error: 'Hanya admin yang bisa melakukan ini.' };
+
+    const { data: semuaStaf, error: errorAmbil } = await supabase
+        .from('profiles')
+        .select('id, email')
+        .in('role', ['petugas', 'admin']);
+
+    if (errorAmbil || !semuaStaf) {
+        return { berhasil: 0, gagal: 0, error: 'Gagal mengambil daftar akun staf.' };
+    }
+
+    const adminClient = createAdminClient();
+    let berhasil = 0;
+    let gagal = 0;
+
+    for (const staf of semuaStaf) {
+        const { error } = await adminClient.auth.admin.updateUserById(staf.id, { password: PASSWORD_DEFAULT });
+        if (error) {
+            console.error(`[resetPasswordMassal] Gagal reset ${staf.email}:`, error.message);
+            gagal++;
+        } else {
+            berhasil++;
+        }
+    }
+
+    return { berhasil, gagal };
+}

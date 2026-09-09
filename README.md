@@ -270,6 +270,31 @@ Kedua fitur import CSV di atas bisa dibuat/diedit langsung dari Excel:
 
 ---
 
+## 🔑 Reset Password Massal
+
+Dua cara, hasilnya sama (keduanya reset password **seluruh akun staf —
+petugas maupun admin** — jadi `pst1571`):
+
+**1. Lewat tombol UI (disarankan — tidak perlu setup apa pun)**
+Buka `/admin/pengaturan-akses` → tombol **"Reset Semua Password"**.
+Jalan langsung di server produksi (Vercel) lewat Supabase Admin API,
+karena `SUPABASE_SERVICE_ROLE_KEY` memang sudah dikonfigurasi di env
+Vercel (dipakai juga oleh fitur tambah akun petugas). Dijaga modal
+konfirmasi karena aksinya berdampak ke semua akun sekaligus.
+
+**2. Lewat script lokal**
+```bash
+npm run reset:password-petugas
+```
+Perlu `.env.local` terisi `SUPABASE_SERVICE_ROLE_KEY` di komputer Anda.
+Berguna kalau ingin lihat detail log per-akun, atau tombol UI di atas
+sedang tidak bisa diakses karena satu-lain hal.
+
+Setelah reset (cara mana pun), sarankan setiap orang segera ganti
+password sendiri di login berikutnya.
+
+---
+
 ## 🔒 Row Level Security (RLS) — Ringkasan
 
 Semua tabel punya RLS aktif. Poin penting yang perlu dipahami sebelum

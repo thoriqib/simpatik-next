@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { Card } from '@/components/ui/Card';
 import { RoleTable } from './RoleTable';
+import { ResetPasswordMassalButton } from './ResetPasswordMassalButton';
 import { unstable_noStore as noStore } from 'next/cache';
 
 export const dynamic = 'force-dynamic';
@@ -26,6 +27,11 @@ export default async function PengaturanAksesPage() {
                     Kelola role pengguna — jadikan petugas sebagai admin, atau turunkan admin jadi petugas biasa.
                 </p>
             </div>
+
+            <div className="mb-5">
+                <ResetPasswordMassalButton />
+            </div>
+
             <Card>
                 <RoleTable staf={semuaStaf ?? []} currentUserId={user!.id} />
             </Card>

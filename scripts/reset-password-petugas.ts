@@ -14,10 +14,8 @@
  * Membutuhkan SUPABASE_SERVICE_ROLE_KEY di .env.local (JANGAN pernah
  * expose key ini ke client/browser — hanya dipakai di script/server).
  *
- * Scope: HANYA akun dengan role='petugas' di tabel profiles — akun admin
- * TIDAK ikut ter-reset oleh script ini (kalau butuh reset admin juga,
- * ubah baris query di bawah dari .eq('role', 'petugas') jadi
- * .in('role', ['petugas', 'admin']), atau minta dibuatkan script terpisah).
+ * Scope: akun dengan role='petugas' MAUPUN 'admin' di tabel profiles —
+ * keduanya ikut direset (sesuai permintaan: admin default juga pst1571).
  */
 import { createClient } from '@supabase/supabase-js';
 import * as dotenv from 'dotenv';
@@ -67,12 +65,12 @@ const supabase = createClient(supabaseUrl, serviceRoleKey, {
 const PASSWORD_BARU = 'pst1571';
 
 async function main() {
-    console.log(`🚀 Reset password seluruh akun petugas jadi "${PASSWORD_BARU}"...\n`);
+    console.log(`🚀 Reset password seluruh akun staf (petugas + admin) jadi "${PASSWORD_BARU}"...\n`);
 
     const { data: petugasList, error: errorAmbil } = await supabase
         .from('profiles')
-        .select('id, email, name')
-        .eq('role', 'petugas')
+        .select('id, email, name, role')
+        .in('role', ['petugas', 'admin'])
         .order('name');
 
     if (errorAmbil) {
@@ -81,11 +79,11 @@ async function main() {
     }
 
     if (!petugasList || petugasList.length === 0) {
-        console.log('⚠️  Tidak ada akun dengan role="petugas" ditemukan. Tidak ada yang direset.');
+        console.log('⚠️  Tidak ada akun petugas/admin ditemukan. Tidak ada yang direset.');
         return;
     }
 
-    console.log(`Ditemukan ${petugasList.length} akun petugas.\n`);
+    console.log(`Ditemukan ${petugasList.length} akun staf (petugas/admin).\n`);
 
     let berhasil = 0;
     let gagal = 0;
@@ -98,12 +96,12 @@ async function main() {
             gagal++;
             continue;
         }
-        console.log(`✅ ${p.email.padEnd(38)} ${p.name}`);
+        console.log(`✅ [${p.role.padEnd(8)}] ${p.email.padEnd(38)} ${p.name}`);
         berhasil++;
     }
 
     console.log(`\n🎉 Selesai! ${berhasil} berhasil direset, ${gagal} gagal.`);
-    console.log(`   Password baru seluruh akun petugas: "${PASSWORD_BARU}"`);
+    console.log(`   Password baru seluruh akun staf: "${PASSWORD_BARU}"`);
     console.log('   Sarankan setiap petugas ganti password sendiri setelah login pertama kali.');
 }
 
