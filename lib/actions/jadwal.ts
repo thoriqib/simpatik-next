@@ -18,6 +18,9 @@ export async function tambahJadwal(prevState: ActionState, formData: FormData): 
     }
 
     revalidatePath('/admin/jadwal');
+    revalidatePath('/jadwal-petugas');
+    revalidatePath('/admin/jadwal-petugas');
+    revalidatePath('/petugas/jadwal-petugas');
     return null;
 }
 
@@ -25,6 +28,9 @@ export async function hapusJadwal(id: number) {
     const supabase = await createClient();
     await supabase.from('jadwal_piket').delete().eq('id', id);
     revalidatePath('/admin/jadwal');
+    revalidatePath('/jadwal-petugas');
+    revalidatePath('/admin/jadwal-petugas');
+    revalidatePath('/petugas/jadwal-petugas');
 }
 
 /**
@@ -54,6 +60,9 @@ export async function ubahStatusJadwal(jadwalPiketId: number, status: string, ke
     if (error) return { error: error.message };
 
     revalidatePath('/admin/jadwal');
+    revalidatePath('/jadwal-petugas');
+    revalidatePath('/admin/jadwal-petugas');
+    revalidatePath('/petugas/jadwal-petugas');
     revalidatePath('/petugas/jadwal');
     revalidatePath('/petugas/presensi');
     revalidatePath('/admin/laporan/presensi');
@@ -116,5 +125,8 @@ export async function importJadwal(rows: { email: string; shift: string; tanggal
     }
 
     revalidatePath('/admin/jadwal');
+    revalidatePath('/jadwal-petugas');
+    revalidatePath('/admin/jadwal-petugas');
+    revalidatePath('/petugas/jadwal-petugas');
     return { imported, skipped: rows.length - imported, errors };
 }

@@ -17,54 +17,6 @@ export default async function PetugasDashboard() {
     const { data: { user } } = await supabase.auth.getUser();
     const today = todayDateStringWIB();
 
-    // [RANCANG ULANG] Server cuma perlu tahu APAKAH ada jadwal piket hari
-    // ini + info shift (data yang jarang berubah, aman dirender server).
-    // Status presensi (yang sering berubah & sebelumnya jadi sumber bug)
-    // sekarang diambil sendiri oleh PresensiPanel langsung dari browser —
-    // lihat komentar lengkap di PresensiPanel.tsx.
-    const { data: jadwalHariIni } = await supabase
-        .from('jadwal_piket')
-        .select('id, shift_piket(nama_shift, jam_mulai, jam_selesai)')
-        .eq('user_id', user!.id)
-        .eq('tanggal', today)
-        .maybeSingle();
-
-    const shiftInfo = (jadwalHariIni?.shift_piket ?? null) as unknown as { nama_shift: string; jam_mulai: string; jam_selesai: string } | null;
-
-    const { data: antrianAktifRaw } = await supabase
-        .from('antrian')
-        .select('*, jenis_layanan(*)')
-        .eq('tanggal', today)
-        .in('status', ['menunggu', 'dipanggil', 'dilayani'])
-        .order('nomor_urut');
-
-    const antrianAktif = antrianAktifRaw as unknown as Antrian[] | null;
-
-    // [FITUR BARU + FIX BUG] Antrian selesai hari ini — query terpisah,
-    // karena `antrianAktif` di atas SENGAJA cuma ambil status aktif
-    // (menunggu/dipanggil/dilayani), jadi tidak akan pernah ketemu baris
-    // 'selesai' di dalamnya. Sebelumnya kartu "Selesai Hari Ini" salah
-    // hitung (selalu 0) karena difilter dari antrianAktif yang memang
-    // sudah tidak menyertakan status ini sejak awal.
-    const { data: antrianSelesaiRaw } = await supabase
-        .from('antrian')
-        .select('*, jenis_layanan(*)')
-        .eq('tanggal', today)
-        .eq('status', 'selesai')
-        .order('waktu_selesai', { ascending: false });
-
-    const antrianSelesai = (antrianSelesaiRaw ?? []) as unknown as Antrian[];
-
-    const { count: antrianSaya } = await supabase
-        .from('antrian').select('*', { count: 'exact', head: true })
-        .eq('petugas_id', user!.id).eq('tanggal', today);
-
-    const menunggu = antrianAktif?.filter((a) => a.status === 'menunggu').length ?? 0;
-    const selesai = antrianSelesai.length;
-
-    // ── Statistik personal triwulan berjalan — volume, rating, ketepatan
-    // presensi. Query terpisah lalu digabung di JS (bukan embed), pola
-    // yang sama seperti perhitungan Petugas Terbaik di sisi admin. ──────
     const now = new Date();
     const kuartal = Math.floor(now.getMonth() / 3);
     const startTriwulan = new Date(now.getFullYear(), kuartal * 3, 1);
@@ -72,47 +24,78 @@ export default async function PetugasDashboard() {
     const startStr = startTriwulan.toISOString().slice(0, 10);
     const endStr = endTriwulan.toISOString().slice(0, 10);
 
-    const { count: offlineTriwulan } = await supabase
-        .from('antrian').select('*', { count: 'exact', head: true })
-        .eq('petugas_id', user!.id).eq('status', 'selesai')
-        .gte('tanggal', startStr).lte('tanggal', endStr);
+    // [OPTIMASI PERFORMA] 9 query di bawah ini sepenuhnya independen satu
+    // sama lain (tidak ada yang butuh hasil query lain) — sebelumnya
+    // dijalankan berurutan (12 query total, satu-satu menunggu selesai),
+    // sekarang dijalankan BERSAMAAN lewat Promise.all. Latensi total jadi
+    // setara waktu query PALING LAMBAT di antara sembilan ini, bukan lagi
+    // akumulasi dari semuanya dijumlahkan.
+    const [
+        { data: jadwalHariIni },
+        { data: antrianAktifRaw },
+        { data: antrianSelesaiRaw },
+        { count: antrianSaya },
+        { count: offlineTriwulan },
+        { count: onlineTriwulan },
+        { data: jadwalTriwulan },
+        { data: antrianSayaTriwulan },
+        { data: penilaianOnline },
+    ] = await Promise.all([
+        // [RANCANG ULANG] Server cuma perlu tahu APAKAH ada jadwal piket
+        // hari ini + info shift (data yang jarang berubah, aman dirender
+        // server). Status presensi (yang sering berubah & sebelumnya jadi
+        // sumber bug) sekarang diambil sendiri oleh PresensiPanel langsung
+        // dari browser — lihat komentar lengkap di PresensiPanel.tsx.
+        supabase.from('jadwal_piket').select('id, shift_piket(nama_shift, jam_mulai, jam_selesai)').eq('user_id', user!.id).eq('tanggal', today).maybeSingle(),
+        supabase.from('antrian').select('*, jenis_layanan(*)').eq('tanggal', today).in('status', ['menunggu', 'dipanggil', 'dilayani']).order('nomor_urut'),
+        // [FITUR BARU + FIX BUG] Antrian selesai hari ini — query terpisah,
+        // karena antrian aktif di atas SENGAJA cuma ambil status aktif
+        // (menunggu/dipanggil/dilayani), jadi tidak akan pernah ketemu baris
+        // 'selesai' di dalamnya. Sebelumnya kartu "Selesai Hari Ini" salah
+        // hitung (selalu 0) karena difilter dari data yang memang sudah
+        // tidak menyertakan status ini sejak awal.
+        supabase.from('antrian').select('*, jenis_layanan(*)').eq('tanggal', today).eq('status', 'selesai').order('waktu_selesai', { ascending: false }),
+        supabase.from('antrian').select('*', { count: 'exact', head: true }).eq('petugas_id', user!.id).eq('tanggal', today),
+        // ── Statistik personal triwulan berjalan — volume, rating,
+        // ketepatan presensi. Query terpisah lalu digabung di JS (bukan
+        // embed), pola yang sama seperti perhitungan Petugas Terbaik di
+        // sisi admin. ──────────────────────────────────────────────────
+        supabase.from('antrian').select('*', { count: 'exact', head: true }).eq('petugas_id', user!.id).eq('status', 'selesai').gte('tanggal', startStr).lte('tanggal', endStr),
+        supabase.from('permintaan_data').select('*', { count: 'exact', head: true }).eq('ditangani_oleh', user!.id).eq('status', 'selesai').gte('created_at', startStr).lte('created_at', endStr),
+        supabase.from('jadwal_piket').select('id').eq('user_id', user!.id).gte('tanggal', startStr).lte('tanggal', endStr),
+        // [FIX] Hindari embedded select (`antrian!inner(tanggal)`) — pola
+        // ini terbukti tidak reliable di beberapa kasus sebelumnya (lihat
+        // catatan di app/petugas/dashboard/PresensiPanel.tsx). Ambil dulu
+        // antrian_id milik saya di triwulan ini, baru cari penilaian untuk
+        // id-id itu (di gelombang kedua, karena butuh hasil ini).
+        supabase.from('antrian').select('id').eq('petugas_id', user!.id).eq('status', 'selesai').gte('tanggal', startStr).lte('tanggal', endStr),
+        supabase.from('penilaian').select('nilai').eq('petugas_id', user!.id).not('permintaan_data_id', 'is', null).gte('created_at', startStr).lte('created_at', endStr),
+    ]);
 
-    const { count: onlineTriwulan } = await supabase
-        .from('permintaan_data').select('*', { count: 'exact', head: true })
-        .eq('ditangani_oleh', user!.id).eq('status', 'selesai')
-        .gte('created_at', startStr).lte('created_at', endStr);
+    const shiftInfo = (jadwalHariIni?.shift_piket ?? null) as unknown as { nama_shift: string; jam_mulai: string; jam_selesai: string } | null;
+    const antrianAktif = antrianAktifRaw as unknown as Antrian[] | null;
+    const antrianSelesai = (antrianSelesaiRaw ?? []) as unknown as Antrian[];
+    const menunggu = antrianAktif?.filter((a) => a.status === 'menunggu').length ?? 0;
+    const selesai = antrianSelesai.length;
 
-    const { data: jadwalTriwulan } = await supabase
-        .from('jadwal_piket').select('id')
-        .eq('user_id', user!.id).gte('tanggal', startStr).lte('tanggal', endStr);
+    // ── Gelombang kedua — 2 query ini BUTUH hasil dari gelombang pertama
+    // (jadwalIdsTriwulan, antrianIdsTriwulan), jadi wajib menunggu Promise.all
+    // di atas selesai dulu. Tapi keduanya independen SATU SAMA LAIN, jadi
+    // tetap dijalankan bersamaan lewat Promise.all lagi, bukan berurutan. ──
     const jadwalIdsTriwulan = (jadwalTriwulan ?? []).map((j) => j.id);
+    const antrianIdsTriwulan = (antrianSayaTriwulan ?? []).map((a) => a.id);
 
-    const { data: presensiTriwulan } = await supabase
-        .from('presensi').select('kekurangan_menit')
-        .in('jadwal_piket_id', jadwalIdsTriwulan.length > 0 ? jadwalIdsTriwulan : [-1])
-        .not('waktu_masuk', 'is', null).not('waktu_keluar', 'is', null);
+    const [
+        { data: presensiTriwulan },
+        { data: penilaianOffline },
+    ] = await Promise.all([
+        supabase.from('presensi').select('kekurangan_menit').in('jadwal_piket_id', jadwalIdsTriwulan.length > 0 ? jadwalIdsTriwulan : [-1]).not('waktu_masuk', 'is', null).not('waktu_keluar', 'is', null),
+        supabase.from('penilaian').select('nilai').in('antrian_id', antrianIdsTriwulan.length > 0 ? antrianIdsTriwulan : [-1]),
+    ]);
 
     const tepatWaktuPersen = presensiTriwulan && presensiTriwulan.length > 0
         ? Math.round((presensiTriwulan.filter((p) => p.kekurangan_menit === 0).length / presensiTriwulan.length) * 100)
         : null;
-
-    // [FIX] Hindari embedded select (`antrian!inner(tanggal)`) — pola ini
-    // terbukti tidak reliable di beberapa kasus sebelumnya (lihat catatan
-    // di app/petugas/dashboard/PresensiPanel.tsx). Ambil dulu antrian_id
-    // milik saya di triwulan ini, baru cari penilaian untuk id-id itu.
-    const { data: antrianSayaTriwulan } = await supabase
-        .from('antrian').select('id')
-        .eq('petugas_id', user!.id).eq('status', 'selesai')
-        .gte('tanggal', startStr).lte('tanggal', endStr);
-    const antrianIdsTriwulan = (antrianSayaTriwulan ?? []).map((a) => a.id);
-
-    const { data: penilaianOffline } = await supabase
-        .from('penilaian').select('nilai')
-        .in('antrian_id', antrianIdsTriwulan.length > 0 ? antrianIdsTriwulan : [-1]);
-    const { data: penilaianOnline } = await supabase
-        .from('penilaian').select('nilai')
-        .eq('petugas_id', user!.id).not('permintaan_data_id', 'is', null)
-        .gte('created_at', startStr).lte('created_at', endStr);
 
     const semuaPenilaianSaya = [...(penilaianOffline ?? []), ...(penilaianOnline ?? [])];
     const ratingSaya = semuaPenilaianSaya.length > 0

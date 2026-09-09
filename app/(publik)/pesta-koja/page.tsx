@@ -2,14 +2,16 @@ import { createClient } from '@/lib/supabase/server';
 import { getPestaKojaIcon } from '@/lib/pesta-koja-icons';
 import { buatQrCodeDataUri } from '@/lib/qrcode';
 import { ExternalLink, Sparkles } from 'lucide-react';
-import { unstable_noStore as noStore } from 'next/cache';
 import type { PestaKojaLink } from '@/lib/types/database';
 
-export const dynamic = 'force-dynamic';
+// [OPTIMASI PERFORMA] ISR 60 detik, bukan force-dynamic — daftar link
+// dikelola admin dan jarang berubah, dan setiap aksi admin (tambah/edit/
+// hapus/urutkan link) sudah memanggil revalidatePath ke halaman ini,
+// jadi perubahan tetap langsung terlihat tanpa perlu menunggu jendela
+// 60 detik.
+export const revalidate = 60;
 
 export default async function PestaKojaPage() {
-    noStore();
-
     const supabase = await createClient();
     const { data: linkList } = await supabase
         .from('pesta_koja_link')

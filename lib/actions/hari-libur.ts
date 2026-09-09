@@ -17,6 +17,8 @@ export async function tambahHariLibur(tanggal: string, keterangan: string) {
 
     revalidatePath('/admin/jadwal');
     revalidatePath('/jadwal-petugas');
+    revalidatePath('/admin/jadwal-petugas');
+    revalidatePath('/petugas/jadwal-petugas');
     return { success: true };
 }
 
@@ -26,4 +28,6 @@ export async function hapusHariLibur(id: number) {
 
     revalidatePath('/admin/jadwal');
     revalidatePath('/jadwal-petugas');
+    revalidatePath('/admin/jadwal-petugas');
+    revalidatePath('/petugas/jadwal-petugas');
 }

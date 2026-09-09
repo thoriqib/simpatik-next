@@ -13,19 +13,25 @@ export default async function AdminDashboard() {
     const supabase = await createClient();
     const today = todayDateStringWIB();
 
-    const { count: totalPetugas } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'petugas');
-    const { count: antrianHariIni } = await supabase.from('antrian').select('*', { count: 'exact', head: true }).eq('tanggal', today);
-    const { count: antrianSelesai } = await supabase.from('antrian').select('*', { count: 'exact', head: true }).eq('tanggal', today).eq('status', 'selesai');
-    const { count: pengaduanBaru } = await supabase.from('pengaduan').select('*', { count: 'exact', head: true }).eq('status', 'baru');
-
-    // [FIX] Cast eksplisit — relasi to-one (jenis_layanan, profiles) ditebak
-    // sebagai array tanpa generated types.
-    const { data: antrianAktifRaw } = await supabase
-        .from('antrian')
-        .select('*, jenis_layanan(nama_layanan), profiles(name)')
-        .eq('tanggal', today)
-        .in('status', ['menunggu', 'dipanggil', 'dilayani'])
-        .order('nomor_urut');
+    // [OPTIMASI PERFORMA] Kelima query ini sepenuhnya independen satu sama
+    // lain — sebelumnya dijalankan berurutan, sekarang bersamaan lewat
+    // Promise.all supaya latensi totalnya setara query paling lambat,
+    // bukan akumulasi kelimanya.
+    const [
+        { count: totalPetugas },
+        { count: antrianHariIni },
+        { count: antrianSelesai },
+        { count: pengaduanBaru },
+        { data: antrianAktifRaw },
+    ] = await Promise.all([
+        supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'petugas'),
+        supabase.from('antrian').select('*', { count: 'exact', head: true }).eq('tanggal', today),
+        supabase.from('antrian').select('*', { count: 'exact', head: true }).eq('tanggal', today).eq('status', 'selesai'),
+        supabase.from('pengaduan').select('*', { count: 'exact', head: true }).eq('status', 'baru'),
+        // [FIX] Cast eksplisit — relasi to-one (jenis_layanan, profiles)
+        // ditebak sebagai array tanpa generated types.
+        supabase.from('antrian').select('*, jenis_layanan(nama_layanan), profiles(name)').eq('tanggal', today).in('status', ['menunggu', 'dipanggil', 'dilayani']).order('nomor_urut'),
+    ]);
 
     const antrianAktif = antrianAktifRaw as unknown as Antrian[] | null;
 

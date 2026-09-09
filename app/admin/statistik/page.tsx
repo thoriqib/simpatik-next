@@ -26,22 +26,20 @@ export default async function StatistikAdminPage() {
     // ── Ambil data mentah 6 bulan terakhir — diagregasi di JS, bukan
     // lewat function database baru, supaya logikanya mudah dicek/diubah
     // langsung di sini tanpa perlu migration terpisah. Volume data untuk
-    // skala satu kantor kota masih wajar diproses begini. ──────────────
-    const { data: antrianRaw } = await supabase
-        .from('antrian').select('tanggal, status')
-        .gte('tanggal', startStr).eq('status', 'selesai');
-
-    const { data: permintaanRaw } = await supabase
-        .from('permintaan_data').select('created_at, status')
-        .gte('created_at', startStr).eq('status', 'selesai');
-
-    const { data: penilaianRaw } = await supabase
-        .from('penilaian').select('nilai, created_at')
-        .gte('created_at', startStr);
-
-    const { data: presensiRaw } = await supabase
-        .from('presensi').select('kekurangan_menit, waktu_masuk')
-        .gte('waktu_masuk', startStr).not('waktu_masuk', 'is', null);
+    // skala satu kantor kota masih wajar diproses begini. Keempatnya
+    // independen satu sama lain, jadi dijalankan bersamaan lewat
+    // Promise.all — bukan lagi empat query berurutan. ──────────────────
+    const [
+        { data: antrianRaw },
+        { data: permintaanRaw },
+        { data: penilaianRaw },
+        { data: presensiRaw },
+    ] = await Promise.all([
+        supabase.from('antrian').select('tanggal, status').gte('tanggal', startStr).eq('status', 'selesai'),
+        supabase.from('permintaan_data').select('created_at, status').gte('created_at', startStr).eq('status', 'selesai'),
+        supabase.from('penilaian').select('nilai, created_at').gte('created_at', startStr),
+        supabase.from('presensi').select('kekurangan_menit, waktu_masuk').gte('waktu_masuk', startStr).not('waktu_masuk', 'is', null),
+    ]);
 
     const dataBulanan = bulanList.map((b) => {
         const antrianBulan = (antrianRaw ?? []).filter((a) => a.tanggal.startsWith(b.key)).length;

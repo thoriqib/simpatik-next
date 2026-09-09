@@ -5,8 +5,6 @@ import {
     ArrowRight, Building2, ShieldCheck, Clock3, Sparkles, MapPin, Phone, Link2,
 } from 'lucide-react';
 
-export const dynamic = 'force-dynamic';
-
 const FITUR = [
     {
         icon: Ticket,
