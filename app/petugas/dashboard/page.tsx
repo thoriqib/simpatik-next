@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/Card';
 import { todayDateStringWIB } from '@/lib/utils';
 import { PresensiPanel } from './PresensiPanel';
 import { AntrianPanel } from './AntrianPanel';
+import { AntrianSelesaiPanel } from './AntrianSelesaiPanel';
 import { Ticket, Globe, Star, Clock3 } from 'lucide-react';
 import { unstable_noStore as noStore } from 'next/cache';
 import type { Antrian } from '@/lib/types/database';
@@ -39,12 +40,27 @@ export default async function PetugasDashboard() {
 
     const antrianAktif = antrianAktifRaw as unknown as Antrian[] | null;
 
+    // [FITUR BARU + FIX BUG] Antrian selesai hari ini — query terpisah,
+    // karena `antrianAktif` di atas SENGAJA cuma ambil status aktif
+    // (menunggu/dipanggil/dilayani), jadi tidak akan pernah ketemu baris
+    // 'selesai' di dalamnya. Sebelumnya kartu "Selesai Hari Ini" salah
+    // hitung (selalu 0) karena difilter dari antrianAktif yang memang
+    // sudah tidak menyertakan status ini sejak awal.
+    const { data: antrianSelesaiRaw } = await supabase
+        .from('antrian')
+        .select('*, jenis_layanan(*)')
+        .eq('tanggal', today)
+        .eq('status', 'selesai')
+        .order('waktu_selesai', { ascending: false });
+
+    const antrianSelesai = (antrianSelesaiRaw ?? []) as unknown as Antrian[];
+
     const { count: antrianSaya } = await supabase
         .from('antrian').select('*', { count: 'exact', head: true })
         .eq('petugas_id', user!.id).eq('tanggal', today);
 
     const menunggu = antrianAktif?.filter((a) => a.status === 'menunggu').length ?? 0;
-    const selesai = antrianAktif?.filter((a) => a.status === 'selesai').length ?? 0;
+    const selesai = antrianSelesai.length;
 
     // ── Statistik personal triwulan berjalan — volume, rating, ketepatan
     // presensi. Query terpisah lalu digabung di JS (bukan embed), pola
@@ -128,6 +144,10 @@ export default async function PetugasDashboard() {
             </div>
 
             <AntrianPanel antrianAktif={antrianAktif ?? []} petugasId={user!.id} />
+
+            <div className="mt-5">
+                <AntrianSelesaiPanel antrianSelesai={antrianSelesai} />
+            </div>
 
             <Card title="Statistik Saya" description="Ringkasan performa Anda pada triwulan berjalan" className="mt-5">
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">

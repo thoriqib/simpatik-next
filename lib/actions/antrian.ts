@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { formatInTimeZone } from 'date-fns-tz';
 import { jadwalPelayananHariIni } from '@/lib/jam-pelayanan';
+import { buatQrCodeDataUri } from '@/lib/qrcode';
 import type { ActionState } from './auth';
 
 /**
@@ -134,4 +135,29 @@ export async function hapusKunjunganMitra(id: number) {
     await supabase.from('kunjungan_mitra').delete().eq('id', id);
     revalidatePath('/admin/kunjungan-mitra');
     revalidatePath('/petugas/kunjungan-mitra');
+}
+
+/**
+ * Generate QR code tiket antrian on-demand — dipanggil dari tombol di
+ * dashboard petugas. Berguna kalau pengunjung tidak menyimpan link
+ * tiketnya sendiri; petugas bisa tunjukkan QR ini untuk di-scan
+ * langsung di tempat. Sama isinya dengan QR yang sudah ada di halaman
+ * tiket publik — cuma di-generate ulang di sini untuk ditampilkan
+ * lewat popup, tanpa perlu petugas buka halaman tiket pengunjung.
+ */
+export async function ambilQrTiket(kodeAntrian: string): Promise<{ qrDataUri?: string; url?: string; error?: string }> {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Sesi tidak valid, silakan login ulang.' };
+
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const url = `${appUrl}/antrian/${kodeAntrian}/tiket`;
+
+    try {
+        const qrDataUri = await buatQrCodeDataUri(url);
+        return { qrDataUri, url };
+    } catch (err) {
+        console.error('[ambilQrTiket] Gagal generate QR:', err);
+        return { error: 'Gagal membuat kode QR. Silakan coba lagi.' };
+    }
 }

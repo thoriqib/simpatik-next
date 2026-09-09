@@ -4,6 +4,7 @@ import { useTransition } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { panggilAntrian, mulaiLayaniAntrian, selesaiAntrian, batalAntrian } from '@/lib/actions/antrian';
+import { QrTiketButton } from '@/components/QrTiketButton';
 import { Megaphone, Play, Check, X, Repeat } from 'lucide-react';
 import type { Antrian } from '@/lib/types/database';
 
@@ -32,7 +33,8 @@ export function AntrianPanel({ antrianAktif, petugasId }: { antrianAktif: Antria
                                     <td className="py-3 text-navy-950/60 text-xs">{item.jenis_layanan?.nama_layanan}</td>
                                     <td className="py-3"><Badge status={item.status} /></td>
                                     <td className="py-3">
-                                        <div className="flex gap-2">
+                                        <div className="flex gap-2 flex-wrap">
+                                            <QrTiketButton kodeAntrian={item.kode_antrian} namaPengunjung={item.nama_pengunjung} />
                                             {item.status === 'menunggu' && (
                                                 <button disabled={isPending} onClick={() => startTransition(() => panggilAntrian(item.id, petugasId))}
                                                     className="inline-flex items-center gap-1.5 bg-azure-500 text-white px-3 py-1.5 rounded-xl text-xs font-medium hover:bg-azure-500/90 transition-colors disabled:opacity-50">
