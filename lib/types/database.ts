@@ -57,6 +57,15 @@ export interface Presensi {
     created_at: string;
 }
 
+export interface KunjunganMitra {
+    id: number;
+    nama: string;
+    no_hp: string;
+    keperluan: string;
+    dicatat_oleh: string | null;
+    created_at: string;
+}
+
 export interface Antrian {
     id: number;
     kode_antrian: string;

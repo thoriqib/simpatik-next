@@ -61,6 +61,7 @@ export default async function LaporanAntrianPage({ searchParams }: { searchParam
                     <thead>
                         <tr className="border-b text-navy-950/50 text-left">
                             <th className="pb-3 font-medium">Tanggal</th><th className="pb-3 font-medium">Kode</th><th className="pb-3 font-medium">Nama Pengunjung</th>
+                            <th className="pb-3 font-medium">No. HP</th><th className="pb-3 font-medium">Email</th>
                             <th className="pb-3 font-medium">Layanan</th><th className="pb-3 font-medium">Petugas</th><th className="pb-3 font-medium">Status</th>
                         </tr>
                     </thead>
@@ -70,11 +71,13 @@ export default async function LaporanAntrianPage({ searchParams }: { searchParam
                                 <td className="py-3 text-navy-950/50">{new Date(a.tanggal).toLocaleDateString('id-ID')}</td>
                                 <td className="py-3 font-mono font-semibold text-navy-700">{a.kode_antrian}</td>
                                 <td className="py-3">{a.nama_pengunjung}</td>
+                                <td className="py-3 text-navy-950/50 font-mono text-xs">{a.no_hp || '-'}</td>
+                                <td className="py-3 text-navy-950/50 text-xs">{a.email || '-'}</td>
                                 <td className="py-3 text-navy-950/60">{a.jenis_layanan?.nama_layanan}</td>
                                 <td className="py-3 text-navy-950/60">{a.profiles?.name ?? '-'}</td>
                                 <td className="py-3"><Badge status={a.status} /></td>
                             </tr>
-                        )) : <tr><td colSpan={6} className="py-8 text-center text-navy-950/30">Tidak ada data antrian</td></tr>}
+                        )) : <tr><td colSpan={8} className="py-8 text-center text-navy-950/30">Tidak ada data antrian</td></tr>}
                     </tbody>
                 </table>
             </Card>

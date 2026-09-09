@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { logout } from '@/lib/actions/auth';
 import {
     LayoutDashboard, Users, Clock, CalendarDays, CalendarClock, Tag,
-    MessageSquareWarning, Star, ClipboardList, LogOut, X, Trophy, FileSearch, BarChart3, ShieldCheck, Link2, HelpCircle, ArrowLeftRight,
+    MessageSquareWarning, Star, ClipboardList, LogOut, X, Trophy, FileSearch, BarChart3, ShieldCheck, Link2, HelpCircle, ArrowLeftRight, Briefcase,
 } from 'lucide-react';
 
 const MENU: { group: string | null; href: string; label: string; icon: React.ElementType }[] = [
@@ -17,6 +17,7 @@ const MENU: { group: string | null; href: string; label: string; icon: React.Ele
     { group: 'Petugas', href: '/admin/jadwal-petugas', label: 'Jadwal Semua Petugas', icon: CalendarClock },
     { group: 'Petugas', href: '/admin/pengaturan-akses', label: 'Pengaturan Akses', icon: ShieldCheck },
     { group: 'Layanan', href: '/admin/jenis-layanan', label: 'Jenis Layanan', icon: Tag },
+    { group: 'Layanan', href: '/admin/kunjungan-mitra', label: 'Kunjungan Mitra', icon: Briefcase },
     { group: 'Layanan', href: '/admin/permintaan-data', label: 'Permintaan Data', icon: FileSearch },
     { group: 'Layanan', href: '/admin/pengaduan', label: 'Pengaduan', icon: MessageSquareWarning },
     { group: 'Layanan', href: '/admin/pesta-koja', label: 'Pesta Koja', icon: Link2 },

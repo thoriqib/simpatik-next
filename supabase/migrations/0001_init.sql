@@ -943,3 +943,35 @@ end;
 $$;
 
 grant execute on function public.cari_permintaan_data_publik(text) to anon, authenticated;
+
+-- ═══════════════════════════════════════════════════════════════
+-- FITUR: Kunjungan Mitra Statistik — terpisah dari antrian (tanpa
+-- nomor urut, tanpa status layanan, tanpa penilaian kepuasan).
+-- ═══════════════════════════════════════════════════════════════
+create table public.kunjungan_mitra (
+    id          bigint generated always as identity primary key,
+    nama        text not null,
+    no_hp       text not null,
+    keperluan   text not null,
+    dicatat_oleh uuid references public.profiles(id),
+    created_at  timestamptz not null default now()
+);
+
+create index idx_kunjungan_mitra_created_at on public.kunjungan_mitra(created_at);
+
+alter table public.kunjungan_mitra enable row level security;
+
+create policy "kunjungan_mitra: publik insert" on public.kunjungan_mitra
+    for insert
+    to anon, authenticated
+    with check (true);
+
+create policy "kunjungan_mitra: admin petugas lihat" on public.kunjungan_mitra
+    for select
+    to authenticated
+    using (app_role() in ('admin', 'petugas'));
+
+create policy "kunjungan_mitra: admin hapus" on public.kunjungan_mitra
+    for delete
+    to authenticated
+    using (app_role() = 'admin');

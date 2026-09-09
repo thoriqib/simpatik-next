@@ -3,13 +3,15 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { logout } from '@/lib/actions/auth';
-import { LayoutDashboard, CalendarDays, Clock, LogOut, X, FileSearch, Users, HelpCircle, ArrowLeftRight } from 'lucide-react';
+import { LayoutDashboard, CalendarDays, Clock, LogOut, X, FileSearch, Users, HelpCircle, ArrowLeftRight, Contact, Briefcase } from 'lucide-react';
 
 const MENU = [
     { href: '/petugas/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/petugas/jadwal', label: 'Jadwal Saya', icon: CalendarDays },
     { href: '/petugas/jadwal-petugas', label: 'Jadwal Semua Petugas', icon: Users },
     { href: '/petugas/presensi', label: 'Presensi', icon: Clock },
+    { href: '/petugas/data-pengunjung', label: 'Data Pengunjung', icon: Contact },
+    { href: '/petugas/kunjungan-mitra', label: 'Kunjungan Mitra', icon: Briefcase },
     { href: '/petugas/permintaan-data', label: 'Permintaan Data', icon: FileSearch },
     { href: '/petugas/bantuan', label: 'Bantuan', icon: HelpCircle },
 ];

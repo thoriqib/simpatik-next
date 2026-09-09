@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "seed:users": "tsx scripts/seed-users.ts"
+    "seed:users": "tsx scripts/seed-users.ts",
+    "reset:password-petugas": "tsx scripts/reset-password-petugas.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",
