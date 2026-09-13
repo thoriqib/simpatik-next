@@ -24,7 +24,7 @@ const JADWAL_MINGGUAN_CLIENT: Record<number, JadwalHariClient> = {
     6: { buka: false, jamMulai: '', jamSelesai: '' }, // Sabtu
 };
 
-export function ambilWaktuWIBSekarang(): { jam: number; menit: number; hari: number; label: string } {
+export function ambilWaktuWIBSekarang(localeUntukLabel: string = 'id-ID'): { jam: number; menit: number; hari: number; label: string } {
     const now = new Date();
     const parts = new Intl.DateTimeFormat('en-US', {
         timeZone: 'Asia/Jakarta',
@@ -37,7 +37,11 @@ export function ambilWaktuWIBSekarang(): { jam: number; menit: number; hari: num
     const map: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
     const hari = map[namaHari] ?? 1;
 
-    const label = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' });
+    // [FITUR BARU] Terima kode locale ('id-ID' atau 'en-US') supaya label
+    // tanggal ikut berubah sesuai bahasa aktif — sebelumnya selalu hardcode
+    // 'id-ID'. Default tetap 'id-ID' kalau tidak dikirim (jaga kompatibilitas
+    // kalau ada pemanggil lain di masa depan yang tidak sadar soal locale).
+    const label = now.toLocaleDateString(localeUntukLabel, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' });
 
     return { jam, menit, hari, label };
 }

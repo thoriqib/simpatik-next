@@ -1,0 +1,328 @@
+{
+    "nav": {
+        "home": "Beranda",
+        "permintaanData": "Permintaan Data",
+        "pestaKoja": "Pesta Koja",
+        "pengaduan": "Pengaduan",
+        "faq": "FAQ",
+        "loginStaff": "Masuk Sebagai Petugas"
+    },
+    "languageSwitcher": {
+        "label": "Bahasa"
+    },
+    "faq": {
+        "title": "Pertanyaan yang Sering Diajukan",
+        "subtitle": "Belum ketemu jawabannya? Sampaikan lewat menu Pengaduan.",
+        "stillHaveQuestions": "Masih Ada Pertanyaan Lain?",
+        "stillHaveQuestionsDesc": "Sampaikan lewat pengaduan (anonim) atau ajukan konsultasi langsung ke petugas kami.",
+        "sendComplaint": "Kirim Pengaduan",
+        "dataConsultation": "Konsultasi Data",
+        "categories": {
+            "antrian": "Kunjungan & Antrian",
+            "permintaanData": "Permintaan Data & Konsultasi Online",
+            "pengaduan": "Pengaduan",
+            "pestaKoja": "Pesta Koja & Layanan Lain"
+        },
+        "items": {
+            "cara-ambil-antrian": {
+                "q": "Bagaimana cara mengambil nomor antrian?",
+                "a": "Nomor antrian diambil langsung di layar/tablet yang tersedia di ruang pelayanan kantor BPS Kota Jambi."
+            },
+            "jam-pelayanan": {
+                "q": "Kapan jam pelayanan BPS Kota Jambi?",
+                "a": "Senin–Kamis: 08.00–15.30 WIB. Jumat: 08.00–16.00 WIB. Sabtu–Minggu: tidak ada pelayanan."
+            },
+            "cara-penilaian": {
+                "q": "Saya sudah dilayani, bagaimana cara memberi penilaian?",
+                "a": "Tautan penilaian muncul otomatis di halaman tiket antrian Anda setelah pelayanan selesai. Beri bintang 1–5 beserta komentar untuk membantu kami meningkatkan kualitas layanan."
+            },
+            "harus-datang-langsung": {
+                "q": "Apakah saya harus datang langsung untuk konsultasi/minta data?",
+                "a": "Tidak selalu. Ajukan permintaan atau konsultasi data lewat form daring di menu Permintaan Data — bisa dari mana saja, kapan saja (form dibuka pada jam pelayanan). Anda akan mendapat link unik untuk berkomunikasi langsung dengan petugas."
+            },
+            "kehilangan-link-permintaan": {
+                "q": "Saya kehilangan link lacak permintaan data saya, bagaimana?",
+                "a": "Buka menu Permintaan Data → \"Sudah pernah mengajukan sebelumnya?\" → masukkan email yang Anda gunakan saat mengajukan. Semua permintaan dengan email tersebut akan ditampilkan, lengkap dengan link menuju masing-masing."
+            },
+            "chat-jam-tertentu": {
+                "q": "Kenapa saya tidak bisa kirim pesan di jam tertentu?",
+                "a": "Percakapan (chat) dengan petugas hanya aktif pada jam pelayanan. Di luar jam tersebut, riwayat percakapan tetap bisa dibaca, tapi pesan baru baru bisa dikirim lagi saat jam pelayanan berlangsung."
+            },
+            "privasi-permintaan": {
+                "q": "Apakah permintaan data saya bisa dilihat orang lain?",
+                "a": "Tidak. Setiap permintaan punya link unik acak yang mustahil ditebak — hanya yang memegang link (atau tahu email yang didaftarkan) yang bisa mengakses percakapannya."
+            },
+            "anonimitas-pengaduan": {
+                "q": "Apakah pengaduan saya akan diketahui identitasnya?",
+                "a": "Tidak. Pengaduan bersifat sepenuhnya anonim — kami sengaja tidak meminta nama, email, atau kontak apa pun. Setelah kirim, Anda mendapat link dan kode token unik untuk memantau tindak lanjutnya."
+            },
+            "kehilangan-link-pengaduan": {
+                "q": "Saya kehilangan link/token pengaduan saya, bagaimana?",
+                "a": "Berbeda dengan permintaan data, pengaduan tidak menyimpan email — jadi satu-satunya cara memulihkan akses adalah lewat link atau kode token itu sendiri. Buka menu Pengaduan → \"Sudah melakukan pengaduan sebelumnya?\" dan tempelkan link/token yang Anda simpan. Kalau benar-benar hilang keduanya, mohon maaf percakapan itu tidak bisa dipulihkan — ini konsekuensi dari menjaga anonimitas sepenuhnya."
+            },
+            "lama-tindak-lanjut": {
+                "q": "Berapa lama pengaduan saya ditindaklanjuti?",
+                "a": "Waktu tindak lanjut bervariasi tergantung kompleksitas. Anda bisa memantau statusnya (Baru/Diproses/Selesai) kapan saja lewat link/token yang diberikan."
+            },
+            "apa-itu-pesta-koja": {
+                "q": "Apa itu Pesta Koja?",
+                "a": "Pesta Koja (Pelayanan Statistik Kota Jambi) adalah pusat akses cepat ke seluruh layanan digital BPS Kota Jambi dalam satu tempat — mulai dari konsultasi via WhatsApp (PANDAWA), perpustakaan digital, rekomendasi statistik, pembelian data mikro, survei kebutuhan data, hingga akses informasi publik (PPID)."
+            },
+            "lihat-jadwal-petugas": {
+                "q": "Bisakah saya melihat jadwal petugas yang bertugas?",
+                "a": "Untuk saat ini, jadwal lengkap petugas hanya bisa diakses oleh petugas dan admin yang sudah login, sebagai bagian dari pengelolaan internal."
+            }
+        }
+    },
+    "landing": {
+        "brandName": "Simpatik",
+        "hero": {
+            "badge": "Layanan Digital BPS Kota Jambi",
+            "title": "Simpatik",
+            "subtitle": "Sistem Informasi Pelayanan Statistik Terpadu",
+            "description": "Mempermudah masyarakat mengakses layanan statistik BPS Kota Jambi — dari permintaan data, konsultasi, hingga pengaduan — semua dalam satu tempat.",
+            "ctaPrimary": "Buat Konsultasi/Permintaan Data",
+            "ctaSecondary": "Lihat Pelayanan Tersedia"
+        },
+        "features": {
+            "title": "Semua Layanan, Satu Aplikasi",
+            "subtitle": "Simpatik dirancang untuk membuat interaksi Anda dengan BPS Kota Jambi lebih mudah dan transparan.",
+            "antrian": {
+                "judul": "Antrian Digital",
+                "deskripsi": "Pengunjung yang datang langsung ke kantor mengambil nomor antrian lewat layar yang tersedia di ruang pelayanan — cepat, tertib, tanpa kertas."
+            },
+            "permintaanData": {
+                "judul": "Permintaan Data Online",
+                "deskripsi": "Ajukan permintaan atau konsultasi data dari mana saja. Dapat link unik untuk berkomunikasi langsung dengan petugas sampai selesai."
+            },
+            "pengaduan": {
+                "judul": "Pengaduan Anonim",
+                "deskripsi": "Sampaikan keluhan atau masukan tanpa perlu mencantumkan identitas — kami tetap mendengarkan."
+            },
+            "penilaian": {
+                "judul": "Penilaian Pelayanan",
+                "deskripsi": "Beri rating dan komentar setelah dilayani, jadi masukan langsung untuk peningkatan kualitas layanan kami."
+            },
+            "keamanan": {
+                "judul": "Data Anda Terlindungi",
+                "deskripsi": "Setiap permintaan dan pengaduan diproses dengan kendali akses yang ketat — hanya petugas berwenang yang bisa menanganinya."
+            },
+            "pestaKoja": {
+                "judul": "Pesta Koja",
+                "deskripsi": "Pusat akses cepat ke seluruh layanan digital BPS Kota Jambi — konsultasi WhatsApp, publikasi, rekomendasi statistik, dan lainnya dalam satu tempat."
+            }
+        },
+        "pestaKojaSection": {
+            "badge": "Pusat Layanan Digital",
+            "title": "Pesta Koja",
+            "subtitle": "Pelayanan Statistik Kota Jambi",
+            "desc1First": "Pesta Koja adalah pusat akses cepat ke ",
+            "desc1Bold": "seluruh layanan digital",
+            "desc1Rest": " BPS Kota Jambi — baik yang dikembangkan sendiri maupun layanan resmi BPS Pusat — dikumpulkan dalam satu tempat, supaya masyarakat tidak perlu mencari-cari atau menghafal banyak alamat website berbeda.",
+            "desc2": "Mulai dari konsultasi statistik lewat WhatsApp, akses perpustakaan digital, rekomendasi kegiatan statistik, pembelian data mikro, survei kebutuhan data, hingga akses informasi publik (PPID) — semua tautannya tersedia dan selalu diperbarui di satu halaman.",
+            "cta": "Lihat Pelayanan Tersedia",
+            "services": {
+                "pandawa": {
+                    "title": "PANDAWA",
+                    "desc": "Konsultasi statistik langsung via WhatsApp."
+                },
+                "perpustakaan": {
+                    "title": "Perpustakaan Digital",
+                    "desc": "Akses publikasi BPS secara daring."
+                },
+                "silastik": {
+                    "title": "Silastik",
+                    "desc": "Pembelian data mikro & peta wilayah kerja."
+                },
+                "ppid": {
+                    "title": "PPID",
+                    "desc": "Akses & pengajuan informasi publik."
+                }
+            }
+        },
+        "profile": {
+            "badge": "Tentang Kami",
+            "title": "Badan Pusat Statistik Kota Jambi",
+            "desc1": "BPS Kota Jambi adalah instansi vertikal Badan Pusat Statistik yang bertugas menyediakan data statistik berkualitas untuk perencanaan pembangunan di Kota Jambi — mulai dari sensus dan survei, publikasi statistik sektoral, hingga layanan konsultasi data bagi masyarakat, akademisi, dan instansi pemerintah.",
+            "desc2": "Lewat Simpatik, kami ingin memastikan setiap masyarakat yang membutuhkan data maupun layanan statistik bisa terlayani dengan cepat, transparan, dan mudah dijangkau — baik datang langsung ke kantor maupun secara daring.",
+            "address": "Jl. Jend. Basuki Rahmat, Kota Baru, Kota Jambi, Jambi 38128",
+            "phone": "(0741) 40539",
+            "stats": {
+                "responsif": {
+                    "title": "Layanan Responsif",
+                    "desc": "Permintaan data & pengaduan ditindaklanjuti langsung oleh petugas kami."
+                },
+                "resmi": {
+                    "title": "Data Resmi",
+                    "desc": "Bersumber langsung dari BPS, instansi resmi statistik pemerintah Indonesia."
+                },
+                "akses": {
+                    "title": "Mudah Diakses",
+                    "desc": "Layanan bisa diajukan kapan saja, dari perangkat apa saja."
+                },
+                "mutu": {
+                    "title": "Berorientasi Mutu",
+                    "desc": "Setiap layanan dinilai pengunjung untuk perbaikan berkelanjutan."
+                }
+            }
+        },
+        "ctaClosing": {
+            "title": "Butuh Bantuan Kami?",
+            "subtitle": "Jelajahi seluruh layanan digital kami di Pesta Koja, atau sampaikan pengaduan Anda kapan saja.",
+            "cta1": "Lihat Pelayanan Tersedia",
+            "cta2": "Kirim Pengaduan"
+        }
+    },
+    "pestaKoja": {
+        "badge": "Pusat Layanan Digital",
+        "title": "PESTA KOJA",
+        "subtitle": "Pelayanan Statistik Kota Jambi",
+        "description": "Kumpulan akses cepat ke seluruh layanan digital BPS Kota Jambi — dari konsultasi, publikasi, hingga pengaduan.",
+        "empty": "Belum ada link layanan yang tersedia.",
+        "scanCaption": "Pindai untuk buka Pesta Koja",
+        "scanHint": "Cocok dicetak untuk poster/banner di ruang pelayanan",
+        "footerNote": "Setiap link membuka laman resmi BPS terkait di tab baru."
+    },
+    "antrian": {
+        "title": "Ambil Nomor Antrian",
+        "subtitle": "Isi data di bawah untuk mendapatkan nomor antrian pelayanan Anda",
+        "displayAntrian": "Display Antrian",
+        "sendComplaint": "Kirim Pengaduan",
+        "mitraSuccess": {
+            "title": "Kunjungan Tercatat",
+            "desc": "Terima kasih, kunjungan Anda sebagai Mitra Statistik sudah tercatat. Tidak perlu menunggu nomor antrian — silakan langsung menuju petugas terkait.",
+            "back": "Kembali ke Halaman Antrian"
+        },
+        "toggle": {
+            "umum": "Pengunjung Umum",
+            "mitra": "Mitra Statistik"
+        },
+        "form": {
+            "jenisLayanan": "Jenis Layanan",
+            "namaLengkap": "Nama Lengkap",
+            "noHp": "No. HP",
+            "email": "Email",
+            "submit": "Ambil Nomor Antrian",
+            "submitting": "Memproses..."
+        },
+        "mitraForm": {
+            "notice": "Khusus Mitra Statistik (mis. petugas lapangan, enumerator, atau mitra kerja sama statistik) — kunjungan Anda dicatat langsung tanpa perlu antre nomor.",
+            "namaLengkap": "Nama Lengkap",
+            "noHp": "No. HP",
+            "keperluan": "Keperluan",
+            "keperluanPlaceholder": "Contoh: Mengumpulkan dokumen hasil survei, konsultasi teknis lapangan, dsb.",
+            "submit": "Catat Kunjungan",
+            "submitting": "Menyimpan..."
+        },
+        "gate": {
+            "closedTitle": "Pengambilan Antrian Ditutup",
+            "closedWeekend": "Tidak ada pelayanan pada hari Sabtu & Minggu. Silakan kembali pada hari kerja mulai pukul 08.00 WIB.",
+            "closedNight": "Nomor antrian tidak bisa diambil pada pukul 18.00–07.00 WIB. Silakan kembali besok pagi mulai pukul 07.00 WIB.",
+            "backHome": "Kembali ke Beranda",
+            "outsideHoursTitle": "Di Luar Jam Pelayanan",
+            "outsideHoursDesc": "Jam pelayanan resmi kami adalah {jamMulai}–{jamSelesai} WIB. Anda tetap bisa mengambil nomor antrian sekarang, tapi kemungkinan petugas belum siap melayani sampai jam operasional dimulai.",
+            "understand": "Mengerti, Lanjutkan"
+        },
+        "tiket": {
+            "brand": "Sistem Informasi Pelayanan Statistik",
+            "queueAhead": "Antrian di depan Anda",
+            "youAreNext": "Anda berikutnya",
+            "waitHint": "Harap menunggu hingga nomor Anda dipanggil",
+            "scanHint": "Scan untuk cek status di ponsel Anda",
+            "print": "Cetak Tiket",
+            "refresh": "Refresh",
+            "display": "Display",
+            "rate": "Beri Penilaian"
+        }
+    },
+    "permintaanData": {
+        "success": {
+            "title": "Permintaan Terkirim",
+            "desc": "Simpan link di bawah untuk memantau status & berkomunikasi langsung dengan petugas."
+        },
+        "closed": {
+            "title": "Formulir Ditutup Sementara",
+            "desc": "Permintaan data/konsultasi hanya bisa diajukan pada jam pelayanan {jamMulai}–{jamSelesai} WIB. Silakan kembali pada jam tersebut.",
+            "hours": "Jam pelayanan: {jamMulai}–{jamSelesai} WIB"
+        },
+        "page": {
+            "title": "Form Permintaan Data",
+            "subtitle": "Permintaan/Konsultasi Data Pelayanan Statistik Terpadu — BPS Kota Jambi. Form ini terbuka untuk umum, tidak perlu login.",
+            "searchPrompt": "Sudah pernah mengajukan sebelumnya?",
+            "searchHint": "Lupa link lacak? Cari lewat email Anda di sini"
+        },
+        "form": {
+            "namaLengkap": "Nama Lengkap",
+            "instansi": "Instansi",
+            "instansiPlaceholder": "Nama kantor/sekolah/universitas Anda",
+            "kegunaanData": "Kegunaan Data",
+            "kedinasan": "Kedinasan/Pekerjaan",
+            "pribadi": "Pribadi/Tugas Sekolah/Kuliah/Skripsi",
+            "email": "Email",
+            "noHp": "No Handphone",
+            "kebutuhan": "Data/Konsultasi yang Dibutuhkan",
+            "kebutuhanPlaceholder": "Jelaskan data atau konsultasi yang Anda butuhkan secara detail...",
+            "submit": "Kirim Permintaan",
+            "submitting": "Mengirim...",
+            "honeypotLabel": "Jangan isi kolom ini"
+        },
+        "linkCard": {
+            "title": "Link Lacak Permintaan Anda",
+            "copy": "Salin Link",
+            "copied": "Tersalin!",
+            "open": "Buka Sekarang"
+        },
+        "cari": {
+            "title": "Cari Permintaan Data Saya",
+            "subtitle": "Lupa menyimpan link lacak? Masukkan email yang Anda gunakan saat mengajukan, kami bantu carikan.",
+            "back": "Kembali ke Form Permintaan Data",
+            "emailLabel": "Email yang Anda gunakan saat mengajukan",
+            "emailRequired": "Email wajib diisi.",
+            "submit": "Cari Permintaan Saya",
+            "searching": "Mencari...",
+            "notFound": "Tidak ditemukan permintaan data dengan email tersebut. Pastikan email yang dimasukkan sudah tepat.",
+            "foundCount": "Ditemukan {count} permintaan"
+        },
+        "lacak": {
+            "title": "Lacak Permintaan Data",
+            "submittedAt": "Diajukan {date} WIB",
+            "kegunaanData": "Kegunaan Data",
+            "yourRequest": "Permintaan Anda",
+            "conversation": "Percakapan",
+            "ratingTitle": "Penilaian Pelayanan",
+            "saveHint": "Simpan link ini baik-baik. Siapa pun yang memiliki link ini bisa melihat & membalas percakapan.",
+            "status": {
+                "baru": "Menunggu petugas menindaklanjuti permintaan Anda. Silakan cek kembali beberapa saat lagi.",
+                "diproses": "Permintaan Anda sedang ditangani. Anda bisa berkomunikasi langsung dengan petugas di bawah.",
+                "selesai": "Permintaan Anda sudah selesai ditangani. Percakapan ditutup.",
+                "dibatalkan": "Permintaan ini sedang diproses ulang oleh petugas."
+            }
+        },
+        "chat": {
+            "live": "Live — balasan petugas muncul otomatis",
+            "connecting": "Menghubungkan...",
+            "you": "Anda",
+            "staff": "Petugas BPS",
+            "empty": "Belum ada percakapan.",
+            "placeholder": "Tulis pesan...",
+            "reload": "Muat ulang untuk cek balasan terbaru"
+        },
+        "rating": {
+            "thankYou": "Terima kasih atas penilaian Anda!",
+            "howSatisfied": "Seberapa puas Anda dengan layanan ini?",
+            "comment": "Komentar",
+            "optional": "(opsional)",
+            "commentPlaceholder": "Ceritakan pengalaman Anda...",
+            "submit": "Kirim Penilaian",
+            "submitting": "Mengirim...",
+            "selectStarError": "Silakan pilih bintang penilaian terlebih dahulu.",
+            "labels": {
+                "1": "😞 Sangat Tidak Puas",
+                "2": "😕 Tidak Puas",
+                "3": "😐 Cukup",
+                "4": "😊 Puas",
+                "5": "😄 Sangat Puas"
+            }
+        }
+    }
+}

@@ -1,5 +1,9 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import createIntlMiddleware from 'next-intl/middleware';
+import { routing } from './i18n/routing';
+
+const intlMiddleware = createIntlMiddleware(routing);
 
 /**
  * Middleware ini menggantikan peran `role:admin` / `role:petugas`
@@ -8,10 +12,35 @@ import { NextResponse, type NextRequest } from 'next/server';
  * 2. Redirect ke /login jika mengakses /admin atau /petugas tanpa sesi
  * 3. Redirect ke dashboard yang sesuai jika role tidak cocok dengan area yang diakses
  * 4. Redirect user yang sudah login menjauh dari halaman /login
+ *
+ * [FITUR BARU] Ditambah locale routing (next-intl) — TAPI HANYA untuk
+ * rute publik yang masuk scope terjemahan (landing, antrian, permintaan-
+ * data, pengaduan, penilaian, faq, pesta-koja). Rute admin/petugas/login/
+ * display-antrian/jadwal-petugas SENGAJA dilewati sepenuhnya dari logic
+ * locale — tetap berjalan identik seperti sebelum fitur ini ada, nol
+ * risiko ke logic auth yang sudah terbukti stabil.
  */
 export async function middleware(request: NextRequest) {
-    let response = NextResponse.next({ request });
+    const path = request.nextUrl.pathname;
+    const isAdminRoute = path.startsWith('/admin');
+    const isPetugasRoute = path.startsWith('/petugas');
+    const isLoginRoute = path === '/login';
+    const isDisplayAntrianRoute = path.startsWith('/display-antrian');
+    const isJadwalPetugasRoute = path.startsWith('/jadwal-petugas');
 
+    // Rute yang TIDAK ikut scope terjemahan — lewati next-intl middleware
+    // sepenuhnya, langsung ke logic auth seperti semula (tidak berubah).
+    const lewatiIntl = isAdminRoute || isPetugasRoute || isLoginRoute || isDisplayAntrianRoute || isJadwalPetugasRoute;
+
+    let response = lewatiIntl ? NextResponse.next({ request }) : intlMiddleware(request);
+
+    // [FIX KRITIS] Supabase membaca `response` dari next-intl di atas dan
+    // MENAMBAHKAN cookie langsung ke objek yang sama — TIDAK PERNAH
+    // reassign `response` ke objek baru di sini. Kalau di-reassign
+    // (seperti pola lama sebelum ada next-intl), redirect/rewrite locale
+    // yang sudah disiapkan next-intl di atas akan hilang/tertimpa. Ini
+    // pola yang dikonfirmasi benar dari diskusi resmi next-intl & Supabase
+    // soal cara menggabung middleware keduanya.
     const supabase = createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -21,11 +50,10 @@ export async function middleware(request: NextRequest) {
                     return request.cookies.getAll();
                 },
                 setAll(cookiesToSet: { name: string; value: string; options?: CookieOptions }[]) {
-                    cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-                    response = NextResponse.next({ request });
-                    cookiesToSet.forEach(({ name, value, options }) =>
-                        response.cookies.set(name, value, options)
-                    );
+                    cookiesToSet.forEach(({ name, value, options }) => {
+                        request.cookies.set(name, value);
+                        response.cookies.set(name, value, options);
+                    });
                 },
             },
         }
@@ -34,11 +62,6 @@ export async function middleware(request: NextRequest) {
     const {
         data: { user },
     } = await supabase.auth.getUser();
-
-    const path = request.nextUrl.pathname;
-    const isAdminRoute = path.startsWith('/admin');
-    const isPetugasRoute = path.startsWith('/petugas');
-    const isLoginRoute = path === '/login';
 
     // Belum login tapi mengakses area terproteksi → redirect ke /login
     if (!user && (isAdminRoute || isPetugasRoute)) {

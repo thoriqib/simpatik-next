@@ -1,0 +1,328 @@
+{
+    "nav": {
+        "home": "Home",
+        "permintaanData": "Data Request",
+        "pestaKoja": "Pesta Koja",
+        "pengaduan": "Complaints",
+        "faq": "FAQ",
+        "loginStaff": "Staff Login"
+    },
+    "languageSwitcher": {
+        "label": "Language"
+    },
+    "faq": {
+        "title": "Frequently Asked Questions",
+        "subtitle": "Can't find your answer? Reach out via the Complaints menu.",
+        "stillHaveQuestions": "Still Have Questions?",
+        "stillHaveQuestionsDesc": "Reach out via complaints (anonymous) or request a direct consultation with our staff.",
+        "sendComplaint": "Send Complaint",
+        "dataConsultation": "Data Consultation",
+        "categories": {
+            "antrian": "Visits & Queue",
+            "permintaanData": "Data Requests & Online Consultation",
+            "pengaduan": "Complaints",
+            "pestaKoja": "Pesta Koja & Other Services"
+        },
+        "items": {
+            "cara-ambil-antrian": {
+                "q": "How do I get a queue number?",
+                "a": "Queue numbers are taken directly from the screen/tablet available at the BPS Kota Jambi service area."
+            },
+            "jam-pelayanan": {
+                "q": "What are BPS Kota Jambi's service hours?",
+                "a": "Monday–Thursday: 08:00–15:30 WIB. Friday: 08:00–16:00 WIB. Saturday–Sunday: closed."
+            },
+            "cara-penilaian": {
+                "q": "I've been served — how do I leave a rating?",
+                "a": "A rating link automatically appears on your queue ticket page once service is complete. Give 1–5 stars plus a comment to help us improve our service quality."
+            },
+            "harus-datang-langsung": {
+                "q": "Do I have to come in person for a consultation or data request?",
+                "a": "Not always. Submit a data request or consultation through the online form in the Data Request menu — from anywhere, anytime (the form is open during service hours). You'll get a unique link to communicate directly with staff."
+            },
+            "kehilangan-link-permintaan": {
+                "q": "I lost my data request tracking link — what now?",
+                "a": "Open the Data Request menu → \"Submitted a request before?\" → enter the email you used when submitting. All requests under that email will be shown, each with a link to its own page."
+            },
+            "chat-jam-tertentu": {
+                "q": "Why can't I send a message at certain hours?",
+                "a": "Chat with staff is only active during service hours. Outside those hours, chat history remains readable, but new messages can only be sent again once service hours resume."
+            },
+            "privasi-permintaan": {
+                "q": "Can other people see my data request?",
+                "a": "No. Every request has a unique, unguessable link — only whoever holds the link (or knows the registered email) can access its conversation."
+            },
+            "anonimitas-pengaduan": {
+                "q": "Will my identity be known when I file a complaint?",
+                "a": "No. Complaints are fully anonymous — we deliberately don't ask for your name, email, or any contact details. After submitting, you'll get a link and a unique token code to track its progress."
+            },
+            "kehilangan-link-pengaduan": {
+                "q": "I lost my complaint link/token — what now?",
+                "a": "Unlike data requests, complaints don't store an email — so the link or token itself is the only way to recover access. Open the Complaints menu → \"Filed a complaint before?\" and paste the link/token you saved. If both are truly lost, we're sorry but that conversation cannot be recovered — this is the trade-off of keeping full anonymity."
+            },
+            "lama-tindak-lanjut": {
+                "q": "How long does it take for my complaint to be followed up?",
+                "a": "Follow-up time varies depending on complexity. You can check its status (New/In Progress/Resolved) anytime via the link/token provided."
+            },
+            "apa-itu-pesta-koja": {
+                "q": "What is Pesta Koja?",
+                "a": "Pesta Koja (Jambi City Statistical Services) is a one-stop hub for all of BPS Kota Jambi's digital services — from WhatsApp consultation (PANDAWA), a digital library, statistical recommendations, microdata purchases, and data needs surveys, to public information access (PPID)."
+            },
+            "lihat-jadwal-petugas": {
+                "q": "Can I see the staff duty schedule?",
+                "a": "Currently, the full staff schedule is only accessible to logged-in staff and admins, as part of internal management."
+            }
+        }
+    },
+    "landing": {
+        "brandName": "Simpatik",
+        "hero": {
+            "badge": "BPS Kota Jambi Digital Services",
+            "title": "Simpatik",
+            "subtitle": "Integrated Statistical Service Information System",
+            "description": "Making it easier for the public to access BPS Kota Jambi's statistical services — from data requests and consultations to complaints — all in one place.",
+            "ctaPrimary": "Start a Data Consultation/Request",
+            "ctaSecondary": "View Available Services"
+        },
+        "features": {
+            "title": "All Services, One App",
+            "subtitle": "Simpatik is designed to make your interactions with BPS Kota Jambi easier and more transparent.",
+            "antrian": {
+                "judul": "Digital Queue",
+                "deskripsi": "Visitors who come in person take a queue number from the screen available at the service area — fast, orderly, paperless."
+            },
+            "permintaanData": {
+                "judul": "Online Data Requests",
+                "deskripsi": "Submit a data request or consultation from anywhere. Get a unique link to communicate directly with staff until it's resolved."
+            },
+            "pengaduan": {
+                "judul": "Anonymous Complaints",
+                "deskripsi": "Share your concerns or feedback without disclosing your identity — we still listen."
+            },
+            "penilaian": {
+                "judul": "Service Ratings",
+                "deskripsi": "Rate and comment after being served, giving us direct feedback to improve our service quality."
+            },
+            "keamanan": {
+                "judul": "Your Data Is Protected",
+                "deskripsi": "Every request and complaint is processed under strict access control — only authorized staff can handle it."
+            },
+            "pestaKoja": {
+                "judul": "Pesta Koja",
+                "deskripsi": "A one-stop hub for all of BPS Kota Jambi's digital services — WhatsApp consultation, publications, statistical recommendations, and more in one place."
+            }
+        },
+        "pestaKojaSection": {
+            "badge": "Digital Services Hub",
+            "title": "Pesta Koja",
+            "subtitle": "Jambi City Statistical Services",
+            "desc1First": "Pesta Koja is a quick-access hub for ",
+            "desc1Bold": "all of BPS Kota Jambi's digital services",
+            "desc1Rest": " — both self-developed and official BPS Pusat services — gathered in one place, so the public doesn't need to search for or memorize many different website addresses.",
+            "desc2": "From statistical consultation via WhatsApp, digital library access, statistical activity recommendations, microdata purchases, and data needs surveys, to public information access (PPID) — every link is available and always kept up to date on one page.",
+            "cta": "View Available Services",
+            "services": {
+                "pandawa": {
+                    "title": "PANDAWA",
+                    "desc": "Direct statistical consultation via WhatsApp."
+                },
+                "perpustakaan": {
+                    "title": "Digital Library",
+                    "desc": "Access BPS publications online."
+                },
+                "silastik": {
+                    "title": "Silastik",
+                    "desc": "Microdata purchases & working area maps."
+                },
+                "ppid": {
+                    "title": "PPID",
+                    "desc": "Public information access & requests."
+                }
+            }
+        },
+        "profile": {
+            "badge": "About Us",
+            "title": "BPS Kota Jambi (Jambi City Statistics Office)",
+            "desc1": "BPS Kota Jambi is a vertical agency of Statistics Indonesia (BPS) tasked with providing quality statistical data for development planning in Jambi City — from censuses and surveys, sectoral statistical publications, to data consultation services for the public, academics, and government agencies.",
+            "desc2": "Through Simpatik, we aim to ensure that everyone who needs statistical data or services can be served quickly, transparently, and conveniently — whether visiting in person or online.",
+            "address": "Jl. Jend. Basuki Rahmat, Kota Baru, Jambi City, Jambi 38128",
+            "phone": "(0741) 40539",
+            "stats": {
+                "responsif": {
+                    "title": "Responsive Service",
+                    "desc": "Data requests & complaints are followed up directly by our staff."
+                },
+                "resmi": {
+                    "title": "Official Data",
+                    "desc": "Sourced directly from BPS, Indonesia's official government statistics agency."
+                },
+                "akses": {
+                    "title": "Easy Access",
+                    "desc": "Services can be requested anytime, from any device."
+                },
+                "mutu": {
+                    "title": "Quality-Oriented",
+                    "desc": "Every service is rated by visitors for continuous improvement."
+                }
+            }
+        },
+        "ctaClosing": {
+            "title": "Need Our Help?",
+            "subtitle": "Explore all our digital services at Pesta Koja, or send us a complaint anytime.",
+            "cta1": "View Available Services",
+            "cta2": "Send Complaint"
+        }
+    },
+    "pestaKoja": {
+        "badge": "Digital Services Hub",
+        "title": "PESTA KOJA",
+        "subtitle": "Jambi City Statistical Services",
+        "description": "A quick-access collection of all BPS Kota Jambi digital services — from consultation and publications to complaints.",
+        "empty": "No service links available yet.",
+        "scanCaption": "Scan to open Pesta Koja",
+        "scanHint": "Suitable for printing as a poster/banner in the service area",
+        "footerNote": "Each link opens the relevant official BPS page in a new tab."
+    },
+    "antrian": {
+        "title": "Get a Queue Number",
+        "subtitle": "Fill in the details below to get your service queue number",
+        "displayAntrian": "Queue Display",
+        "sendComplaint": "Send Complaint",
+        "mitraSuccess": {
+            "title": "Visit Recorded",
+            "desc": "Thank you, your visit as a Statistical Partner has been recorded. No need to wait for a queue number — please proceed directly to the relevant staff.",
+            "back": "Back to Queue Page"
+        },
+        "toggle": {
+            "umum": "General Visitor",
+            "mitra": "Statistical Partner"
+        },
+        "form": {
+            "jenisLayanan": "Service Type",
+            "namaLengkap": "Full Name",
+            "noHp": "Phone Number",
+            "email": "Email",
+            "submit": "Get Queue Number",
+            "submitting": "Processing..."
+        },
+        "mitraForm": {
+            "notice": "For Statistical Partners only (e.g. field staff, enumerators, or statistical partnership collaborators) — your visit is recorded directly without needing to queue.",
+            "namaLengkap": "Full Name",
+            "noHp": "Phone Number",
+            "keperluan": "Purpose",
+            "keperluanPlaceholder": "Example: Collecting survey result documents, field technical consultation, etc.",
+            "submit": "Record Visit",
+            "submitting": "Saving..."
+        },
+        "gate": {
+            "closedTitle": "Queue Registration Closed",
+            "closedWeekend": "There is no service on Saturdays & Sundays. Please come back on a business day starting at 08:00 WIB.",
+            "closedNight": "Queue numbers cannot be taken between 18:00–07:00 WIB. Please come back tomorrow morning starting at 07:00 WIB.",
+            "backHome": "Back to Home",
+            "outsideHoursTitle": "Outside Service Hours",
+            "outsideHoursDesc": "Our official service hours are {jamMulai}–{jamSelesai} WIB. You can still take a queue number now, but staff may not be ready to serve until operating hours begin.",
+            "understand": "Understood, Continue"
+        },
+        "tiket": {
+            "brand": "Integrated Statistical Service Information System",
+            "queueAhead": "Queue ahead of you",
+            "youAreNext": "You're next",
+            "waitHint": "Please wait until your number is called",
+            "scanHint": "Scan to check status on your phone",
+            "print": "Print Ticket",
+            "refresh": "Refresh",
+            "display": "Display",
+            "rate": "Rate Service"
+        }
+    },
+    "permintaanData": {
+        "success": {
+            "title": "Request Submitted",
+            "desc": "Save the link below to track its status & communicate directly with staff."
+        },
+        "closed": {
+            "title": "Form Temporarily Closed",
+            "desc": "Data requests/consultations can only be submitted during service hours {jamMulai}–{jamSelesai} WIB. Please come back during those hours.",
+            "hours": "Service hours: {jamMulai}–{jamSelesai} WIB"
+        },
+        "page": {
+            "title": "Data Request Form",
+            "subtitle": "Integrated Statistical Service Data Request/Consultation — BPS Kota Jambi. This form is open to the public, no login required.",
+            "searchPrompt": "Submitted a request before?",
+            "searchHint": "Lost your tracking link? Search by your email here"
+        },
+        "form": {
+            "namaLengkap": "Full Name",
+            "instansi": "Institution",
+            "instansiPlaceholder": "Your office/school/university name",
+            "kegunaanData": "Data Purpose",
+            "kedinasan": "Official Duty/Work",
+            "pribadi": "Personal/School/College/Thesis Assignment",
+            "email": "Email",
+            "noHp": "Phone Number",
+            "kebutuhan": "Data/Consultation Needed",
+            "kebutuhanPlaceholder": "Describe in detail the data or consultation you need...",
+            "submit": "Submit Request",
+            "submitting": "Submitting...",
+            "honeypotLabel": "Do not fill this field"
+        },
+        "linkCard": {
+            "title": "Your Request Tracking Link",
+            "copy": "Copy Link",
+            "copied": "Copied!",
+            "open": "Open Now"
+        },
+        "cari": {
+            "title": "Find My Data Request",
+            "subtitle": "Lost your tracking link? Enter the email you used when submitting, and we'll help you find it.",
+            "back": "Back to Data Request Form",
+            "emailLabel": "The email you used when submitting",
+            "emailRequired": "Email is required.",
+            "submit": "Find My Requests",
+            "searching": "Searching...",
+            "notFound": "No data requests found with that email. Please make sure the email entered is correct.",
+            "foundCount": "Found {count} request(s)"
+        },
+        "lacak": {
+            "title": "Track Data Request",
+            "submittedAt": "Submitted {date} WIB",
+            "kegunaanData": "Data Purpose",
+            "yourRequest": "Your Request",
+            "conversation": "Conversation",
+            "ratingTitle": "Service Rating",
+            "saveHint": "Please keep this link safe. Anyone with this link can view & reply to the conversation.",
+            "status": {
+                "baru": "Waiting for staff to follow up on your request. Please check back again shortly.",
+                "diproses": "Your request is being handled. You can communicate directly with staff below.",
+                "selesai": "Your request has been fully handled. The conversation is closed.",
+                "dibatalkan": "This request is being reprocessed by staff."
+            }
+        },
+        "chat": {
+            "live": "Live — staff replies appear automatically",
+            "connecting": "Connecting...",
+            "you": "You",
+            "staff": "BPS Staff",
+            "empty": "No conversation yet.",
+            "placeholder": "Write a message...",
+            "reload": "Reload to check for new replies"
+        },
+        "rating": {
+            "thankYou": "Thank you for your rating!",
+            "howSatisfied": "How satisfied are you with this service?",
+            "comment": "Comment",
+            "optional": "(optional)",
+            "commentPlaceholder": "Tell us about your experience...",
+            "submit": "Submit Rating",
+            "submitting": "Submitting...",
+            "selectStarError": "Please select a star rating first.",
+            "labels": {
+                "1": "😞 Very Unsatisfied",
+                "2": "😕 Unsatisfied",
+                "3": "😐 Neutral",
+                "4": "😊 Satisfied",
+                "5": "😄 Very Satisfied"
+            }
+        }
+    }
+}
