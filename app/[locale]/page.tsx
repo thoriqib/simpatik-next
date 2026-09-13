@@ -1,4 +1,5 @@
 import { Link } from '@/i18n/navigation';
+import NextLink from 'next/link';
 import { PublicFooter } from '@/components/layouts/PublicFooter';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { useTranslations } from 'next-intl';
@@ -53,11 +54,16 @@ function LandingPage() {
                             {tNav('faq')}
                         </Link>
                         <div className="mr-1">
-                            <LanguageSwitcher />
+                            <LanguageSwitcher variant="light" />
                         </div>
-                        <Link href="/login" className="text-sm bg-navy-700 text-white px-4 py-2 rounded-xl font-medium hover:bg-navy-800 transition-colors">
+                        {/* [CATATAN] /login SENGAJA pakai next/link biasa (bukan
+                            Link locale-aware) — halaman ini di luar scope
+                            terjemahan (area staf, tetap Indonesia saja), jadi
+                            tidak boleh ikut ter-prefix /en (yang akan 404
+                            karena rute /en/login memang tidak ada). */}
+                        <NextLink href="/login" className="text-sm bg-navy-700 text-white px-4 py-2 rounded-xl font-medium hover:bg-navy-800 transition-colors">
                             {tNav('loginStaff')}
-                        </Link>
+                        </NextLink>
                     </nav>
                 </div>
             </header>
