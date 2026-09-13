@@ -324,5 +324,86 @@
                 "5": "😄 Very Satisfied"
             }
         }
+    },
+    "pengaduan": {
+        "success": {
+            "title": "Complaint Submitted",
+            "desc": "Your complaint is <bold>anonymous</bold> — we deliberately don't ask for any email or contact details. Please keep the link below safe, it's the only way you can track & communicate with admin about this complaint."
+        },
+        "page": {
+            "title": "Send Complaint",
+            "subtitle": "Complaints are anonymous. Share your concerns or feedback honestly.",
+            "searchPrompt": "Filed a complaint before?",
+            "searchHint": "Lost your tracking link? Enter the link/token you were given here",
+            "backHome": "Back to Home"
+        },
+        "form": {
+            "subjek": "Complaint Subject",
+            "subjekPlaceholder": "Example: Staff was unresponsive",
+            "isi": "Complaint Details",
+            "isiPlaceholder": "Describe your complaint in detail...",
+            "submit": "📢 Send Complaint",
+            "submitting": "Sending..."
+        },
+        "linkCard": {
+            "linkTitle": "Your Complaint Tracking Link",
+            "copy": "Copy Link",
+            "copied": "Copied!",
+            "open": "Open Now",
+            "tokenTitle": "Or Your Token Code",
+            "copyToken": "Copy Token Code",
+            "tokenHint1": "This token code can be used to track your complaint on the",
+            "tokenHintLink": "Track Complaint",
+            "tokenHint2": "page, if you find it easier to note down this short code instead of the full link."
+        },
+        "cari": {
+            "title": "Track My Complaint",
+            "subtitle": "Lost your complaint tracking link? Paste the link or token code you were given after submitting your complaint.",
+            "back": "Back to Complaint Form",
+            "inputLabel": "Your complaint link or token code",
+            "inputPlaceholder": "Paste the full link, or the random code after /lacak/",
+            "inputHint": "Complaints are anonymous — no email/name is stored, so this link or token code is the only way to access your conversation again.",
+            "invalidFormat": "Link/token format not recognized. Make sure it's copied in full from the confirmation screen after submitting your complaint.",
+            "notFound": "Complaint not found. Please check the link/token you entered.",
+            "submit": "Track Complaint",
+            "checking": "Checking..."
+        },
+        "lacak": {
+            "title": "Track Complaint",
+            "submittedAt": "Submitted {date} WIB",
+            "yourComplaint": "Your Complaint Details",
+            "conversation": "Conversation",
+            "saveHint": "This complaint is anonymous — please keep this link safe, as there is no other way to access it again.",
+            "status": {
+                "baru": "Waiting for admin to follow up on your complaint. Please check back again shortly.",
+                "diproses": "Your complaint is being handled. You can communicate directly with admin below.",
+                "selesai": "Your complaint has been fully handled. The conversation is closed."
+            }
+        },
+        "chat": {
+            "live": "Live — admin replies appear automatically",
+            "connecting": "Connecting...",
+            "outsideHours": "Chat is only active during service hours ({jamMulai}–{jamSelesai} WIB). You can still read the history, please send a message again once service hours resume.",
+            "you": "You",
+            "admin": "BPS Admin",
+            "empty": "No conversation yet.",
+            "emptyWaiting": "Waiting for admin to follow up on your complaint.",
+            "placeholder": "Write a message...",
+            "placeholderClosed": "Chat closed outside service hours ({jamMulai}–{jamSelesai} WIB)",
+            "reload": "Reload to check for new replies"
+        }
+    },
+    "penilaian": {
+        "thankYouTitle": "Thank You!",
+        "thankYouDesc": "Your rating has been received and is valuable input for improving our service quality.",
+        "title": "Service Rating",
+        "subtitle": "Rate the service you received",
+        "antrian": "Queue",
+        "howSatisfied": "How satisfied are you with our service?",
+        "comment": "Comment",
+        "optional": "(optional)",
+        "commentPlaceholder": "Tell us about your experience...",
+        "submit": "Submit Rating",
+        "submitting": "Submitting..."
     }
 }

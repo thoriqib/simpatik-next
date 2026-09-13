@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
 import { ambilPengaduanPublik } from '@/lib/actions/pengaduan';
+import { useTranslations } from 'next-intl';
 import { KeyRound, ArrowRight } from 'lucide-react';
 
 /** Pola UUID standar — dipakai untuk validasi format sebelum submit. */
@@ -24,6 +25,7 @@ export function CariPengaduanForm() {
     const [isPending, startTransition] = useTransition();
     const [input, setInput] = useState('');
     const [error, setError] = useState('');
+    const t = useTranslations('pengaduan.cari');
 
     function handleCari(e: React.FormEvent) {
         e.preventDefault();
@@ -31,14 +33,14 @@ export function CariPengaduanForm() {
 
         const token = ekstrakToken(input);
         if (!token) {
-            setError('Format link/token tidak dikenali. Pastikan disalin utuh dari layar konfirmasi setelah mengirim pengaduan.');
+            setError(t('invalidFormat'));
             return;
         }
 
         startTransition(async () => {
             const data = await ambilPengaduanPublik(token);
             if (!data) {
-                setError('Pengaduan tidak ditemukan. Periksa kembali link/token yang Anda masukkan.');
+                setError(t('notFound'));
                 return;
             }
             router.push(`/pengaduan/lacak/${token}`);
@@ -51,18 +53,17 @@ export function CariPengaduanForm() {
 
             <div>
                 <label className="block text-sm font-medium text-navy-950/80 mb-1">
-                    Link atau kode token pengaduan Anda
+                    {t('inputLabel')}
                 </label>
                 <input
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    placeholder="Tempel link lengkap, atau kode acak setelah /lacak/"
+                    placeholder={t('inputPlaceholder')}
                     required
                     className="w-full border border-paper-200 rounded-xl px-3.5 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-azure-500/40 focus:border-azure-500"
                 />
                 <p className="text-xs text-navy-950/40 mt-1.5">
-                    Pengaduan bersifat anonim — tidak ada email/nama yang tersimpan, jadi
-                    link atau kode token ini satu-satunya cara mengakses kembali percakapan Anda.
+                    {t('inputHint')}
                 </p>
             </div>
 
@@ -72,7 +73,7 @@ export function CariPengaduanForm() {
                 className="w-full inline-flex items-center justify-center gap-2 bg-navy-700 text-white py-3 rounded-xl text-sm font-semibold hover:bg-navy-800 transition-colors disabled:opacity-50"
             >
                 <KeyRound className="w-4 h-4" />
-                {isPending ? 'Memeriksa...' : 'Lacak Pengaduan'}
+                {isPending ? t('checking') : t('submit')}
                 {!isPending && <ArrowRight className="w-4 h-4" />}
             </button>
         </form>

@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
+import { useTranslations } from 'next-intl';
 import { Copy, Check, ExternalLink, KeyRound } from 'lucide-react';
 
 /**
@@ -16,6 +17,7 @@ export function LinkPengaduanCard({ token }: { token: string }) {
     const [disalinLink, setDisalinLink] = useState(false);
     const [disalinToken, setDisalinToken] = useState(false);
     const [link, setLink] = useState('');
+    const t = useTranslations('pengaduan.linkCard');
 
     useEffect(() => {
         setLink(`${window.location.origin}/pengaduan/lacak/${token}`);
@@ -35,7 +37,7 @@ export function LinkPengaduanCard({ token }: { token: string }) {
     return (
         <div className="mt-6 bg-paper-50 border border-paper-200 rounded-2xl p-5 text-left space-y-4">
             <div>
-                <div className="text-xs text-navy-950/40 uppercase tracking-wide mb-2">Link Lacak Pengaduan Anda</div>
+                <div className="text-xs text-navy-950/40 uppercase tracking-wide mb-2">{t('linkTitle')}</div>
                 <div className="bg-white border border-paper-200 rounded-xl px-3.5 py-2.5 text-xs text-navy-700 break-all font-mono mb-2">
                     {link || '...'}
                 </div>
@@ -45,14 +47,14 @@ export function LinkPengaduanCard({ token }: { token: string }) {
                         className="flex-1 inline-flex items-center justify-center gap-1.5 bg-navy-700 text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-navy-800 transition-colors"
                     >
                         {disalinLink ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                        {disalinLink ? 'Tersalin!' : 'Salin Link'}
+                        {disalinLink ? t('copied') : t('copy')}
                     </button>
                     <Link
                         href={`/pengaduan/lacak/${token}`}
                         className="flex-1 inline-flex items-center justify-center gap-1.5 bg-white border border-paper-200 text-navy-950 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-paper-100 transition-colors"
                     >
                         <ExternalLink className="w-4 h-4" />
-                        Buka Sekarang
+                        {t('open')}
                     </Link>
                 </div>
             </div>
@@ -60,7 +62,7 @@ export function LinkPengaduanCard({ token }: { token: string }) {
             <div className="pt-4 border-t border-paper-200">
                 <div className="text-xs text-navy-950/40 uppercase tracking-wide mb-2 flex items-center gap-1.5">
                     <KeyRound className="w-3.5 h-3.5" />
-                    Atau Kode Token Anda
+                    {t('tokenTitle')}
                 </div>
                 <div className="bg-white border border-paper-200 rounded-xl px-3.5 py-2.5 text-xs text-navy-700 break-all font-mono mb-2">
                     {token}
@@ -70,12 +72,12 @@ export function LinkPengaduanCard({ token }: { token: string }) {
                     className="w-full inline-flex items-center justify-center gap-1.5 bg-white border border-paper-200 text-navy-950 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-paper-100 transition-colors"
                 >
                     {disalinToken ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                    {disalinToken ? 'Tersalin!' : 'Salin Kode Token'}
+                    {disalinToken ? t('copied') : t('copyToken')}
                 </button>
                 <p className="text-xs text-navy-950/40 mt-2 leading-relaxed">
-                    Kode token ini bisa dipakai untuk melacak pengaduan di halaman{' '}
-                    <Link href="/pengaduan/cari" className="text-azure-500 hover:underline">Lacak Pengaduan</Link>,
-                    kalau Anda lebih mudah mencatat kode singkat ini daripada link lengkap.
+                    {t('tokenHint1')}{' '}
+                    <Link href="/pengaduan/cari" className="text-azure-500 hover:underline">{t('tokenHintLink')}</Link>
+                    {t('tokenHint2')}
                 </p>
             </div>
         </div>

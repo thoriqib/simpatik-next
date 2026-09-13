@@ -3,14 +3,19 @@
 import { useActionState, useState } from 'react';
 import { kirimPenilaian } from '@/lib/actions/penilaian';
 import { SubmitButton } from '@/components/ui/SubmitButton';
+import { useTranslations } from 'next-intl';
 
 export function PenilaianForm({ antrianId, petugasId, kodeAntrian }: { antrianId: number; petugasId: string; kodeAntrian: string }) {
     const [state, formAction] = useActionState(kirimPenilaian, null);
     const [rating, setRating] = useState(0);
     const [hover, setHover] = useState(0);
+    const t = useTranslations('penilaian');
+    // Pakai ulang label emoji yang sama dengan penilaian permintaan data —
+    // isinya identik, hindari duplikasi terjemahan di dua tempat.
+    const tLabel = useTranslations('permintaanData.rating.labels');
 
     const labelNilai: Record<number, string> = {
-        1: '😞 Sangat Tidak Puas', 2: '😕 Tidak Puas', 3: '😐 Cukup', 4: '😊 Puas', 5: '😄 Sangat Puas',
+        1: tLabel('1'), 2: tLabel('2'), 3: tLabel('3'), 4: tLabel('4'), 5: tLabel('5'),
     };
 
     return (
@@ -25,7 +30,7 @@ export function PenilaianForm({ antrianId, petugasId, kodeAntrian }: { antrianId
             )}
 
             <div className="text-center mb-6">
-                <p className="text-sm font-medium text-navy-950/80 mb-3">Seberapa puas Anda dengan pelayanan kami?</p>
+                <p className="text-sm font-medium text-navy-950/80 mb-3">{t('howSatisfied')}</p>
                 <div className="flex justify-center gap-2">
                     {[1, 2, 3, 4, 5].map((i) => (
                         <button key={i} type="button"
@@ -42,14 +47,14 @@ export function PenilaianForm({ antrianId, petugasId, kodeAntrian }: { antrianId
 
             <div className="mb-5">
                 <label className="block text-sm font-medium text-navy-950/80 mb-1">
-                    Komentar <span className="text-navy-950/30">(opsional)</span>
+                    {t('comment')} <span className="text-navy-950/30">{t('optional')}</span>
                 </label>
-                <textarea name="komentar" rows={4} placeholder="Ceritakan pengalaman Anda..."
+                <textarea name="komentar" rows={4} placeholder={t('commentPlaceholder')}
                     className="w-full border border-paper-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-azure-500/40 resize-none" />
             </div>
 
-            <SubmitButton className="w-full py-3" pendingText="Mengirim...">
-                Kirim Penilaian
+            <SubmitButton className="w-full py-3" pendingText={t('submitting')}>
+                {t('submit')}
             </SubmitButton>
         </form>
     );

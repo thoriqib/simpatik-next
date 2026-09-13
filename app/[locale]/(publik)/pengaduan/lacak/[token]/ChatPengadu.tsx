@@ -4,6 +4,7 @@ import { useState, useTransition, useRef, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { kirimPesanPenguduPublik } from '@/lib/actions/pengaduan';
 import { cekDalamJamPelayananClient } from '@/lib/jam-pelayanan-client';
+import { useTranslations, useLocale } from 'next-intl';
 import { Send, RefreshCw, Circle, Clock } from 'lucide-react';
 import type { PengaduanPesan } from '@/lib/types/database';
 
@@ -37,6 +38,9 @@ export function ChatPengadu({
     const [live, setLive] = useState(false);
     const [dalamJamPelayanan, setDalamJamPelayanan] = useState(true);
     const bawahRef = useRef<HTMLDivElement>(null);
+    const t = useTranslations('pengaduan.chat');
+    const locale = useLocale();
+    const localeWaktu = locale === 'en' ? 'en-US' : 'id-ID';
 
     useEffect(() => {
         bawahRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -89,14 +93,14 @@ export function ChatPengadu({
             {aktif && (
                 <div className="flex items-center gap-1.5 mb-2 text-xs">
                     <Circle className={`w-2 h-2 ${live ? 'fill-emerald-500 text-emerald-500' : 'fill-navy-950/20 text-navy-950/20'}`} />
-                    <span className={live ? 'text-emerald-600 font-medium' : 'text-navy-950/40'}>{live ? 'Live — balasan admin muncul otomatis' : 'Menghubungkan...'}</span>
+                    <span className={live ? 'text-emerald-600 font-medium' : 'text-navy-950/40'}>{live ? t('live') : t('connecting')}</span>
                 </div>
             )}
 
             {aktif && !dalamJamPelayanan && (
                 <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-700 rounded-xl px-3.5 py-2.5 text-xs mb-3">
                     <Clock className="w-3.5 h-3.5 shrink-0" />
-                    Percakapan hanya aktif pada jam pelayanan ({jamMulai}–{jamSelesai} WIB). Anda tetap bisa membaca riwayat, silakan kirim pesan kembali saat jam pelayanan berlangsung.
+                    {t('outsideHours', { jamMulai, jamSelesai })}
                 </div>
             )}
 
@@ -108,17 +112,17 @@ export function ChatPengadu({
                                 p.pengirim === 'pengadu' ? 'bg-azure-500 text-white rounded-br-sm' : 'bg-white border border-paper-200 text-navy-950 rounded-bl-sm'
                             }`}>
                                 <div className="text-[10px] uppercase tracking-wide opacity-70 mb-0.5">
-                                    {p.pengirim === 'pengadu' ? 'Anda' : 'Admin BPS'}
+                                    {p.pengirim === 'pengadu' ? t('you') : t('admin')}
                                 </div>
                                 <div className="whitespace-pre-line leading-relaxed">{p.pesan}</div>
                                 <div className={`text-[10px] mt-1 ${p.pengirim === 'pengadu' ? 'text-white/60' : 'text-navy-950/40'}`}>
-                                    {new Date(p.created_at).toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' })}
+                                    {new Date(p.created_at).toLocaleString(localeWaktu, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' })}
                                 </div>
                             </div>
                         </div>
                     )) : (
                         <p className="text-center text-navy-950/30 text-sm py-6">
-                            {aktif ? 'Belum ada percakapan.' : 'Menunggu admin menindaklanjuti pengaduan Anda.'}
+                            {aktif ? t('empty') : t('emptyWaiting')}
                         </p>
                     )}
                     <div ref={bawahRef} />
@@ -130,7 +134,7 @@ export function ChatPengadu({
                             value={teks}
                             onChange={(e) => setTeks(e.target.value)}
                             maxLength={2000}
-                            placeholder={kirimAktif ? 'Tulis pesan...' : `Chat ditutup di luar jam pelayanan (${jamMulai}–${jamSelesai} WIB)`}
+                            placeholder={kirimAktif ? t('placeholder') : t('placeholderClosed', { jamMulai, jamSelesai })}
                             disabled={isPending || !kirimAktif}
                             className="flex-1 border border-paper-200 rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-azure-500/40 focus:border-azure-500 disabled:bg-paper-100 disabled:text-navy-950/30"
                         />
@@ -146,7 +150,7 @@ export function ChatPengadu({
                 onClick={() => window.location.reload()}
                 className="inline-flex items-center gap-1.5 text-xs text-navy-950/50 hover:text-navy-950 transition-colors mt-3"
             >
-                <RefreshCw className="w-3.5 h-3.5" /> Muat ulang untuk cek balasan terbaru
+                <RefreshCw className="w-3.5 h-3.5" /> {t('reload')}
             </button>
         </div>
     );

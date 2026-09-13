@@ -324,5 +324,86 @@
                 "5": "😄 Sangat Puas"
             }
         }
+    },
+    "pengaduan": {
+        "success": {
+            "title": "Pengaduan Terkirim",
+            "desc": "Pengaduan Anda bersifat <bold>anonim</bold> — kami sengaja tidak meminta email atau kontak apa pun. Simpan link di bawah baik-baik, itu satu-satunya cara Anda bisa memantau & berkomunikasi dengan admin soal pengaduan ini."
+        },
+        "page": {
+            "title": "Kirim Pengaduan",
+            "subtitle": "Pengaduan bersifat anonim. Sampaikan keluhan atau masukan Anda dengan jujur.",
+            "searchPrompt": "Sudah melakukan pengaduan sebelumnya?",
+            "searchHint": "Kehilangan link lacak? Masukkan link/token yang diberikan di sini",
+            "backHome": "Kembali ke Beranda"
+        },
+        "form": {
+            "subjek": "Subjek Pengaduan",
+            "subjekPlaceholder": "Contoh: Petugas kurang responsif",
+            "isi": "Isi Pengaduan",
+            "isiPlaceholder": "Jelaskan pengaduan Anda secara detail...",
+            "submit": "📢 Kirim Pengaduan",
+            "submitting": "Mengirim..."
+        },
+        "linkCard": {
+            "linkTitle": "Link Lacak Pengaduan Anda",
+            "copy": "Salin Link",
+            "copied": "Tersalin!",
+            "open": "Buka Sekarang",
+            "tokenTitle": "Atau Kode Token Anda",
+            "copyToken": "Salin Kode Token",
+            "tokenHint1": "Kode token ini bisa dipakai untuk melacak pengaduan di halaman",
+            "tokenHintLink": "Lacak Pengaduan",
+            "tokenHint2": ", kalau Anda lebih mudah mencatat kode singkat ini daripada link lengkap."
+        },
+        "cari": {
+            "title": "Lacak Pengaduan Saya",
+            "subtitle": "Kehilangan link lacak pengaduan Anda? Tempelkan link atau kode token yang diberikan setelah mengirim pengaduan.",
+            "back": "Kembali ke Form Pengaduan",
+            "inputLabel": "Link atau kode token pengaduan Anda",
+            "inputPlaceholder": "Tempel link lengkap, atau kode acak setelah /lacak/",
+            "inputHint": "Pengaduan bersifat anonim — tidak ada email/nama yang tersimpan, jadi link atau kode token ini satu-satunya cara mengakses kembali percakapan Anda.",
+            "invalidFormat": "Format link/token tidak dikenali. Pastikan disalin utuh dari layar konfirmasi setelah mengirim pengaduan.",
+            "notFound": "Pengaduan tidak ditemukan. Periksa kembali link/token yang Anda masukkan.",
+            "submit": "Lacak Pengaduan",
+            "checking": "Memeriksa..."
+        },
+        "lacak": {
+            "title": "Lacak Pengaduan",
+            "submittedAt": "Diajukan {date} WIB",
+            "yourComplaint": "Isi Pengaduan Anda",
+            "conversation": "Percakapan",
+            "saveHint": "Pengaduan ini bersifat anonim — simpan link ini baik-baik, karena tidak ada cara lain untuk mengaksesnya kembali.",
+            "status": {
+                "baru": "Menunggu admin menindaklanjuti pengaduan Anda. Silakan cek kembali beberapa saat lagi.",
+                "diproses": "Pengaduan Anda sedang ditangani. Anda bisa berkomunikasi langsung dengan admin di bawah.",
+                "selesai": "Pengaduan Anda sudah selesai ditangani. Percakapan ditutup."
+            }
+        },
+        "chat": {
+            "live": "Live — balasan admin muncul otomatis",
+            "connecting": "Menghubungkan...",
+            "outsideHours": "Percakapan hanya aktif pada jam pelayanan ({jamMulai}–{jamSelesai} WIB). Anda tetap bisa membaca riwayat, silakan kirim pesan kembali saat jam pelayanan berlangsung.",
+            "you": "Anda",
+            "admin": "Admin BPS",
+            "empty": "Belum ada percakapan.",
+            "emptyWaiting": "Menunggu admin menindaklanjuti pengaduan Anda.",
+            "placeholder": "Tulis pesan...",
+            "placeholderClosed": "Chat ditutup di luar jam pelayanan ({jamMulai}–{jamSelesai} WIB)",
+            "reload": "Muat ulang untuk cek balasan terbaru"
+        }
+    },
+    "penilaian": {
+        "thankYouTitle": "Terima Kasih!",
+        "thankYouDesc": "Penilaian Anda sudah kami terima dan jadi masukan berharga untuk peningkatan kualitas layanan kami.",
+        "title": "Penilaian Pelayanan",
+        "subtitle": "Berikan penilaian untuk pelayanan yang Anda terima",
+        "antrian": "Antrian",
+        "howSatisfied": "Seberapa puas Anda dengan pelayanan kami?",
+        "comment": "Komentar",
+        "optional": "(opsional)",
+        "commentPlaceholder": "Ceritakan pengalaman Anda...",
+        "submit": "Kirim Penilaian",
+        "submitting": "Mengirim..."
     }
 }

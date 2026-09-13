@@ -1,29 +1,38 @@
 import { PengaduanForm } from './PengaduanForm';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { CheckCircle2, KeyRound, ArrowRight } from 'lucide-react';
 import { LinkPengaduanCard } from './LinkPengaduanCard';
+import { useTranslations } from 'next-intl';
+import { setRequestLocale } from 'next-intl/server';
 
-export default async function PengaduanPage({
+export default async function PengaduanPageRoute({
+    params,
     searchParams,
 }: {
+    params: Promise<{ locale: string }>;
     searchParams: Promise<{ token?: string }>;
 }) {
-    const params = await searchParams;
+    const { locale } = await params;
+    setRequestLocale(locale);
+    const sp = await searchParams;
+    return <PengaduanPage token={sp.token} />;
+}
 
-    if (params.token) {
+function PengaduanPage({ token }: { token?: string }) {
+    const t = useTranslations('pengaduan');
+
+    if (token) {
         return (
             <div className="text-center py-6">
                 <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
                     <CheckCircle2 className="w-8 h-8 text-emerald-600" />
                 </div>
-                <h2 className="text-xl font-bold text-navy-950">Pengaduan Terkirim</h2>
+                <h2 className="text-xl font-bold text-navy-950">{t('success.title')}</h2>
                 <p className="text-sm text-navy-950/50 mt-2 max-w-sm mx-auto">
-                    Pengaduan Anda bersifat <strong>anonim</strong> — kami sengaja tidak meminta
-                    email atau kontak apa pun. Simpan link di bawah baik-baik, itu satu-satunya
-                    cara Anda bisa memantau & berkomunikasi dengan admin soal pengaduan ini.
+                    {t.rich('success.desc', { bold: (chunks) => <strong>{chunks}</strong>, })}
                 </p>
 
-                <LinkPengaduanCard token={params.token} />
+                <LinkPengaduanCard token={token} />
             </div>
         );
     }
@@ -31,8 +40,8 @@ export default async function PengaduanPage({
     return (
         <>
             <div className="text-center mb-6">
-                <h2 className="text-xl font-bold text-navy-950">Kirim Pengaduan</h2>
-                <p className="text-sm text-navy-950/50 mt-1">Pengaduan bersifat anonim. Sampaikan keluhan atau masukan Anda dengan jujur.</p>
+                <h2 className="text-xl font-bold text-navy-950">{t('page.title')}</h2>
+                <p className="text-sm text-navy-950/50 mt-1">{t('page.subtitle')}</p>
             </div>
 
             <Link
@@ -43,8 +52,8 @@ export default async function PengaduanPage({
                     <KeyRound className="w-5 h-5" />
                 </div>
                 <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-navy-950 text-sm">Sudah melakukan pengaduan sebelumnya?</div>
-                    <div className="text-xs text-navy-950/60 mt-0.5">Kehilangan link lacak? Masukkan link/token yang diberikan di sini</div>
+                    <div className="font-semibold text-navy-950 text-sm">{t('page.searchPrompt')}</div>
+                    <div className="text-xs text-navy-950/60 mt-0.5">{t('page.searchHint')}</div>
                 </div>
                 <ArrowRight className="w-4 h-4 text-azure-500 group-hover:translate-x-1 transition-transform shrink-0" />
             </Link>
@@ -54,7 +63,7 @@ export default async function PengaduanPage({
             </div>
 
             <div className="mt-4 text-center">
-                <Link href="/" className="text-sm text-navy-950/50 hover:underline">← Kembali ke Beranda</Link>
+                <Link href="/" className="text-sm text-navy-950/50 hover:underline">← {t('page.backHome')}</Link>
             </div>
         </>
     );

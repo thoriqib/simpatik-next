@@ -3,9 +3,11 @@
 import { useActionState } from 'react';
 import { kirimPengaduan } from '@/lib/actions/pengaduan';
 import { SubmitButton } from '@/components/ui/SubmitButton';
+import { useTranslations } from 'next-intl';
 
 export function PengaduanForm() {
     const [state, formAction] = useActionState(kirimPengaduan, null);
+    const t = useTranslations('pengaduan.form');
 
     return (
         <form action={formAction} className="space-y-4">
@@ -15,22 +17,22 @@ export function PengaduanForm() {
 
             <div>
                 <label className="block text-sm font-medium text-navy-950/80 mb-1">
-                    Subjek Pengaduan <span className="text-red-500">*</span>
+                    {t('subjek')} <span className="text-red-500">*</span>
                 </label>
-                <input name="subjek" required placeholder="Contoh: Petugas kurang responsif"
+                <input name="subjek" required placeholder={t('subjekPlaceholder')}
                     className="w-full border border-paper-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-azure-500/40" />
             </div>
 
             <div>
                 <label className="block text-sm font-medium text-navy-950/80 mb-1">
-                    Isi Pengaduan <span className="text-red-500">*</span>
+                    {t('isi')} <span className="text-red-500">*</span>
                 </label>
-                <textarea name="isi_pengaduan" rows={5} required placeholder="Jelaskan pengaduan Anda secara detail..."
+                <textarea name="isi_pengaduan" rows={5} required placeholder={t('isiPlaceholder')}
                     className="w-full border border-paper-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-azure-500/40 resize-none" />
             </div>
 
-            <SubmitButton className="w-full py-3" pendingText="Mengirim...">
-                📢 Kirim Pengaduan
+            <SubmitButton className="w-full py-3" pendingText={t('submitting')}>
+                {t('submit')}
             </SubmitButton>
         </form>
     );
