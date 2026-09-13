@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { ambilPengaduanPublik } from '@/lib/actions/pengaduan';
-import { Badge } from '@/components/ui/Badge';
+import { PublicBadge as Badge } from '@/components/PublicBadge';
 import { ChatPengadu } from './ChatPengadu';
 import { ambilJamPelayanan } from '@/lib/jam-pelayanan';
 import { Clock, MessageCircleOff, CheckCircle2 } from 'lucide-react';

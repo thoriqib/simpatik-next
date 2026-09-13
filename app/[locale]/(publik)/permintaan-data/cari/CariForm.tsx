@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react';
 import { Link } from '@/i18n/navigation';
 import { cariPermintaanDataPublik } from '@/lib/actions/permintaan-data';
-import { Badge } from '@/components/ui/Badge';
+import { PublicBadge as Badge } from '@/components/PublicBadge';
 import { useTranslations, useLocale } from 'next-intl';
 import { Search, ArrowRight, SearchX } from 'lucide-react';
 import type { PermintaanDataRingkasan } from '@/lib/types/database';

@@ -405,5 +405,15 @@
         "commentPlaceholder": "Tell us about your experience...",
         "submit": "Submit Rating",
         "submitting": "Submitting..."
+    },
+    "status": {
+        "menunggu": "Waiting",
+        "dipanggil": "Called",
+        "dilayani": "In Service",
+        "selesai": "Completed",
+        "batal": "Cancelled",
+        "baru": "New",
+        "diproses": "In Progress",
+        "dibatalkan": "Cancelled"
     }
 }

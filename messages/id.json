@@ -405,5 +405,15 @@
         "commentPlaceholder": "Ceritakan pengalaman Anda...",
         "submit": "Kirim Penilaian",
         "submitting": "Mengirim..."
+    },
+    "status": {
+        "menunggu": "Menunggu",
+        "dipanggil": "Dipanggil",
+        "dilayani": "Dilayani",
+        "selesai": "Selesai",
+        "batal": "Batal",
+        "baru": "Baru",
+        "diproses": "Diproses",
+        "dibatalkan": "Dibatalkan"
     }
 }

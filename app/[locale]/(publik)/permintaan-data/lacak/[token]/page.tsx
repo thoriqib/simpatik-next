@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { ambilPermintaanDataPublik } from '@/lib/actions/permintaan-data';
-import { Badge } from '@/components/ui/Badge';
+import { PublicBadge as Badge } from '@/components/PublicBadge';
 import { ChatPengunjung } from './ChatPengunjung';
 import { PenilaianPermintaanData } from './PenilaianPermintaanData';
 import { SkdBanner } from '@/components/SkdBanner';

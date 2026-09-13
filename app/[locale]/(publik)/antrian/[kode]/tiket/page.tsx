@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import { formatTanggal } from '@/lib/utils';
-import { Badge } from '@/components/ui/Badge';
+import { PublicBadge as Badge } from '@/components/PublicBadge';
 import { todayDateStringWIB } from '@/lib/utils';
 import { Link } from '@/i18n/navigation';
 import NextLink from 'next/link';
