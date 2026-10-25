@@ -3,6 +3,7 @@
 import { useState, useActionState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { SubmitButton } from '@/components/ui/SubmitButton';
+import { InlineActionButton } from '@/components/ui/InlineActionButton';
 import { saveJenisLayanan, deleteJenisLayanan } from '@/lib/actions/jenis-layanan';
 import type { JenisLayanan } from '@/lib/types/database';
 
@@ -42,9 +43,9 @@ export function JenisLayananTable({ jenisLayanan }: { jenisLayanan: Item[] }) {
                             </td>
                             <td className="py-3 flex gap-3">
                                 <button onClick={() => setEditing(j)} className="text-azure-500 hover:underline">Edit</button>
-                                <form action={async () => { const r = await deleteJenisLayanan(j.id); if (r?.error) alert(r.error); }}>
-                                    <button type="submit" className="text-red-500 hover:underline">Hapus</button>
-                                </form>
+                                <InlineActionButton action={() => deleteJenisLayanan(j.id)} pendingText="Menghapus..." className="text-red-500 hover:underline">
+                                    Hapus
+                                </InlineActionButton>
                             </td>
                         </tr>
                     )) : <tr><td colSpan={5} className="py-8 text-center text-navy-950/30">Belum ada jenis layanan</td></tr>}

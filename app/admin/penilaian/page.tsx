@@ -1,4 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
+import { InlineActionButton } from '@/components/ui/InlineActionButton';
+import { FilterSubmitButton } from '@/components/ui/FilterSubmitButton';
 import { Card } from '@/components/ui/Card';
 import { hapusPenilaian } from '@/lib/actions/penilaian';
 import { Ticket, Globe } from 'lucide-react';
@@ -106,7 +108,7 @@ export default async function PenilaianAdminPage({ searchParams }: { searchParam
                             {[5, 4, 3, 2, 1].map((n) => <option key={n} value={n}>{'★'.repeat(n)} ({n})</option>)}
                         </select>
                     </div>
-                    <button type="submit" className="bg-navy-700 text-white px-4 py-2 rounded-xl text-sm font-medium">Tampilkan</button>
+                    <FilterSubmitButton />
                 </form>
             </Card>
 
@@ -169,9 +171,9 @@ export default async function PenilaianAdminPage({ searchParams }: { searchParam
                                     <td className="py-3 text-navy-950/60 text-xs max-w-xs">{p.komentar ? p.komentar.slice(0, 60) : '—'}</td>
                                     <td className="py-3">
                                         {/* [FIX] .bind() — lihat catatan di app/admin/jadwal/page.tsx */}
-                                        <form action={hapusPenilaian.bind(null, p.id)}>
-                                            <button type="submit" className="text-xs text-red-500 hover:underline">Hapus</button>
-                                        </form>
+                                        <InlineActionButton action={hapusPenilaian.bind(null, p.id)} pendingText="Menghapus..." className="text-xs text-red-500 hover:underline">
+                                            Hapus
+                                        </InlineActionButton>
                                     </td>
                                 </tr>
                             );

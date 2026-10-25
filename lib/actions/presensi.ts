@@ -4,12 +4,17 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { nowWIB } from '@/lib/utils';
 import { formatInTimeZone } from 'date-fns-tz';
+import { hitungTerlambatMenit, TOLERANSI_TERLAMBAT_MENIT } from '@/lib/presensi-aturan';
 
 const TZ = 'Asia/Jakarta';
 
-/** Menit AKTUAL setelah BATAS, di-clamp ke 0 (dipakai untuk keterlambatan masuk). */
+/**
+ * Menit PENUH setelah BATAS, di-clamp ke 0 (dipakai untuk keterlambatan masuk).
+ * Dibulatkan ke BAWAH: absen 08:10:59 dihitung 10 menit (masih dalam toleransi),
+ * 08:11:00 dihitung 11 menit (terlambat) — sesuai aturan "lewat dari 10 menit".
+ */
 function menitSetelah(batas: Date, aktual: Date): number {
-    return Math.max(0, Math.round((aktual.getTime() - batas.getTime()) / 60000));
+    return Math.max(0, Math.floor((aktual.getTime() - batas.getTime()) / 60000));
 }
 
 /** Menit AKTUAL sebelum BATAS, di-clamp ke 0 (dipakai untuk pulang lebih awal). */
@@ -80,7 +85,9 @@ export async function presensiMasuk(jadwalPiketId: number): Promise<PresensiActi
 
     // ── Hitung keterlambatan (di-clamp ke 0, tidak bisa negatif) ────
     const batasMulai = jamPada(waktuMasuk, jadwal.shift_piket.jam_mulai);
-    const terlambatMenit = menitSetelah(batasMulai, waktuMasuk);
+    // Toleransi 10 menit: selisih <= 10 menit tidak dihitung terlambat;
+    // kalau lewat, seluruh selisih dari jam mulai shift yang dicatat.
+    const terlambatMenit = hitungTerlambatMenit(menitSetelah(batasMulai, waktuMasuk));
 
     let presensiId: number;
 
@@ -128,7 +135,7 @@ export async function presensiMasuk(jadwalPiketId: number): Promise<PresensiActi
     const dataMasuk = { id: presensiId, waktu_masuk: waktuMasukISO, terlambat_menit: terlambatMenit };
 
     if (terlambatMenit > 0) {
-        return { warning: `Presensi masuk tercatat pukul ${jamStr} WIB. Anda terlambat ${terlambatMenit} menit.`, data: dataMasuk };
+        return { warning: `Presensi masuk tercatat pukul ${jamStr} WIB. Anda terlambat ${terlambatMenit} menit (toleransi ${TOLERANSI_TERLAMBAT_MENIT} menit sudah terlewati).`, data: dataMasuk };
     }
     return { success: `Presensi masuk berhasil dicatat: ${jamStr} WIB.`, data: dataMasuk };
 }
@@ -184,7 +191,10 @@ export async function editPresensiAdmin(params: {
 
     const waktuMasukISO = wibKeUtcIso(params.tanggal, params.waktuMasuk);
     const batasMulaiISO = wibKeUtcIso(params.tanggal, jadwal.shift_piket.jam_mulai.slice(0, 5));
-    const terlambatMenit = Math.max(0, Math.round((new Date(waktuMasukISO).getTime() - new Date(batasMulaiISO).getTime()) / 60000));
+    // Aturan sama dengan presensiMasuk (toleransi 10 menit) — lihat lib/presensi-aturan.ts
+    const terlambatMenit = hitungTerlambatMenit(
+        Math.max(0, Math.floor((new Date(waktuMasukISO).getTime() - new Date(batasMulaiISO).getTime()) / 60000))
+    );
 
     let waktuKeluarISO: string | null = null;
     let pulangAwalMenit = 0;

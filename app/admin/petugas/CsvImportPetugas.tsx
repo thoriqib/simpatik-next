@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { Spinner } from '@/components/ui/Spinner';
 import { importPetugasCSV } from '@/lib/actions/auth';
 import { Download, Upload } from 'lucide-react';
 
@@ -54,17 +55,22 @@ export function CsvImportPetugas() {
 
     async function handleFile(file: File) {
         setLoading(true);
+        setResult(null);
         setFileName(file.name);
-        const text = await file.text();
-        const lines = text.trim().split('\n').slice(1); // skip header
-        const rows = lines.map((line) => {
-            const [nama, email, password] = parseCsvLine(line);
-            return { nama, email, password: password || undefined };
-        }).filter((r) => r.nama && r.email);
+        try {
+            const text = await file.text();
+            const lines = text.trim().split('\n').slice(1); // skip header
+            const rows = lines.map((line) => {
+                const [nama, email, password] = parseCsvLine(line);
+                return { nama, email, password: password || undefined };
+            }).filter((r) => r.nama && r.email);
 
-        const res = await importPetugasCSV(rows);
-        setResult(res);
-        setLoading(false);
+            const res = await importPetugasCSV(rows);
+            setResult(res);
+        } finally {
+            // try/finally: spinner pasti berhenti walau import gagal di tengah jalan
+            setLoading(false);
+        }
     }
 
     if (!open) {
@@ -116,7 +122,11 @@ export function CsvImportPetugas() {
                     onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
             </div>
 
-            {loading && <p className="text-sm text-navy-950/50 mt-3">Memproses... (satu per satu, mungkin butuh beberapa detik)</p>}
+            {loading && (
+                <p className="flex items-center gap-2 text-sm text-navy-950/60 mt-3" role="status">
+                    <Spinner /> Membuat akun satu per satu, mungkin butuh beberapa detik — jangan tutup halaman.
+                </p>
+            )}
 
             {result && (
                 <div className="mt-4 p-4 bg-azure-500/10 border border-blue-200 rounded-xl text-sm">

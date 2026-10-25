@@ -89,7 +89,7 @@ export function EditPresensiButton({
                         />
                     </div>
                     <p className="text-xs text-navy-950/40">
-                        Keterlambatan, sisa waktu pelayanan, dan kekurangan jam akan dihitung ulang otomatis berdasarkan jam shift yang berlaku.
+                        Keterlambatan, sisa waktu pelayanan, dan kekurangan jam akan dihitung ulang otomatis berdasarkan jam shift yang berlaku (toleransi keterlambatan 10 menit dari jam mulai shift).
                     </p>
                     <button
                         type="submit"

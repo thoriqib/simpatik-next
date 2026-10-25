@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { FilterSubmitButton } from '@/components/ui/FilterSubmitButton';
 import { Card } from '@/components/ui/Card';
 import { Trophy, Clock, Users, Star, Medal } from 'lucide-react';
 import { unstable_noStore as noStore } from 'next/cache';
@@ -200,7 +201,7 @@ export default async function PetugasTerbaikPage({
                             {[tahun - 1, tahun, tahun + 1].map((t) => <option key={t} value={t}>{t}</option>)}
                         </select>
                     </div>
-                    <button type="submit" className="bg-navy-700 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-navy-800 transition-colors">Tampilkan</button>
+                    <FilterSubmitButton />
                 </form>
             </Card>
 

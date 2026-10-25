@@ -3,11 +3,13 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { logout } from '@/lib/actions/auth';
-import { LayoutDashboard, CalendarDays, Clock, LogOut, X, FileSearch, Users, HelpCircle, ArrowLeftRight, Contact, Briefcase } from 'lucide-react';
+import { LogoutButton } from '@/components/layouts/LogoutButton';
+import { LayoutDashboard, CalendarDays, Clock, X, FileSearch, Users, HelpCircle, ArrowLeftRight, Contact, Briefcase, Repeat } from 'lucide-react';
 
 const MENU = [
     { href: '/petugas/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/petugas/jadwal', label: 'Jadwal Saya', icon: CalendarDays },
+    { href: '/petugas/ganti-jadwal', label: 'Ganti Jadwal', icon: Repeat },
     { href: '/petugas/jadwal-petugas', label: 'Jadwal Semua Petugas', icon: Users },
     { href: '/petugas/presensi', label: 'Presensi', icon: Clock },
     { href: '/petugas/data-pengunjung', label: 'Data Pengunjung', icon: Contact },
@@ -85,10 +87,7 @@ export function PetugasSidebar({ name, isAdmin, mobileOpen, onClose }: { name: s
                         </div>
                     </div>
                     <form action={logout}>
-                        <button type="submit" className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors text-sm text-white/60 hover:text-white">
-                            <LogOut className="w-4 h-4" strokeWidth={2} />
-                            Keluar
-                        </button>
+                        <LogoutButton />
                     </form>
                 </div>
             </aside>

@@ -5,6 +5,7 @@ import { JadwalForm } from './JadwalForm';
 import { ExcelImport } from './ExcelImport';
 import { HariLiburManager } from './HariLiburManager';
 import { BatalkanPresensiButton } from './BatalkanPresensiButton';
+import { InlineActionButton } from '@/components/ui/InlineActionButton';
 import { EditPresensiButton } from './EditPresensiModal';
 import { UbahStatusButton } from './UbahStatusModal';
 import { hapusJadwal } from '@/lib/actions/jadwal';
@@ -171,9 +172,9 @@ export default async function JadwalPage({ searchParams }: { searchParams: Promi
                                             (tanpa 'use server' di dalamnya) TIDAK bisa diserialisasi
                                             dan menyebabkan error "Functions cannot be passed directly
                                             to Client Components". */}
-                                        <form action={hapusJadwal.bind(null, j.id)}>
-                                            <button type="submit" className="text-red-500 hover:underline text-xs">Hapus</button>
-                                        </form>
+                                        <InlineActionButton action={hapusJadwal.bind(null, j.id)} pendingText="Menghapus..." className="text-red-500 hover:underline text-xs">
+                                            Hapus
+                                        </InlineActionButton>
                                     </div>
                                 </td>
                             </tr>

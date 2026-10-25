@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { FilterSubmitButton } from '@/components/ui/FilterSubmitButton';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import type { Antrian } from '@/lib/types/database';
@@ -45,7 +46,7 @@ export default async function LaporanAntrianPage({ searchParams }: { searchParam
                             {['menunggu', 'dipanggil', 'dilayani', 'selesai', 'batal'].map((s) => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
                         </select>
                     </div>
-                    <button type="submit" className="bg-navy-700 text-white px-4 py-2 rounded-xl text-sm font-medium">Tampilkan</button>
+                    <FilterSubmitButton />
                 </form>
             </Card>
 

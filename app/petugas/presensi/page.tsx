@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { FilterSubmitButton } from '@/components/ui/FilterSubmitButton';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { todayDateStringWIB } from '@/lib/utils';
@@ -96,7 +97,7 @@ export default async function PresensiPetugasPage({ searchParams }: { searchPara
                                 {[tahun - 1, tahun].map((t) => <option key={t} value={t}>{t}</option>)}
                             </select>
                         </div>
-                        <button type="submit" className="bg-navy-700 text-white px-4 py-2 rounded-xl text-sm font-medium">Tampilkan</button>
+                        <FilterSubmitButton />
                     </form>
 
                     <div className="grid grid-cols-3 gap-3 mb-5">

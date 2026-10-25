@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react';
 import { ubahUrutanLinkPestaKoja, ubahAktifLinkPestaKoja, hapusLinkPestaKoja } from '@/lib/actions/pesta-koja';
 import { ConfirmModal } from '@/components/ui/Modal';
 import { ChevronUp, ChevronDown, Trash2 } from 'lucide-react';
+import { Spinner } from '@/components/ui/Spinner';
 
 export function UrutanButtons({ id, bisaNaik, bisaTurun }: { id: number; bisaNaik: boolean; bisaTurun: boolean }) {
     const [isPending, startTransition] = useTransition();
@@ -16,7 +17,8 @@ export function UrutanButtons({ id, bisaNaik, bisaTurun }: { id: number; bisaNai
     }
 
     return (
-        <div className="flex flex-col gap-0.5">
+        <div className="flex flex-col gap-0.5 items-center">
+            {isPending && <Spinner className="w-3 h-3 text-navy-950/50" />}
             <button onClick={() => ubah('naik')} disabled={!bisaNaik || isPending}
                 className="p-0.5 text-navy-950/40 hover:text-navy-950 disabled:opacity-20 disabled:cursor-not-allowed transition-colors">
                 <ChevronUp className="w-4 h-4" />
@@ -47,6 +49,7 @@ export function ToggleAktif({ id, isAktif }: { id: number; isAktif: boolean }) {
                 isAktif ? 'bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20' : 'bg-navy-950/5 text-navy-950/40 hover:bg-navy-950/10'
             }`}
         >
+            {isPending && <Spinner className="w-3 h-3 mr-1" />}
             {isAktif ? 'Aktif' : 'Nonaktif'}
         </button>
     );

@@ -3,6 +3,7 @@
 import { useState, useActionState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { SubmitButton } from '@/components/ui/SubmitButton';
+import { InlineActionButton } from '@/components/ui/InlineActionButton';
 import { saveShift, toggleShift, deleteShift } from '@/lib/actions/shift';
 import type { ShiftPiket } from '@/lib/types/database';
 
@@ -38,10 +39,12 @@ export function ShiftTable({ shifts }: { shifts: ShiftPiket[] }) {
                             </td>
                             <td className="py-3 flex gap-3">
                                 <button onClick={() => setEditing(s)} className="text-azure-500 hover:underline text-sm">Edit</button>
-                                <button onClick={() => toggleShift(s.id, s.is_aktif)} className="text-yellow-600 hover:underline text-sm">{s.is_aktif ? 'Nonaktifkan' : 'Aktifkan'}</button>
-                                <form action={async () => { const r = await deleteShift(s.id); if (r?.error) alert(r.error); }}>
-                                    <button type="submit" className="text-red-500 hover:underline text-sm">Hapus</button>
-                                </form>
+                                <InlineActionButton action={() => toggleShift(s.id, s.is_aktif)} pendingText="Memproses..." className="text-yellow-600 hover:underline text-sm">
+                                    {s.is_aktif ? 'Nonaktifkan' : 'Aktifkan'}
+                                </InlineActionButton>
+                                <InlineActionButton action={() => deleteShift(s.id)} pendingText="Menghapus..." className="text-red-500 hover:underline text-sm">
+                                    Hapus
+                                </InlineActionButton>
                             </td>
                         </tr>
                     )) : <tr><td colSpan={5} className="py-8 text-center text-navy-950/30">Belum ada shift terdaftar</td></tr>}

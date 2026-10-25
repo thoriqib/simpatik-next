@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react';
 import { importJadwal } from '@/lib/actions/jadwal';
 import { Download, Upload } from 'lucide-react';
+import { Spinner } from '@/components/ui/Spinner';
 import * as XLSX from 'xlsx';
 
 /**
@@ -93,7 +94,11 @@ export function ExcelImport() {
                     onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
             </div>
 
-            {loading && <p className="text-sm text-navy-950/50 mt-3">Memproses...</p>}
+            {loading && (
+                <p className="flex items-center gap-2 text-sm text-navy-950/60 mt-3" role="status">
+                    <Spinner /> Membaca file dan memasukkan jadwal… mohon tunggu, jangan tutup halaman.
+                </p>
+            )}
 
             {errorBaca && (
                 <div className="mt-4 p-4 bg-rose-50 border border-rose-200 rounded-xl text-sm text-rose-700">

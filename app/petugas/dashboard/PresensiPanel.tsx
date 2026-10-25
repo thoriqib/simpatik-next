@@ -6,7 +6,9 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { presensiMasuk, presensiKeluar } from '@/lib/actions/presensi';
 import { todayDateStringWIB } from '@/lib/utils';
+import { TOLERANSI_TERLAMBAT_MENIT } from '@/lib/presensi-aturan';
 import { LogIn, LogOut, CheckCircle2, AlertTriangle, Users } from 'lucide-react';
+import { Spinner } from '@/components/ui/Spinner';
 import type { Presensi } from '@/lib/types/database';
 
 /**
@@ -175,11 +177,12 @@ export function PresensiPanel({
 
             {!presensi?.waktu_masuk ? (
                 <div className="text-center py-4">
-                    <p className="text-navy-950/50 text-sm mb-4">Anda belum melakukan presensi masuk hari ini.</p>
+                    <p className="text-navy-950/50 text-sm mb-1">Anda belum melakukan presensi masuk hari ini.</p>
+                    <p className="text-navy-950/35 text-xs mb-4">Toleransi keterlambatan {TOLERANSI_TERLAMBAT_MENIT} menit dari jam mulai shift.</p>
                     <button onClick={handleMasuk} disabled={isPending}
                         className="inline-flex items-center gap-2 bg-emerald-600 text-white px-8 py-3 rounded-xl font-semibold hover:bg-emerald-700 transition-colors text-sm disabled:opacity-50">
-                        <LogIn className="w-4 h-4" />
-                        {isPending ? 'Memproses...' : 'Presensi Masuk'}
+                        {isPending ? <Spinner /> : <LogIn className="w-4 h-4" />}
+                        {isPending ? 'Mencatat presensi...' : 'Presensi Masuk'}
                     </button>
                 </div>
             ) : !presensi.waktu_keluar ? (
@@ -192,8 +195,8 @@ export function PresensiPanel({
                         </div>
                         <button onClick={handleKeluar} disabled={isPending}
                             className="inline-flex items-center gap-2 bg-amber-500 text-white px-6 py-2.5 rounded-xl font-semibold hover:bg-amber-500/90 transition-colors text-sm disabled:opacity-50">
-                            <LogOut className="w-4 h-4" />
-                            {isPending ? 'Memproses...' : 'Presensi Keluar'}
+                            {isPending ? <Spinner /> : <LogOut className="w-4 h-4" />}
+                            {isPending ? 'Mencatat presensi...' : 'Presensi Keluar'}
                         </button>
                     </div>
 

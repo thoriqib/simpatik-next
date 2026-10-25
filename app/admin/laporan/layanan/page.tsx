@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { FilterSubmitButton } from '@/components/ui/FilterSubmitButton';
 import { Card } from '@/components/ui/Card';
 import { Ticket, Globe } from 'lucide-react';
 
@@ -75,7 +76,7 @@ export default async function LaporanLayananPage({ searchParams }: { searchParam
                         <label className="block text-sm font-medium text-navy-950/80 mb-1">Sampai</label>
                         <input type="date" name="sampai" defaultValue={sampai} className="border border-paper-200 rounded-xl px-3 py-2 text-sm" />
                     </div>
-                    <button type="submit" className="bg-navy-700 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-navy-800 transition-colors">Tampilkan</button>
+                    <FilterSubmitButton />
                 </form>
             </Card>
 

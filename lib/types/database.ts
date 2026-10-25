@@ -222,3 +222,21 @@ export interface PestaKojaLink {
     is_aktif: boolean;
     created_at: string;
 }
+
+export type StatusRequestGanti = 'menunggu' | 'disetujui' | 'ditolak' | 'dibatalkan';
+
+export interface RequestGantiJadwal {
+    id: number;
+    jadwal_piket_id: number;
+    pemohon_id: string;
+    jenis: 'pindah' | 'digantikan';
+    tanggal_baru: string | null;
+    shift_baru_id: number | null;
+    pengganti_id: string | null;
+    alasan: string;
+    status: StatusRequestGanti;
+    catatan_admin: string | null;
+    diputuskan_oleh: string | null;
+    diputuskan_at: string | null;
+    created_at: string;
+}

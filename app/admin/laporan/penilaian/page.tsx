@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { FilterSubmitButton } from '@/components/ui/FilterSubmitButton';
 import { Card } from '@/components/ui/Card';
 
 export const dynamic = 'force-dynamic';
@@ -59,7 +60,7 @@ export default async function LaporanPenilaianPage({ searchParams }: { searchPar
                 <form method="GET" className="flex flex-wrap gap-3 items-end">
                     <div><label className="block text-sm font-medium text-navy-950/80 mb-1">Dari</label><input type="date" name="dari" defaultValue={dari} className="border border-paper-200 rounded-xl px-3 py-2 text-sm" /></div>
                     <div><label className="block text-sm font-medium text-navy-950/80 mb-1">Sampai</label><input type="date" name="sampai" defaultValue={sampai} className="border border-paper-200 rounded-xl px-3 py-2 text-sm" /></div>
-                    <button type="submit" className="bg-navy-700 text-white px-4 py-2 rounded-xl text-sm font-medium">Tampilkan</button>
+                    <FilterSubmitButton />
                 </form>
             </Card>
 
