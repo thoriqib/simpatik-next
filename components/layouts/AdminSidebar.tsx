@@ -6,7 +6,7 @@ import { logout } from '@/lib/actions/auth';
 import { LogoutButton } from '@/components/layouts/LogoutButton';
 import {
     LayoutDashboard, Users, Clock, CalendarDays, CalendarClock, Tag,
-    MessageSquareWarning, Star, ClipboardList, X, Trophy, FileSearch, BarChart3, ShieldCheck, Link2, HelpCircle, ArrowLeftRight, Briefcase, Repeat,
+    MessageSquareWarning, Star, ClipboardList, X, Trophy, FileSearch, BarChart3, ShieldCheck, Link2, HelpCircle, ArrowLeftRight, Briefcase, Repeat, MessageCircle,
 } from 'lucide-react';
 
 const MENU: { group: string | null; href: string; label: string; icon: React.ElementType }[] = [
@@ -17,6 +17,7 @@ const MENU: { group: string | null; href: string; label: string; icon: React.Ele
     { group: 'Petugas', href: '/admin/jadwal', label: 'Jadwal Piket', icon: CalendarDays },
     { group: 'Petugas', href: '/admin/jadwal-petugas', label: 'Jadwal Semua Petugas', icon: CalendarClock },
     { group: 'Petugas', href: '/admin/ganti-jadwal', label: 'Request Ganti Jadwal', icon: Repeat },
+    { group: 'Petugas', href: '/admin/nomor-wa', label: 'Nomor WhatsApp', icon: MessageCircle },
     { group: 'Petugas', href: '/admin/pengaturan-akses', label: 'Pengaturan Akses', icon: ShieldCheck },
     { group: 'Layanan', href: '/admin/jenis-layanan', label: 'Jenis Layanan', icon: Tag },
     { group: 'Layanan', href: '/admin/kunjungan-mitra', label: 'Kunjungan Mitra', icon: Briefcase },

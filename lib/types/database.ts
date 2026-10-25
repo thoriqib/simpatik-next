@@ -11,6 +11,7 @@ export interface Profile {
     name: string;
     email: string;
     role: Role;
+    no_hp?: string | null;
     created_at: string;
 }
 
