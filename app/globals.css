@@ -58,6 +58,44 @@
         text-decoration: underline;
         text-underline-offset: 2px;
     }
+
+    /* ── Fitur aksesibilitas tambahan (AccessibilityWidget) ── */
+    /* Spasi teks lebih longgar (WCAG 1.4.12) */
+    html.spasi-lebar *:not(svg):not(svg *) {
+        letter-spacing: 0.04em !important;
+        word-spacing: 0.12em !important;
+        line-height: 1.75 !important;
+    }
+    /* Font yang lebih mudah dibaca (huruf lebar, tidak bergaya) */
+    html.font-mudah-baca,
+    html.font-mudah-baca * {
+        font-family: Verdana, Tahoma, 'Segoe UI', Arial, sans-serif !important;
+    }
+    /* Sorot semua tautan */
+    html.sorot-tautan a {
+        text-decoration: underline !important;
+        text-underline-offset: 3px;
+        outline: 2px solid #f59e0b;
+        outline-offset: 2px;
+    }
+    /* Fokus keyboard tebal & jelas */
+    html.fokus-jelas *:focus-visible {
+        outline: 4px solid #f59e0b !important;
+        outline-offset: 3px !important;
+    }
+    /* Kursor besar */
+    html.kursor-besar,
+    html.kursor-besar * {
+        cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 24 24'><path d='M4 2l16 9-7 2 4 8-3 1.5-4-8-5 5z' fill='black' stroke='white' stroke-width='1.5' stroke-linejoin='round'/></svg>") 4 2, auto !important;
+    }
+    /* Hentikan animasi & transisi */
+    html.tanpa-animasi *,
+    html.tanpa-animasi *::before,
+    html.tanpa-animasi *::after {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important;
+    }
 }
 
 @layer utilities {

@@ -41,6 +41,5 @@ insert into public.pesta_koja_link (judul, deskripsi, url, ikon, urutan) values
     ('Silastik (Sistem Informasi Layanan Statistik)', 'Pembelian data mikro dan peta wilayah kerja statistik.', 'https://silastik.bps.go.id/v3/index.php', 'database', 4),
     ('Survei Kebutuhan Data', 'Berikan penilaian untuk Pelayanan Statistik Terpadu BPS Kota Jambi melalui Survei Kebutuhan Data (SKD).', 'https://skd.bps.go.id/skd/s/1571', 'clipboard-list', 5),
     ('Pejabat Pengelola Informasi & Dokumentasi (PPID)', 'BPS Kota Jambi merupakan badan publik. Dapatkan informasi publik melalui website PPID.', 'https://ppid.bps.go.id/?mfd=0000', 'users', 6),
-    ('Pengajuan Informasi Publik', 'Ajukan informasi publik melalui website PPID.', 'https://ppid.bps.go.id/app/pengajuan_informasi', 'file-text', 7),
-    ('Pengaduan & Whistleblowing System', 'Sampaikan keluhan mengenai pelayanan kami.', 'https://simpatik-zeta.vercel.app/pengaduan', 'alert-triangle', 8)
+    ('Pengajuan Informasi Publik', 'Ajukan informasi publik melalui website PPID.', 'https://ppid.bps.go.id/app/pengajuan_informasi', 'file-text', 7)
 on conflict (judul) do nothing;
