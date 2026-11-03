@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
-import { Accessibility, X, Check, Volume2, Square, RotateCcw } from 'lucide-react';
+import { Accessibility, X, Check, Volume2, Square, RotateCcw, Moon, Sun, MonitorSmartphone } from 'lucide-react';
 
 /**
  * Widget aksesibilitas — mengambang di seluruh halaman (root layout), tersedia untuk
@@ -15,6 +15,8 @@ import { Accessibility, X, Check, Volume2, Square, RotateCcw } from 'lucide-reac
  *    kursor besar, hentikan animasi (class di <html>, aturannya ada di globals.css)
  *  - Pemandu baca (pita sorot yang mengikuti kursor/jari)
  *  - Bacakan teks (Web Speech API bawaan browser, gratis): teks yang diblok, atau seluruh isi halaman
+ *  - Tema: Terang / Gelap / Otomatis (ikuti perangkat) + tombol cepat bulan/matahari. Disimpan di
+ *    kunci terpisah 'simpatik-tema' karena dibaca skrip anti-kedip di <head> (app/layout.tsx)
  *  - Setel ulang semua
  *
  * Label mengikuti bahasa halaman: URL berawalan /en → Inggris, selain itu Indonesia
@@ -22,6 +24,8 @@ import { Accessibility, X, Check, Volume2, Square, RotateCcw } from 'lucide-reac
  */
 
 const KEY = 'simpatik-aksesibilitas';
+const KEY_TEMA = 'simpatik-tema';
+type Tema = 'terang' | 'gelap' | 'otomatis';
 // Kunci lama (versi sebelumnya) — tetap dibaca supaya preferensi pengguna lama tidak hilang
 const KEY_UKURAN_LAMA = 'simpatik-ukuran-font';
 const KEY_KONTRAS_LAMA = 'simpatik-kontras-tinggi';
@@ -61,6 +65,7 @@ const TOGGLE_KELAS: [keyof Pengaturan, string][] = [
 
 const TEKS = {
     id: {
+        tema: 'Tema', terang: 'Terang', gelap: 'Gelap', otomatis: 'Otomatis', modeGelap: 'Aktifkan mode gelap', modeTerang: 'Aktifkan mode terang',
         judul: 'Aksesibilitas', buka: 'Buka pengaturan aksesibilitas', tutup: 'Tutup',
         ukuran: 'Ukuran Teks', tampilan: 'Tampilan', bacaan: 'Membaca', gerak: 'Gerak & Navigasi',
         kontras: 'Kontras Tinggi', abu: 'Skala Abu-abu', terbalik: 'Warna Terbalik',
@@ -72,6 +77,7 @@ const TEKS = {
         reset: 'Setel Ulang Semua', tersimpan: 'Pengaturan tersimpan otomatis', lang: 'id-ID',
     },
     en: {
+        tema: 'Theme', terang: 'Light', gelap: 'Dark', otomatis: 'Auto', modeGelap: 'Switch to dark mode', modeTerang: 'Switch to light mode',
         judul: 'Accessibility', buka: 'Open accessibility settings', tutup: 'Close',
         ukuran: 'Text Size', tampilan: 'Display', bacaan: 'Reading', gerak: 'Motion & Navigation',
         kontras: 'High Contrast', abu: 'Grayscale', terbalik: 'Invert Colors',
@@ -126,6 +132,8 @@ export function AccessibilityWidget() {
     const [buka, setBuka] = useState(false);
     const [p, setP] = useState<Pengaturan>(AWAL);
     const [siap, setSiap] = useState(false);
+    const [tema, setTema] = useState<Tema>('terang');
+    const [gelapAktif, setGelapAktif] = useState(false);
     const [membaca, setMembaca] = useState(false);
     const [bisaBicara, setBisaBicara] = useState(false);
     const [posisiPemandu, setPosisiPemandu] = useState(-100);
@@ -146,6 +154,10 @@ export function AccessibilityWidget() {
                 });
             }
         } catch { /* localStorage tidak tersedia / JSON rusak → pakai bawaan */ }
+        try {
+            const t = localStorage.getItem(KEY_TEMA);
+            if (t === 'gelap' || t === 'otomatis' || t === 'terang') setTema(t);
+        } catch { /* abaikan */ }
         setBisaBicara(typeof window !== 'undefined' && 'speechSynthesis' in window);
         setSiap(true);
     }, []);
@@ -168,6 +180,22 @@ export function AccessibilityWidget() {
 
         try { localStorage.setItem(KEY, JSON.stringify(p)); } catch { /* abaikan */ }
     }, [p, siap]);
+
+    // Tema: terapkan class "dark" di <html>; mode otomatis mengikuti perangkat secara langsung
+    useEffect(() => {
+        if (!siap) return;
+        const mq = window.matchMedia('(prefers-color-scheme: dark)');
+        const terapkan = () => {
+            const gelap = tema === 'gelap' || (tema === 'otomatis' && mq.matches);
+            document.documentElement.classList.toggle('dark', gelap);
+            setGelapAktif(gelap);
+        };
+        terapkan();
+        try { localStorage.setItem(KEY_TEMA, tema); } catch { /* abaikan */ }
+        if (tema !== 'otomatis') return;
+        mq.addEventListener('change', terapkan);
+        return () => mq.removeEventListener('change', terapkan);
+    }, [tema, siap]);
 
     // Pemandu baca: pita yang mengikuti kursor / jari
     useEffect(() => {
@@ -217,11 +245,12 @@ export function AccessibilityWidget() {
 
     const ubah = <K extends keyof Pengaturan>(k: K, v: Pengaturan[K]) => setP((s) => ({ ...s, [k]: v }));
     const balik = (k: keyof Pengaturan) => setP((s) => ({ ...s, [k]: !s[k] }));
-    const adaPerubahan = JSON.stringify(p) !== JSON.stringify(AWAL);
+    const adaPerubahan = JSON.stringify(p) !== JSON.stringify(AWAL) || tema !== 'terang';
 
     const setelUlang = () => {
         berhenti();
         setP(AWAL);
+        setTema('terang');
     };
 
     return (
@@ -247,6 +276,28 @@ export function AccessibilityWidget() {
                             <button type="button" onClick={() => setBuka(false)} aria-label={T.tutup} className="text-navy-950/40 hover:text-navy-950">
                                 <X className="w-4 h-4" />
                             </button>
+                        </div>
+
+                        <div className="mb-4">
+                            <Judul>{T.tema}</Judul>
+                            <div className="grid grid-cols-3 gap-1.5">
+                                {([['terang', T.terang, Sun], ['gelap', T.gelap, Moon], ['otomatis', T.otomatis, MonitorSmartphone]] as const).map(([nilai, label, Ikon]) => (
+                                    <button
+                                        key={nilai}
+                                        type="button"
+                                        aria-pressed={tema === nilai}
+                                        onClick={() => setTema(nilai)}
+                                        className={`flex flex-col items-center gap-1 py-2 rounded-lg text-xs font-semibold border transition-colors ${
+                                            tema === nilai
+                                                ? 'bg-navy-700 text-white border-navy-700'
+                                                : 'bg-paper-50 text-navy-950/60 border-paper-200 hover:bg-paper-100'
+                                        }`}
+                                    >
+                                        <Ikon className="w-4 h-4" />
+                                        {label}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
 
                         <div className="mb-4">
@@ -326,6 +377,18 @@ export function AccessibilityWidget() {
                         </div>
                     </div>
                 )}
+
+                {/* Tombol cepat tema (bulan/matahari) di atas tombol aksesibilitas */}
+                <button
+                    type="button"
+                    onClick={() => setTema(gelapAktif ? 'terang' : 'gelap')}
+                    aria-label={gelapAktif ? T.modeTerang : T.modeGelap}
+                    title={gelapAktif ? T.modeTerang : T.modeGelap}
+                    className="absolute bottom-14 right-1 mb-2 w-10 h-10 rounded-full bg-white text-navy-950 border border-paper-200 shadow-card flex items-center justify-center hover:bg-paper-100 transition-colors"
+                    style={{ display: buka ? 'none' : undefined }}
+                >
+                    {gelapAktif ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                </button>
 
                 <button
                     type="button"

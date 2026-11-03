@@ -1,6 +1,7 @@
 import type { Config } from 'tailwindcss';
 
 const config: Config = {
+    darkMode: ['class', 'html.dark'],
     content: [
         './app/**/*.{js,ts,jsx,tsx,mdx}',
         './components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -14,11 +15,14 @@ const config: Config = {
             colors: {
                 // ── Simpatik design tokens ──────────────────────────
                 // Navy: identitas utama (sidebar, tombol primer, header)
+                // Navy & paper memakai CSS variable (nilai terang di :root, nilai gelap di html.dark —
+                // lihat globals.css) supaya dark mode cukup mengganti variabel, bukan mengubah
+                // ratusan komponen.
                 navy: {
-                    950: '#0B1A2E',
-                    800: '#122A47',
-                    700: '#1B3A5F',
-                    600: '#254C79',
+                    950: 'rgb(var(--navy-950) / <alpha-value>)',
+                    800: 'rgb(var(--navy-800) / <alpha-value>)',
+                    700: 'rgb(var(--navy-700) / <alpha-value>)',
+                    600: 'rgb(var(--navy-600) / <alpha-value>)',
                 },
                 // Azure: aksen interaktif (link, focus ring, aksi sekunder)
                 azure: {
@@ -32,9 +36,9 @@ const config: Config = {
                 },
                 // Paper: latar hangat, bukan abu-abu dingin generik
                 paper: {
-                    50: '#F8F7F4',
-                    100: '#F1EFE9',
-                    200: '#E7E3DA',
+                    50: 'rgb(var(--paper-50) / <alpha-value>)',
+                    100: 'rgb(var(--paper-100) / <alpha-value>)',
+                    200: 'rgb(var(--paper-200) / <alpha-value>)',
                 },
             },
             boxShadow: {

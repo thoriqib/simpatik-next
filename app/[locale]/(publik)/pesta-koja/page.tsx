@@ -24,7 +24,11 @@ export default async function PestaKojaPage({ params }: { params: Promise<{ loca
         .eq('is_aktif', true)
         .order('urutan');
 
-    const links = (linkList ?? []) as PestaKojaLink[];
+    // Kartu "Pengaduan & Whistleblowing System" sengaja tidak ditampilkan di Pesta Koja
+    // (disaring di sini juga, supaya langsung hilang walau baris di database belum dihapus).
+    const links = ((linkList ?? []) as PestaKojaLink[]).filter(
+        (l) => !/pengaduan\s*&\s*whistleblowing/i.test(l.judul),
+    );
 
     // [FITUR BARU] QR code menuju halaman ini sendiri — untuk materi cetak
     // (poster/banner di ruang pelayanan), supaya pengunjung bisa langsung
@@ -52,9 +56,9 @@ export default async function PestaKojaPage({ params }: { params: Promise<{ loca
                 pun locale yang aktif. Menerjemahkan ini butuh skema
                 multi-bahasa terpisah di database, di luar scope saat ini. */}
             {/* HP/tablet: daftar satu kolom (baris). Layar lebar (lg+): grid kartu persegi
-                (rasio 1:1) tiga kolom supaya halaman tidak terlalu kosong. Kartu QR ikut
+                (rasio 1:1) empat kolom supaya halaman tidak terlalu kosong. Kartu QR ikut
                 menjadi satu kotak di grid. */}
-            <div className="grid gap-3 lg:grid-cols-3 lg:gap-4">
+            <div className="grid gap-3 lg:grid-cols-4 lg:gap-5">
                 {links.length > 0 ? links.map((link) => {
                     const Icon = getPestaKojaIcon(link.ikon);
                     return (
@@ -76,7 +80,7 @@ export default async function PestaKojaPage({ params }: { params: Promise<{ loca
                         </a>
                     );
                 }) : (
-                    <div className="text-center py-10 text-navy-950/30 text-sm lg:col-span-3">{t('empty')}</div>
+                    <div className="text-center py-10 text-navy-950/30 text-sm lg:col-span-4">{t('empty')}</div>
                 )}
 
                 <div className="mt-3 lg:mt-0 bg-white border border-paper-200 rounded-2xl p-5 flex flex-col items-center justify-center text-center lg:aspect-square">

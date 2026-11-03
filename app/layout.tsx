@@ -29,6 +29,15 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
         <html lang="id" className={`${jakarta.variable} ${plexMono.variable}`} suppressHydrationWarning>
+            <head>
+                {/* Terapkan tema gelap SEBELUM halaman tampil agar tidak berkedip terang→gelap.
+                    Pilihan tema: 'terang' (bawaan) | 'gelap' | 'otomatis' (ikuti perangkat). */}
+                <script
+                    dangerouslySetInnerHTML={{
+                        __html: `try{var t=localStorage.getItem('simpatik-tema');if(t==='gelap'||(t==='otomatis'&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark')}}catch(e){}`,
+                    }}
+                />
+            </head>
             {/*
               suppressHydrationWarning di <body> meredam warning hydration
               mismatch yang disebabkan ekstensi browser (crypto wallet,

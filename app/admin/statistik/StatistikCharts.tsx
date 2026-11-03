@@ -22,12 +22,12 @@ export function StatistikCharts({ data }: { data: DataBulan[] }) {
                 <div className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={data} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#E7E3DA" />
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--chart-grid))" />
                             <XAxis dataKey="bulan" tick={{ fontSize: 12, fill: '#6b7280' }} />
                             <YAxis tick={{ fontSize: 12, fill: '#6b7280' }} allowDecimals={false} />
                             <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
                             <Legend wrapperStyle={{ fontSize: 12 }} />
-                            <Bar dataKey="offline" name="Offline" fill="#1B3A5F" radius={[4, 4, 0, 0]} />
+                            <Bar dataKey="offline" name="Offline" fill="rgb(var(--chart-navy))" radius={[4, 4, 0, 0]} />
                             <Bar dataKey="online" name="Online" fill="#059669" radius={[4, 4, 0, 0]} />
                         </BarChart>
                     </ResponsiveContainer>
@@ -38,7 +38,7 @@ export function StatistikCharts({ data }: { data: DataBulan[] }) {
                 <div className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={data} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#E7E3DA" />
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--chart-grid))" />
                             <XAxis dataKey="bulan" tick={{ fontSize: 12, fill: '#6b7280' }} />
                             <YAxis domain={[0, 5]} tick={{ fontSize: 12, fill: '#6b7280' }} />
                             <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
@@ -52,7 +52,7 @@ export function StatistikCharts({ data }: { data: DataBulan[] }) {
                 <div className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={data} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#E7E3DA" />
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--chart-grid))" />
                             <XAxis dataKey="bulan" tick={{ fontSize: 12, fill: '#6b7280' }} />
                             <YAxis domain={[0, 100]} tick={{ fontSize: 12, fill: '#6b7280' }} unit="%" />
                             <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} formatter={(v: number) => `${v}%`} />
