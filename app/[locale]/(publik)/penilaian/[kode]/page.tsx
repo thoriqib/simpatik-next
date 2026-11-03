@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { notFound } from 'next/navigation';
 import { todayDateStringWIB } from '@/lib/utils';
 import { PenilaianForm } from './PenilaianForm';
@@ -40,11 +41,13 @@ export default async function PenilaianPage({
 
     const supabase = await createClient();
 
-    // [FIX] Cast eksplisit — relasi to-one (jenis_layanan, profiles) ditebak
-    // sebagai array tanpa generated types.
+    // [FIX 404] Join `profiles(...)` TIDAK dipakai di sini: tabel profiles dilindungi
+    // RLS (hanya pemilik/admin yang boleh membaca), jadi untuk pengunjung (anon) join itu
+    // selalu null dan halaman salah mengira antrian tidak valid → 404. Nama petugas
+    // diambil terpisah di bawah lewat service role, hanya kolom id & name.
     const { data: antrianRaw } = await supabase
         .from('antrian')
-        .select('*, jenis_layanan(*), profiles(id, name), penilaian(id)')
+        .select('*, jenis_layanan(*), penilaian(id)')
         .eq('kode_antrian', kode)
         .eq('tanggal', todayDateStringWIB())
         .eq('status', 'selesai')
@@ -53,13 +56,16 @@ export default async function PenilaianPage({
     const antrian = antrianRaw as unknown as Antrian | null;
 
     // [Setara fix bug Laravel] Cek "belum dinilai" via hasil join, bukan whereNull kolom yang tidak ada
-    if (!antrian || (antrian.penilaian && antrian.penilaian.length > 0) || !antrian.profiles) {
+    if (!antrian || (antrian.penilaian && antrian.penilaian.length > 0) || !antrian.petugas_id) {
         notFound();
     }
 
-    // Destructure ke variabel baru agar TypeScript mempersempit tipe (narrowing)
-    // dengan andal setelah guard clause di atas — antrian.profiles sudah pasti ada.
-    const profil = antrian.profiles;
+    const { data: profil } = await createAdminClient()
+        .from('profiles')
+        .select('id, name')
+        .eq('id', antrian.petugas_id)
+        .maybeSingle();
+    if (!profil) notFound();
 
     return (
         <>
