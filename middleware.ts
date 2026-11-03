@@ -110,7 +110,10 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
+    // [FIX 404 template] File statis di /public/templates (xlsx, csv) dan ekstensi file
+    // lain TIDAK boleh lewat middleware: next-intl akan menulis ulang path-nya ke
+    // /id/templates/... yang tidak ada → 404 saat download.
     matcher: [
-        '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+        '/((?!_next/static|_next/image|favicon.ico|templates/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|xlsx|xls|csv|pdf|txt|json|mp4|webmanifest)$).*)',
     ],
 };
