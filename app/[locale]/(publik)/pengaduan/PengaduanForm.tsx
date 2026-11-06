@@ -2,6 +2,7 @@
 
 import { useActionState } from 'react';
 import { kirimPengaduan } from '@/lib/actions/pengaduan';
+import { TurnstileWidget } from '@/components/TurnstileWidget';
 import { SubmitButton } from '@/components/ui/SubmitButton';
 import { useTranslations } from 'next-intl';
 
@@ -30,6 +31,8 @@ export function PengaduanForm() {
                 <textarea name="isi_pengaduan" rows={5} required placeholder={t('isiPlaceholder')}
                     className="w-full border border-paper-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-azure-500/40 resize-none" />
             </div>
+
+            <TurnstileWidget resetKey={state} />
 
             <SubmitButton className="w-full py-3" pendingText={t('submitting')}>
                 {t('submit')}

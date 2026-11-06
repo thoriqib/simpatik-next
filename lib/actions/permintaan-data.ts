@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { cekDalamJamPelayanan } from '@/lib/jam-pelayanan';
+import { verifikasiCaptcha } from '@/lib/captcha';
 import type { ActionState } from './auth';
 import type { PermintaanDataPublikResult, PermintaanDataRingkasan } from '@/lib/types/database';
 
@@ -44,6 +45,9 @@ export async function kirimPermintaanData(prevState: ActionState, formData: Form
     if ((formData.get('website') as string)?.trim()) {
         return { error: 'Terjadi kesalahan. Silakan coba lagi.' };
     }
+
+    const captcha = await verifikasiCaptcha(formData);
+    if (!captcha.ok) return { error: captcha.error };
 
     const namaLengkap = (formData.get('nama_lengkap') as string || '').trim();
     const instansi = (formData.get('instansi') as string || '').trim();

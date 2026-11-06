@@ -65,13 +65,13 @@ export async function JadwalPetugasView({ minggu, basePath }: { minggu?: string;
 
     return (
         <>
-            <div className="mb-5">
-                <h2 className="text-xl font-bold text-navy-950">Jadwal Petugas Pelayanan</h2>
-                <p className="text-sm text-navy-950/50 mt-1">Jadwal piket petugas Simpatik, {rangeLabel}</p>
+            <div className="mb-6 sm:mb-8">
+                <h2 className="text-2xl font-bold text-navy-950 tracking-tight">Jadwal Petugas Pelayanan</h2>
+                <p className="text-sm text-navy-950/60 mt-1.5">Jadwal piket petugas Simpatik, {rangeLabel}</p>
             </div>
 
             {/* Navigasi minggu */}
-            <div className="bg-white rounded-xl border border-paper-200 shadow-sm p-3 mb-5 flex items-center justify-between gap-3">
+            <div className="bg-white rounded-xl border border-paper-200 shadow-sm p-3 sm:p-4 mb-6 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
                 <Link
                     href={`${basePath}?minggu=${toDateStringLocal(mondayPrev)}`}
                     className="inline-flex items-center gap-1.5 text-sm text-navy-950/60 hover:text-navy-950 px-3 py-2 rounded-lg hover:bg-paper-50 transition-colors"
@@ -79,7 +79,7 @@ export async function JadwalPetugasView({ minggu, basePath }: { minggu?: string;
                     <ChevronLeft className="w-4 h-4" /> Minggu Lalu
                 </Link>
 
-                <div className="flex items-center gap-3">
+                <div className="order-first sm:order-none w-full sm:w-auto flex items-center justify-center gap-3">
                     <span className="font-semibold text-navy-950 text-sm text-center">{rangeLabel}</span>
                     {!isMingguIni && (
                         <Link
@@ -99,14 +99,14 @@ export async function JadwalPetugasView({ minggu, basePath }: { minggu?: string;
                 </Link>
             </div>
 
-            <div className="bg-white rounded-xl border border-paper-200 shadow-sm overflow-hidden">
-                <div className="grid border-b border-gray-200 bg-navy-700 text-white text-sm font-semibold"
-                    style={{ gridTemplateColumns: `140px repeat(${shifts?.length ?? 1}, 1fr)` }}>
-                    <div className="px-4 py-3">Tanggal</div>
+            <div className="bg-white rounded-2xl border border-paper-200 shadow-sm overflow-hidden">
+                <div className="[--kolom-tgl:84px] sm:[--kolom-tgl:150px] grid border-b border-gray-200 bg-navy-700 text-white text-sm font-semibold"
+                    style={{ gridTemplateColumns: `var(--kolom-tgl) repeat(${shifts?.length ?? 1}, minmax(0, 1fr))` }}>
+                    <div className="px-3 sm:px-6 py-4">Tanggal</div>
                     {shifts?.map((shift) => (
-                        <div key={shift.id} className="px-4 py-3 border-l border-blue-700">
+                        <div key={shift.id} className="px-3 sm:px-6 py-4 border-l border-white/15">
                             <div>{shift.nama_shift}</div>
-                            <div className="text-blue-200 text-xs font-normal">{shift.jam_mulai}–{shift.jam_selesai}</div>
+                            <div className="text-blue-200 text-xs font-normal">{shift.jam_mulai.slice(0, 5)}–{shift.jam_selesai.slice(0, 5)} WIB</div>
                         </div>
                     ))}
                 </div>
@@ -119,10 +119,10 @@ export async function JadwalPetugasView({ minggu, basePath }: { minggu?: string;
                     return (
                         <div key={tglStr} className="border-b border-paper-200 last:border-0">
                             <div
-                                className={`grid text-sm ${isToday ? 'bg-azure-500/10' : 'hover:bg-paper-50'} transition`}
-                                style={{ gridTemplateColumns: `140px repeat(${shifts?.length ?? 1}, 1fr)` }}
+                                className={`[--kolom-tgl:84px] sm:[--kolom-tgl:150px] grid text-sm ${isToday ? 'bg-azure-500/10' : 'hover:bg-paper-50'} transition`}
+                                style={{ gridTemplateColumns: `var(--kolom-tgl) repeat(${shifts?.length ?? 1}, minmax(0, 1fr))` }}
                             >
-                                <div className="px-4 py-4 border-r border-paper-200">
+                                <div className="px-3 sm:px-6 py-5 border-r border-paper-200">
                                     <div className={`font-semibold ${isToday ? 'text-navy-700' : 'text-navy-950/80'}`}>
                                         {tgl.toLocaleDateString('id-ID', { weekday: 'short' })}
                                         {isToday && <span className="ml-1 text-xs bg-navy-700 text-white px-1.5 py-0.5 rounded">Hari ini</span>}
@@ -132,22 +132,22 @@ export async function JadwalPetugasView({ minggu, basePath }: { minggu?: string;
                                 {shifts?.map((shift: ShiftPiket) => {
                                     const petugasShift = jadwalHari.filter((j) => j.shift_id === shift.id);
                                     return (
-                                        <div key={shift.id} className="px-4 py-4 border-r border-paper-200 last:border-0">
+                                        <div key={shift.id} className="px-3 sm:px-6 py-5 border-r border-paper-200 last:border-0">
                                             {libur ? (
                                                 <span className="text-rose-400 text-xs italic">Libur</span>
                                             ) : petugasShift.length === 0 ? (
                                                 <span className="text-navy-950/20 text-xs italic">—</span>
                                             ) : (
-                                                <div className="space-y-1.5">
+                                                <div className="space-y-2.5">
                                                     {petugasShift.map((j) => (
-                                                        <div key={j.id} className="flex items-center gap-2">
-                                                            <div className={`w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold ${STATUS_DOT[j.status]}`}>
+                                                        <div key={j.id} className="flex items-center gap-2.5">
+                                                            <div className={`w-8 h-8 rounded-full flex-shrink-0 hidden sm:flex flex items-center justify-center text-white text-xs font-bold ${STATUS_DOT[j.status]}`}>
                                                                 {j.nama_petugas.charAt(0).toUpperCase()}
                                                             </div>
                                                             <div>
-                                                                <div className="text-xs font-medium text-navy-950 leading-tight">{j.nama_petugas}</div>
+                                                                <div className="text-sm font-medium text-navy-950 leading-snug">{j.nama_petugas}</div>
                                                                 {j.status !== 'terjadwal' && (
-                                                                    <div className={`text-xs leading-tight ${STATUS_TEXT[j.status]}`}>
+                                                                    <div className={`text-xs leading-tight mt-0.5 ${STATUS_TEXT[j.status]}`}>
                                                                         {j.status.charAt(0).toUpperCase() + j.status.slice(1)}
                                                                     </div>
                                                                 )}
@@ -163,7 +163,7 @@ export async function JadwalPetugasView({ minggu, basePath }: { minggu?: string;
 
                             {/* Banner hari libur — merentang penuh di bawah baris tanggal */}
                             {libur && (
-                                <div className="px-4 py-2 bg-rose-50 border-t border-rose-100 text-rose-600 text-xs font-medium flex items-center gap-1.5">
+                                <div className="px-3 sm:px-6 py-2.5 bg-rose-50 border-t border-rose-100 text-rose-600 text-xs font-medium flex items-center gap-1.5">
                                     🎌 Hari Libur Nasional: {libur.keterangan}
                                 </div>
                             )}
@@ -172,12 +172,12 @@ export async function JadwalPetugasView({ minggu, basePath }: { minggu?: string;
                 })}
             </div>
 
-            <div className="mt-4 flex flex-wrap gap-4 text-xs text-navy-950/50">
-                <span className="flex items-center gap-1.5"><span className="w-4 h-4 rounded-full bg-navy-700 inline-block" /> Terjadwal</span>
-                <span className="flex items-center gap-1.5"><span className="w-4 h-4 rounded-full bg-green-500 inline-block" /> Hadir</span>
-                <span className="flex items-center gap-1.5"><span className="w-4 h-4 rounded-full bg-blue-400 inline-block" /> Izin</span>
-                <span className="flex items-center gap-1.5"><span className="w-4 h-4 rounded-full bg-orange-400 inline-block" /> Sakit</span>
-                <span className="flex items-center gap-1.5"><span className="w-4 h-4 rounded-full bg-red-400 inline-block" /> Alpha</span>
+            <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 px-1 text-xs text-navy-950/60">
+                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-navy-700 inline-block" /> Terjadwal</span>
+                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-green-500 inline-block" /> Hadir</span>
+                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-blue-400 inline-block" /> Izin</span>
+                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-orange-400 inline-block" /> Sakit</span>
+                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-red-400 inline-block" /> Alpha</span>
                 <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-rose-400 inline-block" /> Libur Nasional</span>
             </div>
         </>

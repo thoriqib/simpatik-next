@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { cekDalamJamPelayanan } from '@/lib/jam-pelayanan';
+import { verifikasiCaptcha } from '@/lib/captcha';
 import type { ActionState } from './auth';
 import type { PengaduanPublikResult } from '@/lib/types/database';
 
@@ -17,6 +18,9 @@ import type { PengaduanPublikResult } from '@/lib/types/database';
  * percakapan chat-nya (lihat kirimPesanPenguduPublik & kirimPesanAdminPengaduan).
  */
 export async function kirimPengaduan(prevState: ActionState, formData: FormData): Promise<ActionState> {
+    const captcha = await verifikasiCaptcha(formData);
+    if (!captcha.ok) return { error: captcha.error };
+
     const subjek = (formData.get('subjek') as string || '').trim();
     const isi = (formData.get('isi_pengaduan') as string || '').trim();
 

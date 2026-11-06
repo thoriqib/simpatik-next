@@ -2,6 +2,7 @@
 
 import { useActionState } from 'react';
 import { kirimPermintaanData } from '@/lib/actions/permintaan-data';
+import { TurnstileWidget } from '@/components/TurnstileWidget';
 import { SubmitButton } from '@/components/ui/SubmitButton';
 import { useTranslations } from 'next-intl';
 import { Send, Briefcase, GraduationCap, Check } from 'lucide-react';
@@ -94,6 +95,8 @@ export function PermintaanDataForm() {
                     placeholder={t('kebutuhanPlaceholder')}
                     className="w-full border border-paper-200 rounded-xl px-3.5 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-azure-500/40 focus:border-azure-500 transition-colors" />
             </div>
+
+            <TurnstileWidget resetKey={state} />
 
             <SubmitButton className="w-full py-3.5 text-base mt-2" pendingText={t('submitting')}>
                 <Send className="w-4 h-4" />
