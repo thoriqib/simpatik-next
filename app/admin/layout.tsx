@@ -6,5 +6,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     const { data: { user } } = await supabase.auth.getUser();
     const { data: profile } = await supabase.from('profiles').select('name').eq('id', user!.id).single();
 
-    return <AdminShell name={profile?.name ?? 'Admin'}>{children}</AdminShell>;
+    const { count: permintaanBaru } = await supabase.from('permintaan_data').select('id', { count: 'exact', head: true }).eq('status', 'baru');
+
+    return <AdminShell name={profile?.name ?? 'Admin'} permintaanBaru={permintaanBaru ?? 0}>{children}</AdminShell>;
 }

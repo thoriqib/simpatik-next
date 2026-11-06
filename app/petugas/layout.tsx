@@ -9,5 +9,7 @@ export default async function PetugasLayout({ children }: { children: React.Reac
     // [FITUR BARU] Admin bisa merangkap petugas — kalau yang login admin,
     // PetugasSidebar menampilkan tautan "Kembali ke Admin" supaya mudah
     // beralih balik, tanpa perlu logout/login ulang.
-    return <PetugasShell name={profile?.name ?? 'Petugas'} isAdmin={profile?.role === 'admin'}>{children}</PetugasShell>;
+    const { count: permintaanBaru } = await supabase.from('permintaan_data').select('id', { count: 'exact', head: true }).eq('status', 'baru');
+
+    return <PetugasShell name={profile?.name ?? 'Petugas'} isAdmin={profile?.role === 'admin'} permintaanBaru={permintaanBaru ?? 0}>{children}</PetugasShell>;
 }

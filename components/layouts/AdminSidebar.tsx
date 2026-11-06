@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { logout } from '@/lib/actions/auth';
 import { LogoutButton } from '@/components/layouts/LogoutButton';
+import { NotifBadge } from '@/components/layouts/NotifBadge';
 import {
     LayoutDashboard, Users, Clock, CalendarDays, CalendarClock, Tag,
     MessageSquareWarning, Star, ClipboardList, X, Trophy, FileSearch, BarChart3, ShieldCheck, Link2, HelpCircle, ArrowLeftRight, Briefcase, Repeat, MessageCircle,
@@ -34,7 +35,7 @@ const MENU: { group: string | null; href: string; label: string; icon: React.Ele
     { group: null, href: '/admin/bantuan', label: 'Bantuan', icon: HelpCircle },
 ];
 
-export function AdminSidebar({ name, mobileOpen, onClose }: { name: string; mobileOpen: boolean; onClose: () => void }) {
+export function AdminSidebar({ name, mobileOpen, onClose, permintaanBaru = 0 }: { name: string; mobileOpen: boolean; onClose: () => void; permintaanBaru?: number }) {
     const pathname = usePathname();
     let lastGroup: string | null = null;
 
@@ -88,6 +89,7 @@ export function AdminSidebar({ name, mobileOpen, onClose }: { name: string; mobi
                                     {active && <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-amber-500 rounded-r-full" />}
                                     <Icon className="w-4 h-4 shrink-0" strokeWidth={2} />
                                     {item.label}
+                                    {item.href.endsWith('/permintaan-data') && permintaanBaru > 0 && <NotifBadge count={permintaanBaru} className="ml-auto" />}
                                 </Link>
                             </div>
                         );

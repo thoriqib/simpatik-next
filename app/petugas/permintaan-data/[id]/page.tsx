@@ -7,6 +7,7 @@ import { ChatThread } from '@/components/permintaan-data/ChatThread';
 import { LinkLacakCard } from '@/components/permintaan-data/LinkLacakCard';
 import { KlaimAction } from './KlaimAction';
 import { unstable_noStore as noStore } from 'next/cache';
+import { ambilNamaPetugas } from '@/lib/nama-petugas';
 import type { PermintaanData, PermintaanDataPesan } from '@/lib/types/database';
 
 export const dynamic = 'force-dynamic';
@@ -28,9 +29,11 @@ export default async function DetailPermintaanDataPetugasPage({ params }: { para
 
     // [FIX] Cast eksplisit — relasi to-one `profiles` ditebak sebagai array
     // tanpa generated types.
-    const { data: permintaanRaw } = await supabase.from('permintaan_data').select('*, profiles(name)').eq('id', id).single();
+    const { data: permintaanRaw } = await supabase.from('permintaan_data').select('*').eq('id', id).single();
     const permintaan = permintaanRaw as unknown as PermintaanData | null;
     if (!permintaan) notFound();
+    // Join ke profiles diblok RLS untuk petugas → ambil nama penangani lewat service role (hanya nama)
+    const namaPenangani = permintaan.ditangani_oleh ? (await ambilNamaPetugas([permintaan.ditangani_oleh])).get(permintaan.ditangani_oleh) : undefined;
 
     const punyaKu = permintaan.ditangani_oleh === user?.id;
 
@@ -94,7 +97,7 @@ export default async function DetailPermintaanDataPetugasPage({ params }: { para
                     ) : !punyaKu && permintaan.status === 'diproses' ? (
                         <Card title="Sedang Ditangani Petugas Lain">
                             <p className="text-sm text-navy-950/60 mb-4">
-                                Permintaan ini sedang ditangani oleh <strong className="text-navy-950">{permintaan.profiles?.name}</strong>.
+                                Permintaan ini sedang ditangani oleh <strong className="text-navy-950">{namaPenangani}</strong>.
                                 Kalau petugas tersebut berhalangan, Anda bisa mengambil alih.
                             </p>
                             <KlaimAction id={permintaan.id} mode="ambil-alih" />
@@ -125,9 +128,9 @@ export default async function DetailPermintaanDataPetugasPage({ params }: { para
                         <p className="text-xs text-navy-950/40 mt-3">
                             Masuk pada {new Date(permintaan.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' })} WIB
                         </p>
-                        {permintaan.profiles?.name && permintaan.status !== 'baru' && (
+                        {namaPenangani && permintaan.status !== 'baru' && (
                             <p className="text-xs text-navy-950/60 mt-2 pt-2 border-t border-paper-200">
-                                Penanggung jawab: <strong className="text-navy-950">{permintaan.profiles.name}</strong>
+                                Penanggung jawab: <strong className="text-navy-950">{namaPenangani}</strong>
                                 {punyaKu && <span className="text-azure-500"> (Saya)</span>}
                             </p>
                         )}

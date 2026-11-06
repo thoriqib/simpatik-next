@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import Link from 'next/link';
 import { unstable_noStore as noStore } from 'next/cache';
+import { ambilNamaPetugas } from '@/lib/nama-petugas';
 import type { PermintaanData } from '@/lib/types/database';
 
 export const dynamic = 'force-dynamic';
@@ -22,10 +23,12 @@ export default async function PermintaanDataPetugasPage() {
     // [FIX] Cast eksplisit — konsisten dengan pola di seluruh proyek.
     const { data: permintaanRaw } = await supabase
         .from('permintaan_data')
-        .select('*, profiles(name)')
+        .select('*')
         .order('created_at', { ascending: false })
         .limit(50);
     const permintaan = permintaanRaw as unknown as PermintaanData[] | null;
+    // Nama penangani diambil lewat service role: join ke profiles diblok RLS untuk role petugas
+    const namaPetugas = await ambilNamaPetugas((permintaan ?? []).map((p) => p.ditangani_oleh));
 
     return (
         <>
@@ -63,8 +66,8 @@ export default async function PermintaanDataPetugasPage() {
                                     </td>
                                     <td className="py-3 text-xs text-navy-950/60">{KEGUNAAN_LABEL[p.kegunaan_data] ?? p.kegunaan_data}</td>
                                     <td className="py-3 text-xs text-navy-950/60">
-                                        {p.profiles?.name ? (
-                                            <span className={punyaKu ? 'font-semibold text-azure-500' : ''}>{p.profiles.name}{punyaKu && ' (Saya)'}</span>
+                                        {p.ditangani_oleh && namaPetugas.get(p.ditangani_oleh) ? (
+                                            <span className={punyaKu ? 'font-semibold text-azure-500' : ''}>{namaPetugas.get(p.ditangani_oleh)}{punyaKu && ' (Saya)'}</span>
                                         ) : <span className="text-navy-950/30 italic">Belum ada</span>}
                                     </td>
                                     <td className="py-3"><Badge status={p.status} /></td>

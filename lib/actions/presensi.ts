@@ -217,11 +217,20 @@ export async function editPresensiAdmin(params: {
         kekurangan_menit: kekuranganMenit,
     };
 
-    const { error } = params.presensiId
-        ? await supabase.from('presensi').update(payload).eq('id', params.presensiId)
-        : await supabase.from('presensi').insert(payload);
+    // `.select('id')` supaya kelihatan berapa baris yang benar-benar tersimpan: Postgres/RLS TIDAK
+    // memberi error bila UPDATE tidak lolos policy — barisnya saja yang 0. Tanpa pengecekan ini
+    // perubahan gagal diam-diam (dulu: jam pulang "tidak bisa dikosongkan").
+    const { data: tersimpan, error } = params.presensiId
+        ? await supabase.from('presensi').update(payload).eq('id', params.presensiId).select('id')
+        : await supabase.from('presensi').insert(payload).select('id');
 
-    if (error) return { error: error.message };
+    if (error) {
+        if (error.code === '42501') return { error: 'Ditolak oleh aturan akses database (RLS). Jalankan migrasi 0029_presensi_admin_edit.sql di Supabase.' };
+        return { error: error.message };
+    }
+    if (!tersimpan || tersimpan.length === 0) {
+        return { error: 'Perubahan tidak tersimpan (0 baris berubah). Pastikan migrasi 0029_presensi_admin_edit.sql sudah dijalankan di Supabase.' };
+    }
 
     await supabase.from('jadwal_piket').update({ status: 'hadir' }).eq('id', params.jadwalPiketId);
 

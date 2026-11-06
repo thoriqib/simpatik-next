@@ -217,6 +217,12 @@
     }
 }
 
+/* Lencana notifikasi: pop singkat + cincin memudar saat angka bertambah */
+@keyframes notif-pop { 0% { transform: scale(.6); } 55% { transform: scale(1.25); } 100% { transform: scale(1); } }
+@keyframes notif-ping { 0% { transform: scale(1); opacity: .6; } 100% { transform: scale(2.2); opacity: 0; } }
+.notif-pop { animation: notif-pop .45s ease-out; }
+.notif-ping { animation: notif-ping .9s ease-out; }
+
 @layer utilities {
     /* Tekstur kertas grafik — signature visual, dipakai terbatas */
     .bg-grid-dot {
