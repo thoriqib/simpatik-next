@@ -35,7 +35,7 @@ const MENU: { group: string | null; href: string; label: string; icon: React.Ele
     { group: null, href: '/admin/bantuan', label: 'Bantuan', icon: HelpCircle },
 ];
 
-export function AdminSidebar({ name, mobileOpen, onClose, permintaanBaru = 0 }: { name: string; mobileOpen: boolean; onClose: () => void; permintaanBaru?: number }) {
+export function AdminSidebar({ name, mobileOpen, onClose, permintaanBaru = 0, gantiJadwal = 0 }: { name: string; mobileOpen: boolean; onClose: () => void; permintaanBaru?: number; gantiJadwal?: number }) {
     const pathname = usePathname();
     let lastGroup: string | null = null;
 
@@ -90,6 +90,7 @@ export function AdminSidebar({ name, mobileOpen, onClose, permintaanBaru = 0 }: 
                                     <Icon className="w-4 h-4 shrink-0" strokeWidth={2} />
                                     {item.label}
                                     {item.href.endsWith('/permintaan-data') && permintaanBaru > 0 && <NotifBadge count={permintaanBaru} className="ml-auto" />}
+                                    {item.href.endsWith('/ganti-jadwal') && gantiJadwal > 0 && <NotifBadge count={gantiJadwal} className="ml-auto" />}
                                 </Link>
                             </div>
                         );
