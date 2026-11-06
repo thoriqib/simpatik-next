@@ -1,14 +1,15 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useState } from 'react';
 import { kirimPermintaanData } from '@/lib/actions/permintaan-data';
-import { TurnstileWidget } from '@/components/TurnstileWidget';
+import { TurnstileWidget, TURNSTILE_SITE_KEY } from '@/components/TurnstileWidget';
 import { SubmitButton } from '@/components/ui/SubmitButton';
 import { useTranslations } from 'next-intl';
 import { Send, Briefcase, GraduationCap, Check } from 'lucide-react';
 
 export function PermintaanDataForm() {
     const [state, formAction] = useActionState(kirimPermintaanData, null);
+    const [captchaOk, setCaptchaOk] = useState(!TURNSTILE_SITE_KEY);
     const t = useTranslations('permintaanData.form');
 
     const KEGUNAAN_OPTIONS = [
@@ -96,9 +97,9 @@ export function PermintaanDataForm() {
                     className="w-full border border-paper-200 rounded-xl px-3.5 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-azure-500/40 focus:border-azure-500 transition-colors" />
             </div>
 
-            <TurnstileWidget resetKey={state} />
+            <TurnstileWidget onVerifiedChange={setCaptchaOk} resetKey={state} />
 
-            <SubmitButton className="w-full py-3.5 text-base mt-2" pendingText={t('submitting')}>
+            <SubmitButton disabled={!captchaOk} className="w-full py-3.5 text-base mt-2" pendingText={t('submitting')}>
                 <Send className="w-4 h-4" />
                 {t('submit')}
             </SubmitButton>

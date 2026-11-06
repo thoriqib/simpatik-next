@@ -7,9 +7,11 @@ interface SubmitButtonProps {
     className?: string;
     pendingText?: string;
     variant?: 'primary' | 'secondary';
+    /** Nonaktifkan tombol dari luar (mis. captcha belum terverifikasi). */
+    disabled?: boolean;
 }
 
-export function SubmitButton({ children, className = '', pendingText = 'Menyimpan...', variant = 'primary' }: SubmitButtonProps) {
+export function SubmitButton({ children, className = '', pendingText = 'Menyimpan...', variant = 'primary', disabled = false }: SubmitButtonProps) {
     const { pending } = useFormStatus();
 
     const base = 'inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100';
@@ -19,7 +21,7 @@ export function SubmitButton({ children, className = '', pendingText = 'Menyimpa
     };
 
     return (
-        <button type="submit" disabled={pending} className={`${base} ${variants[variant]} ${className}`}>
+        <button type="submit" disabled={pending || disabled} className={`${base} ${variants[variant]} ${className}`}>
             {pending && (
                 <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
